@@ -40,8 +40,7 @@ Hãy chắc chắn rằng bạn đã cài đặt các phần mềm sau:
 Mở Command Prompt hoặc PowerShell và chạy các lệnh sau:
 
 ```bash
-git clone https://github.com/your-username/your-repository-name.git
-cd your-repository-name
+git clone https://github.com/beeit-club/Main-Website.git
 ```
 
 #### Bước 2: Cài đặt Backend (API Server)
