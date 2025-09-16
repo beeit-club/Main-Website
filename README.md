@@ -58,20 +58,10 @@ npm install
 copy .env.example .env
 ```
 
-Mở file `.env` trong thư mục `backend` bằng trình soạn thảo văn bản (như Notepad) và cập nhật thông tin kết nối database của bạn. Ví dụ:
-
-```
-DATABASE_URL="mysql://root:mysecretpassword@localhost:3306/club_db"
-JWT_SECRET="your-strong-jwt-secret"
-PORT=8080
-```
 
 Tiếp tục với các lệnh sau:
 
 ```bash
-:: Chạy database migration để tạo các bảng cần thiết
-npx prisma migrate dev
-
 :: Khởi động server backend ở chế độ development
 npm run dev
 ```
