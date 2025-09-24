@@ -1,5 +1,5 @@
-import { config } from '../config/index.js';
-import db from '../db.js';
+import { config } from '../../config/index.js';
+import db from '../../db.js';
 
 class AuthModel {
   // Kiểm tra xem đã tồn tại email chưa
