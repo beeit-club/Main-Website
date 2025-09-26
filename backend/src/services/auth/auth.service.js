@@ -127,6 +127,23 @@ const AuthService = {
     }
   },
 
+  // lấy danh sách quyền
+  getPremiss: async (user_id) => {
+    if (!user_id) {
+      throw new ServiceError(
+        message.Auth.INVALID_USER,
+        code.Auth.INVALID_USER,
+        'Không thể xác định người dùng',
+        400,
+      );
+    }
+    const permissions = await AuthModel.getPremiss(user_id);
+    const getUser = await AuthModel.getUserById(user_id);
+    const user = getUser[0];
+
+    return { user, permissions };
+  },
+
   // Logic cấp lại access token
   refreshUserToken: async (refreshToken) => {
     if (!refreshToken) {

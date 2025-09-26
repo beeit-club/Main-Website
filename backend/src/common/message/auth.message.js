@@ -4,6 +4,7 @@ export const LOGIN_SUCCESS = 'Đăng nhập thành công';
 export const LOGOUT_SUCCESS = 'Đăng xuất thành công';
 export const REFRESH_TOKEN_SUCCESS = 'Cấp lại token thành công';
 export const PROFILE_SUCCESS = 'Lấy thông tin người dùng thành công';
+export const GET_PERMISSIONS = 'Lấy Danh sách quyền thành công';
 
 // ❌ Error messages
 export const VALIDATION_FAILED = 'Dữ liệu không hợp lệ';

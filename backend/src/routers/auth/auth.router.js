@@ -8,6 +8,8 @@ Router.post('/register', authController.register);
 Router.post('/login', authController.login);
 // Đăng xuất
 Router.post('/logout', middleware.verifyToken, authController.logout);
+// lấy danh sách quyền
+Router.get('/permissions', middleware.verifyToken, authController.permissions);
 // cấp lại accessToken
 Router.post('/refresh', authController.refreshToken);
 
