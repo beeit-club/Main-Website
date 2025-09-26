@@ -140,6 +140,16 @@ class AuthModel {
       throw error;
     }
   }
+  // lấy danh sách quyền người dùng
+  static async getPremiss(user_id) {
+    try {
+      const query = `SELECT p.name FROM user_permissions AS up JOIN permissions AS p ON up.permission_id = p.id WHERE up.user_id  = ?`;
+      const [result] = await db.execute(query, [user_id]);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
 
   // Clean up expired sessions (có thể chạy định kỳ)
   static async cleanExpiredSessions() {

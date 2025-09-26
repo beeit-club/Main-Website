@@ -43,6 +43,7 @@ const authController = {
   // Đăng nhập
   login: asyncWrapper(async (req, res) => {
     const { email, password } = req.body || {};
+
     const validationErrors = {};
 
     // Validation ở controller
@@ -86,10 +87,27 @@ const authController = {
 
   // Đăng xuất
   logout: asyncWrapper(async (req, res) => {
-    const { id } = req.body || {};
+    const { id } = req.user || {};
     await AuthService.logoutUser(id);
     res.clearCookie('refreshToken');
     return utils.success(res, message.Auth.LOGOUT_SUCCESS, null);
+  }),
+
+  permissions: asyncWrapper(async (req, res) => {
+    const { id } = req.user ?? {};
+    const { user, permissions } = await AuthService.getPremiss(id);
+
+    const userData = {
+      id: user.id,
+      name: user.fullname,
+      email: user.email,
+      avatar: user.avatar_url,
+      role: user.role_name || 'Guest',
+    };
+    return utils.success(res, message.Auth.GET_PERMISSIONS, {
+      permissions,
+      userData,
+    });
   }),
 
   // Cấp lại access token
