@@ -8,7 +8,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 
 export default function Header() {
   return (
-    <div className=" border-b-2">
+    <div className=" border-b-2 sticky top-0 z-50 ">
       <div className="flex justify-between max-w-7xl mx-auto h-16 items-center">
         <div className="flex gap-11 items-center">
           {/* logo */}

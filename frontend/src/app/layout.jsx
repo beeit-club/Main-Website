@@ -1,7 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
+
 import { Toaster } from "@/components/ui/sonner";
 import ClientWrapper from "./ClientWrapper";
 const geistSans = Geist({
@@ -24,16 +25,20 @@ export default function RootLayout({ children }) {
     <>
       <html lang="en" suppressHydrationWarning>
         <head />
-        <body>
+        <body className={`${geistSans.variable} ${geistMono.variable}`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-            <Header />
-            <ClientWrapper>{children}</ClientWrapper>
-            <Toaster />
+            {" "}
+            <GoogleOAuthProvider
+              clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+            >
+              <ClientWrapper>{children}</ClientWrapper>
+            </GoogleOAuthProvider>
+            <Toaster position="top-center" />
           </ThemeProvider>
         </body>
       </html>

@@ -5,11 +5,12 @@ import { utils } from '../../utils/index.js';
 import { message } from '../../common/message/index.js';
 import asyncWrapper from '../../middlewares/error.handler.js';
 import { config } from '../../config/index.js';
+import { isValidEmail } from '../../utils/validate.js';
 
 const authController = {
   // Đăng ký
   register: asyncWrapper(async (req, res) => {
-    const { fullname, email, password } = req.body ?? {};
+    const { fullname, email } = req.body ?? {};
     const validationErrors = {};
 
     // Validation ở controller
@@ -18,9 +19,6 @@ const authController = {
     }
     if (!email || !utils.isValidEmail(email)) {
       validationErrors.email = ['Vui lòng nhập email và đúng định dạng'];
-    }
-    if (!password || password.length < 6) {
-      validationErrors.password = ['Vui lòng nhập mật khẩu và dài hơn 6 ký tự'];
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -31,7 +29,7 @@ const authController = {
       );
     }
 
-    const result = await AuthService.registerUser(fullname, email, password);
+    const result = await AuthService.registerUser(fullname, email);
 
     return utils.success(res, message.Auth.REGISTER_SUCCESS, {
       user_id: result.user_id,
@@ -42,7 +40,7 @@ const authController = {
 
   // Đăng nhập
   login: asyncWrapper(async (req, res) => {
-    const { email, password } = req.body || {};
+    const { email } = req.body || {};
 
     const validationErrors = {};
 
@@ -50,8 +48,65 @@ const authController = {
     if (!email || !utils.isValidEmail(email)) {
       validationErrors.email = ['Vui lòng nhập email và đúng định dạng'];
     }
-    if (!password || password.length < 6) {
-      validationErrors.password = ['Vui lòng nhập mật khẩu và dài hơn 6 ký tự'];
+    if (Object.keys(validationErrors).length > 0) {
+      return utils.validationError(
+        res,
+        validationErrors,
+        message.Auth.VALIDATION_FAILED,
+      );
+    }
+
+    const { TokenOTP } = (await AuthService.loginUser(email)) ?? {};
+
+    return utils.success(res, message.Auth.SEND_EMAIL_SUCCESS, {
+      TokenOTP: TokenOTP,
+    });
+  }),
+  sendotp: asyncWrapper(async (req, res) => {
+    const { email, pin } = req.body || {};
+    const validationErrors = {};
+    // Validation ở controller
+    if (!email || !utils.isValidEmail(email)) {
+      validationErrors.email = ['Vui lòng nhập email và đúng định dạng'];
+    }
+    if (!pin) {
+      validationErrors.pin = ['Vui Lòng nhập mã pin'];
+    }
+    if (Object.keys(validationErrors).length > 0) {
+      return utils.validationError(
+        res,
+        validationErrors,
+        message.Auth.VALIDATION_FAILED,
+      );
+    }
+    // kiểm tra opt xem có khớp không
+    const { valid, refreshToken, accessToken, user } =
+      (await AuthService.isVerryOTP(email, pin)) ?? {};
+    res.cookie('refreshToken', refreshToken, {
+      maxAge: Number(config.JWT_REFRESH_EXPIRES_IN),
+      httpOnly: true,
+      secure: config.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    const userData = {
+      id: user.id,
+      name: user.fullname,
+      email: user.email,
+      avatar: user.avatar_url,
+      role: user.role_name || 'Guest',
+    };
+    return utils.success(res, message.Auth.LOGIN_SUCCESS, {
+      accessToken: accessToken,
+      user: userData,
+    });
+  }),
+  // đăng nhạp bằng gg
+  google: asyncWrapper(async (req, res) => {
+    const { code, redirect_uri } = req.body ?? {};
+    const validationErrors = {};
+    if (!code || !redirect_uri) {
+      validationErrors.code = ['Lỗi server thử lại '];
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -61,27 +116,47 @@ const authController = {
         message.Auth.VALIDATION_FAILED,
       );
     }
-
-    const result = await AuthService.loginUser(email, password);
-
-    const userData = {
-      id: result.user.id,
-      name: result.user.fullname,
-      email: result.user.email,
-      avatar: result.user.avatar_url,
-      role: result.user.role_name || 'Guest',
-    };
-
-    res.cookie('refreshToken', result.refreshToken, {
+    const { refreshToken, accessToken, user } = await AuthService.googleLogin(
+      code,
+      redirect_uri,
+    );
+    res.cookie('refreshToken', refreshToken, {
       maxAge: Number(config.JWT_REFRESH_EXPIRES_IN),
       httpOnly: true,
       secure: config.NODE_ENV === 'production',
       sameSite: 'lax',
     });
-
+    const userData = {
+      id: user.id,
+      name: user.fullname,
+      email: user.email,
+      avatar: user.avatar_url,
+      role: user.role_name || 'Guest',
+    };
     return utils.success(res, message.Auth.LOGIN_SUCCESS, {
-      accessToken: result.accessToken,
+      accessToken: accessToken,
       user: userData,
+    });
+  }),
+
+  resendVerification: asyncWrapper(async (req, res) => {
+    const { email } = req.body ?? {};
+    const validationErrors = {};
+
+    // Validation ở controller
+    if (!email || !utils.isValidEmail(email)) {
+      validationErrors.email = ['Vui lòng nhập email và đúng định dạng'];
+    }
+    if (Object.keys(validationErrors).length > 0) {
+      return utils.validationError(
+        res,
+        validationErrors,
+        message.Auth.VALIDATION_FAILED,
+      );
+    }
+    const a = await AuthService.resendVerification(email);
+    return utils.success(res, message.Auth.SEND_EMAIL_SUCCESS, {
+      a,
     });
   }),
 

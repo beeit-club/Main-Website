@@ -38,4 +38,20 @@ export const authServices = {
       throw err?.response?.data || err;
     }
   },
+  sendOtp: async (data) => {
+    try {
+      const res = await axiosClient.post("/auth/sendotp", data);
+      return res.data;
+    } catch (err) {
+      throw err?.response?.data || err;
+    }
+  },
+  loginGoogle: async (data) => {
+    try {
+      const res = await axiosClient.post("/auth/google", data);
+      return res.data;
+    } catch (err) {
+      throw err?.response?.data || err;
+    }
+  },
 };

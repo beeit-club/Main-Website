@@ -26,4 +26,14 @@ export const emailService = {
       html,
     });
   },
+  async sendLoginOtp(info) {
+    const html = renderTemplate('loginOTP', {
+      otp: info.otp,
+    });
+    return sendMail({
+      to: info.email,
+      subject: 'OTP đăng nhập',
+      html,
+    });
+  },
 };

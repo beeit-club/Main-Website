@@ -4,7 +4,12 @@ export const LOGIN_SUCCESS = 'Đăng nhập thành công';
 export const LOGOUT_SUCCESS = 'Đăng xuất thành công';
 export const REFRESH_TOKEN_SUCCESS = 'Cấp lại token thành công';
 export const PROFILE_SUCCESS = 'Lấy thông tin người dùng thành công';
-export const GET_PERMISSIONS = 'Lấy Danh sách quyền thành công';
+export const GET_PERMISSIONS = 'Lấy danh sách quyền thành công';
+export const SEND_EMAIL_SUCCESS = 'Vui lòng kiểm tra email để lấy mã';
+
+// OTP Success
+export const OTP_SENT_SUCCESS = 'OTP đã được gửi thành công';
+export const OTP_VERIFY_SUCCESS = 'OTP hợp lệ';
 
 // ❌ Error messages
 export const VALIDATION_FAILED = 'Dữ liệu không hợp lệ';
@@ -20,3 +25,9 @@ export const INVALID_REFRESH_TOKEN = 'Token không hợp lệ';
 export const USER_NOT_FOUND = 'Người dùng không tồn tại';
 export const INVALID_USER = 'Không thể xác định người dùng';
 export const LOGOUT_FAILED = 'Đăng xuất thất bại';
+
+// OTP Error
+export const OTP_INVALID = 'OTP không chính xác';
+export const OTP_EXPIRED = 'OTP đã hết hạn';
+export const OTP_ATTEMPTS_EXCEEDED = 'Bạn đã nhập sai OTP quá số lần cho phép';
+export const OTP_NOT_FOUND = 'Không tìm thấy OTP';

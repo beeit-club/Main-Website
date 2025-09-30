@@ -1,5 +1,6 @@
 import { config } from '../../config/index.js';
 import db from '../../db.js';
+import { code, message } from '../../common/message/index.js';
 
 class AuthModel {
   // Kiểm tra xem đã tồn tại email chưa
@@ -7,7 +8,7 @@ class AuthModel {
     try {
       let query;
       if (getFullInfo) {
-        query = `SELECT u.id, u.fullname, u.email, u.password_hash, u.avatar_url, u.is_active, r.name as role_name
+        query = `SELECT u.id, u.fullname, u.email, u.avatar_url, u.is_active, r.name as role_name
                  FROM users u 
                  LEFT JOIN roles r ON u.role_id = r.id 
                  WHERE u.email = ? AND u.deleted_at IS NULL`;
@@ -22,18 +23,13 @@ class AuthModel {
   }
 
   // Đăng ký user mới
-  static async register(fullname, email, password_hash, avatar_url) {
+  static async register(fullname, email, avatar_url) {
     try {
       // Mặc định role_id = 1 (Guest) khi đăng ký
       const query = `INSERT INTO users 
-                     (fullname, email, password_hash, avatar_url, role_id, is_active) 
-                     VALUES (?, ?, ?, ?, 1, TRUE)`;
-      const [result] = await db.execute(query, [
-        fullname,
-        email,
-        password_hash,
-        avatar_url,
-      ]);
+                     (fullname, email, avatar_url, role_id, is_active) 
+                     VALUES (?, ?, ?, 1, TRUE)`;
+      const [result] = await db.execute(query, [fullname, email, avatar_url]);
       return result;
     } catch (error) {
       throw error;
@@ -160,6 +156,151 @@ class AuthModel {
     } catch (error) {
       throw error;
     }
+  }
+  //  Lưu OTP mới
+  static async insertOtp(email, otp) {
+    try {
+      const query = `
+        UPDATE users
+        SET otp_code = ?, otp_expires_at = DATE_ADD(NOW(), INTERVAL ? SECOND), otp_attempts = 0
+        WHERE email = ?
+      `;
+      const [result] = await db.execute(query, [
+        otp,
+        config.JWT_OTP_EXPIRES_IN,
+        email,
+      ]);
+      return result.affectedRows > 0;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  //  Cập nhật OTP
+  static async updateOtp(email, otp, check = true) {
+    try {
+      if (check) {
+        const query = `
+        UPDATE users
+        SET otp_code = ?, otp_expires_at = DATE_ADD(NOW(), INTERVAL ? SECOND), otp_attempts = 0
+        WHERE email = ?
+      `;
+        const [result] = await db.execute(query, [
+          otp,
+          config.JWT_OTP_EXPIRES_IN,
+          email,
+        ]);
+        return result.affectedRows > 0;
+      } else {
+        const query = `
+        UPDATE users
+        SET otp_code = ?, otp_expires_at = null, otp_attempts = 0
+        WHERE email = ?
+      `;
+        const [result] = await db.execute(query, [otp, email]);
+        return result.affectedRows > 0;
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  //  Kiểm tra OTP
+  static async verifyOtp(email, otp) {
+    try {
+      const [rows] = await db.execute(
+        `SELECT otp_code, otp_expires_at, otp_attempts FROM users WHERE email = ?`,
+        [email],
+      );
+
+      if (rows.length === 0) {
+        return {
+          valid: false,
+          code: code.Auth.USER_NOT_FOUND_CODE,
+          msg: message.Auth.USER_NOT_FOUND,
+        };
+      }
+
+      const user = rows[0];
+
+      if (user.otp_attempts >= config.OTP_MAX_ATTEMPTS) {
+        return {
+          valid: false,
+          code: code.Auth.OTP_ATTEMPTS_EXCEEDED_CODE,
+          msg: message.Auth.OTP_ATTEMPTS_EXCEEDED,
+        };
+      }
+
+      if (!user.otp_expires_at || new Date(user.otp_expires_at) < new Date()) {
+        return {
+          valid: false,
+          code: code.Auth.OTP_EXPIRED_CODE,
+          msg: message.Auth.OTP_EXPIRED,
+        };
+      }
+
+      if (user.otp_code !== otp) {
+        await db.execute(
+          `UPDATE users SET otp_attempts = otp_attempts + 1 WHERE email = ?`,
+          [email],
+        );
+        return {
+          valid: false,
+          code: code.Auth.OTP_INVALID_CODE,
+          msg: message.Auth.OTP_INVALID,
+        };
+      }
+
+      await db.execute(
+        `UPDATE users SET otp_attempts = 0, otp_code = NULL, otp_expires_at = NULL WHERE email = ?`,
+        [email],
+      );
+
+      return {
+        valid: true,
+        code: code.Auth.OTP_VERIFY_SUCCESS_CODE,
+        msg: message.Auth.OTP_VERIFY_SUCCESS,
+      };
+    } catch (error) {
+      return {
+        valid: false,
+        code: code.Auth.SERVER_ERROR_CODE,
+        msg: message.Auth.SERVER_ERROR,
+      };
+    }
+  }
+  //
+  static async findOrCreate(googlePayload) {
+    const { email, sub: googleId, name, picture } = googlePayload;
+    const [rows] = await db.execute(
+      'SELECT * FROM users WHERE email = ? LIMIT 1',
+      [email],
+    );
+
+    if (rows.length > 0) {
+      const user = rows[0];
+      if (!user.google_id) {
+        await db.execute('UPDATE users SET google_id = ? WHERE id = ?', [
+          googleId,
+          user.id,
+        ]);
+        user.google_id = googleId;
+      }
+      return user;
+    }
+
+    const [result] = await db.execute(
+      `INSERT INTO users (fullname, email, google_id, avatar_url, is_active, email_verified_at)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
+      [name, email, googleId, picture, 1],
+    );
+
+    const insertedId = result.insertId;
+
+    const [newUser] = await db.execute('SELECT * FROM users WHERE id = ?', [
+      insertedId,
+    ]);
+    return newUser[0];
   }
 }
 
