@@ -21,11 +21,11 @@ function useLogin(user, logout) {
       <DropdownMenuTrigger>
         <Avatar>
           <AvatarImage src={`${user?.avatar ?? ""}`} />
-          <AvatarFallback>{`${user?.fullname ?? ""}`}</AvatarFallback>
+          <AvatarFallback>{`${user?.name ?? ""}`}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className={`absolute -right-2 top-4`}>
-        <DropdownMenuLabel>{`${user?.fullname ?? ""}`}</DropdownMenuLabel>
+        <DropdownMenuLabel>{`${user?.name ?? ""}`}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>Profile</DropdownMenuItem>
         <DropdownMenuItem>Billing</DropdownMenuItem>

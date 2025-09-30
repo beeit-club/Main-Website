@@ -1,15 +1,21 @@
 // src/services/auth.service.js
 
-import bcryptjs from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import { AuthModel } from '../../models/auth/index.js';
 import { config } from '../../config/index.js';
 import { code, message } from '../../common/message/index.js';
 import ServiceError from '../../error/service.error.js';
-
+import { utils } from '../../utils/index.js';
+import { emailService } from '../email/emailService.js';
+const client = new OAuth2Client({
+  clientId: config.GOOGLE_CLIENT_ID,
+  clientSecret: config.GOOGLE_CLIENT_SECRET,
+  redirectUri: config.GOOGLE_REDIRECT_URI,
+});
 const AuthService = {
   // Logic đăng ký user mới
-  registerUser: async (fullname, email, password) => {
+  registerUser: async (fullname, email) => {
     // Kiểm tra email đã tồn tại chưa
     const existingEmail = await AuthModel.isEmail(email);
     if (existingEmail[0]?.so_luong > 0) {
@@ -22,20 +28,12 @@ const AuthService = {
     }
 
     // Mã hóa mật khẩu
-    const salt = await bcryptjs.genSalt(10);
-    const password_hash = await bcryptjs.hash(password, salt);
-
     // Avatar mặc định
     const avatar_url =
       'https://s3.ap-southeast-1.amazonaws.com/cdn.vntre.vn/default/avatar-mac-dinh-12-1724862391.jpg';
 
     // Đăng ký user mới
-    const result = await AuthModel.register(
-      fullname,
-      email,
-      password_hash,
-      avatar_url,
-    );
+    const result = await AuthModel.register(fullname, email, avatar_url);
 
     if (result.affectedRows === 0) {
       throw new ServiceError(
@@ -52,16 +50,37 @@ const AuthService = {
       fullname: fullname,
     };
   },
+  googleLogin: async (code, redirect_uri) => {
+    const { tokens } = await client.getToken({ code, redirect_uri });
+
+    if (!tokens.id_token) throw new Error('No id_token returned from Google');
+
+    // 2. Verify token
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload(); // { email, name, picture, sub }
+
+    // 3. Tìm hoặc tạo user trong DB
+    const user = await AuthModel.findOrCreate(payload);
+    await AuthModel.deleteSessionById(user.id);
+    const accessToken = utils.createAccessToken(user);
+    const refreshToken = utils.createRefreshToken(user);
+    await AuthModel.insertSessionById(user.id, refreshToken);
+
+    return { refreshToken, accessToken, user };
+  },
 
   // Logic đăng nhập
-  loginUser: async (email, password) => {
+  loginUser: async (email) => {
     // Kiểm tra user tồn tại
     const getUser = await AuthModel.isEmail(email, true);
     if (getUser.length <= 0) {
       throw new ServiceError(
         message.Auth.INVALID_CREDENTIALS,
         code.Auth.INVALID_CREDENTIALS,
-        'Email hoặc password không đúng',
+        'Email không tồn tại',
         401,
       );
     }
@@ -77,34 +96,60 @@ const AuthService = {
         403,
       );
     }
+    await AuthService.resendVerification(email);
+    const TokenOTP = utils.createOtpToken(user.email);
 
-    // Kiểm tra mật khẩu
-    const isPasswordValid = await bcryptjs.compare(
-      password,
-      user.password_hash,
-    );
-    if (!isPasswordValid) {
+    return {
+      user,
+      TokenOTP,
+    };
+  },
+  resendVerification: async (email) => {
+    // tạo otp
+    const getUser = await AuthModel.isEmail(email, true);
+    if (getUser.length <= 0) {
       throw new ServiceError(
         message.Auth.INVALID_CREDENTIALS,
         code.Auth.INVALID_CREDENTIALS,
-        'Mật khẩu không khớp',
+        'Email không tồn tại',
+        401,
+      );
+    }
+    const otp = utils.generateOTP();
+    // lưu opt vào db
+    await AuthModel.insertOtp(email, otp);
+    const info = {
+      email,
+      otp,
+    };
+    const res = await emailService.sendLoginOtp(info);
+    return res;
+  },
+  isVerryOTP: async (email, otp) => {
+    const getUser = await AuthModel.isEmail(email, true);
+    if (getUser.length <= 0) {
+      throw new ServiceError(
+        message.Auth.INVALID_CREDENTIALS,
+        code.Auth.INVALID_CREDENTIALS,
+        'Email không tồn tại',
         401,
       );
     }
 
-    // Xóa tất cả session cũ và tạo session mới
+    // kiểm tra vs db
+    const { valid, code, msg } = (await AuthModel.verifyOtp(email, otp)) ?? {};
+    if (!valid) {
+      throw new ServiceError(msg, code, msg, 402);
+    }
+    await AuthModel.updateOtp(email, 'null', false);
+    // // Xóa tất cả session cũ và tạo session mới
+    const user = getUser[0];
     await AuthModel.deleteSessionById(user.id);
-    const refreshToken = AuthService.createRefreshToken(user);
-    const accessToken = AuthService.createAccessToken(user);
+    const accessToken = utils.createAccessToken(user);
+    const refreshToken = utils.createRefreshToken(user);
     await AuthModel.insertSessionById(user.id, refreshToken);
-
-    return {
-      user,
-      accessToken,
-      refreshToken,
-    };
+    return { valid, refreshToken, accessToken, user };
   },
-
   // Logic đăng xuất
   logoutUser: async (user_id) => {
     if (!user_id) {
@@ -197,8 +242,8 @@ const AuthService = {
 
       // Xóa session cũ và tạo session mới
       await AuthModel.deleteSessionById(id);
-      const newAccessToken = AuthService.createAccessToken(user);
-      const newRefreshToken = AuthService.createRefreshToken(user);
+      const newAccessToken = utils.createAccessToken(user);
+      const newRefreshToken = utils.createRefreshToken(user);
       await AuthModel.insertSessionById(id, newRefreshToken);
 
       return {
@@ -235,32 +280,6 @@ const AuthService = {
       );
     }
     return userData[0];
-  },
-
-  // Tạo access token
-  createAccessToken: (user) => {
-    return jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        role: user.role_name || 'Guest',
-        fullname: user.fullname,
-      },
-      config.JWT_ACCESS_TOKEN,
-      { expiresIn: Number(config.JWT_ACCESS_EXPIRES_IN) },
-    );
-  },
-
-  // Tạo refresh token
-  createRefreshToken: (user) => {
-    return jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-      },
-      config.JWT_REFRESH_TOKEN,
-      { expiresIn: Number(config.JWT_REFRESH_EXPIRES_IN) },
-    );
   },
 };
 
