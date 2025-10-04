@@ -23,29 +23,6 @@ LEFT JOIN roles r ON u.role_id = r.id;`;
       throw error;
     }
   }
-  // Lấy danh sách tất cả user (chỉ lấy những user chưa bị xóa mềm)
-  static async getUsers() {
-    try {
-      const query = `SELECT 
-    u.id,
-    u.fullname,
-    u.email,
-    u.phone,
-    u.avatar_url,
-    r.name AS role_name,
-    u.is_active,
-    u.email_verified_at,
-    u.created_at,
-    u.updated_at
-FROM users u
-LEFT JOIN roles r ON u.role_id = r.id
-WHERE u.deleted_at IS NULL;`;
-      const [rows] = await db.execute(query);
-      return rows;
-    } catch (error) {
-      throw error;
-    }
-  }
   // Lấy thông tin chi tiết user theo id (bao gồm cả deleted_at)
   static async getUserById(user_id) {
     try {
@@ -82,13 +59,12 @@ WHERE u.id = ?;`;
       const values = [
         data.fullname,
         data.email,
-        data.phone || null,
-        data.avatar_url ||
-          'https://s3.ap-southeast-1.amazonaws.com/cdn.vntre.vn/default/avatar-mac-dinh-12-1724862391.jpg',
-        data.bio || null,
-        data.role_id || null,
-        data.is_active ?? true,
-        data.email_verified_at || null,
+        data.phone,
+        data.avatar_url,
+        data.bio,
+        data.role_id,
+        data.is_active,
+        data.email_verified_at,
       ];
 
       const [result] = await db.execute(query, values);

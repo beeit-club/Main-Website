@@ -18,22 +18,7 @@ const userService = {
       throw error;
     }
   },
-  getUser: async () => {
-    try {
-      const users = await userModel.getUsers();
-      if (!users || users.length === 0) {
-        throw new ServiceError(
-          message.User.USER_NOT_FOUND,
-          code.User.USER_NOT_FOUND_CODE,
-          'Không tìm thấy người dùng nào',
-          404,
-        );
-      }
-      return users;
-    } catch (error) {
-      throw error;
-    }
-  },
+
   getUserById: async (user_id) => {
     try {
       if (!user_id) {
@@ -45,6 +30,14 @@ const userService = {
         );
       }
       const user = await userModel.getUserById(user_id);
+      if (!user) {
+        throw new ServiceError(
+          message.User.USER_NOT_FOUND, // thông báo lỗi
+          code.User.USER_NOT_FOUND_CODE, // mã lỗi
+          'Người dùng không tồn tại trong hệ thống',
+          404, // HTTP status code
+        );
+      }
       return user;
     } catch (error) {
       throw error;

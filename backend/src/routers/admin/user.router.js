@@ -1,19 +1,17 @@
 import express from 'express';
 import userController from './../../controllers/admin/user.controller.js';
 
-const router = express.Router();
+const Router = express.Router();
 
 // Lấy danh sách người dùng chưa bị xóa mềm
-router.get('/', userController.getUsers);
-// Lấy danh sách người dùng
-router.get('/all', userController.getAllUser);
+Router.get('/', userController.getAllUser);
 // Lấy người dùng theo id
-router.get('/:id', userController.getUserById);
+Router.get('/:id', userController.getUserById);
 // Tạo người dùng mới
-router.post('/create', userController.createUser);
+Router.post('/create', userController.createUser);
 // Cập nhật người dùng
-router.patch('/update/:id', userController.updateUser);
+Router.patch('/update/:id', userController.updateUser);
 //Xóa người dùng
-router.delete('/delete/:id', userController.deleteUser);
+Router.delete('/delete/:id', userController.deleteUser);
 
-export default router;
+export default Router;
