@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./globals.css";
+import "./custom.css";
 
 import { Toaster } from "@/components/ui/sonner";
 import ClientWrapper from "./ClientWrapper";
@@ -32,7 +33,6 @@ export default function RootLayout({ children }) {
             enableSystem
             disableTransitionOnChange
           >
-            {" "}
             <GoogleOAuthProvider
               clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
             >

@@ -32,7 +32,7 @@ export default function Logo() {
   return (
     <Link href={"/"}>
       <svg
-        width="162"
+        width="115"
         height="26"
         viewBox="0 0 177 41"
         fill="none"

@@ -24,7 +24,7 @@ function useLogin(user, logout) {
           <AvatarFallback>{`${user?.name ?? ""}`}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className={`absolute -right-2 top-4`}>
+      <DropdownMenuContent className={`absolute -right-2 top-4 w-60`}>
         <DropdownMenuLabel>{`${user?.name ?? ""}`}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>Profile</DropdownMenuItem>
@@ -41,7 +41,7 @@ export default function Account() {
   const { user, isLogin } = useAuthStore();
   const { logout } = useAuthHook();
   return (
-    <div>
+    <div className="flex items-center">
       {isLogin ? (
         useLogin(user, logout)
       ) : (
