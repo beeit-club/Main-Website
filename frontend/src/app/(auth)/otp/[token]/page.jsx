@@ -10,3 +10,4 @@ export default function OTP({ params }) {
     </div>
   );
 }
+// http://localhost:3000/otp/dfhads

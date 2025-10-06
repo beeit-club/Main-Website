@@ -1,7 +1,11 @@
+import Post from "@/components/home/post/post";
+import BannerComponent from "../../components/home/Banner/Banner";
+
 export default function page() {
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <h1 className="text-4xl font-bold">Hello World</h1>
+    <main className="">
+      {/* <BannerComponent /> */}
+      <div className="max-w-7xl mx-auto">{/* <Post /> */}</div>
     </main>
   );
 }

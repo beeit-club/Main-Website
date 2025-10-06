@@ -1,0 +1,6 @@
+// trang danh sách user
+import React from "react";
+
+export default function ListUser() {
+  return <div>ListUser</div>;
+}
