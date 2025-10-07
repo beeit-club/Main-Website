@@ -125,7 +125,9 @@ WHERE u.id = ?;`;
         'is_active',
         'email_verified_at',
       ];
-
+      // đoạn này có thể tách ra thành một hàm để tái sử dụng nhiều nơi
+      // đầu vào, tên bảng, các trường dữ liệu gửi lên, id , người thực hiện (tùy vào xem bảng đấy có update by ko)
+      // đầu ra một câu sql hoàn chỉnh về update tương tự có thể dùng cho delete create
       const updates = [];
       const values = [];
 
