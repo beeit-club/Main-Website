@@ -23,6 +23,8 @@ const userController = {
       user,
     });
   }),
+  // cần validate lại, vẫn phải đảm bảo khi cập nhật thì các trường như
+  //  name email role vẫn phải có còn các trường khác ko có cũng đc
   updateUser: asyncWrapper(async (req, res) => {
     await Schema.param.validate(req.params, { abortEarly: false });
     await Schema.updateUser.validate(req.body, { abortEarly: false });

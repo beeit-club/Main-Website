@@ -10,8 +10,15 @@ const asyncWrapper = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch((error) => {
     // Bắt lỗi validate (Yup)
     if (error.name === 'ValidationError') {
+      const fieldErrors = formatYupErrors(error);
+
       return res.status(400).json({
-        errors: formatYupErrors(error),
+        status: 'error',
+        message: 'Dữ liệu không hợp lệ',
+        error: {
+          code: 'VALIDATION_ERROR',
+          fields: fieldErrors,
+        },
       });
     }
     // Bắt lỗi nghiệp vụ (ServiceError)
