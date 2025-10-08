@@ -1,6 +1,7 @@
 import { config } from '../../config/index.js';
 import { code, message } from '../../common/message/index.js';
 import { findOne, insert, update, remove } from '../../utils/database.js';
+import pool from '../../db.js';
 
 class AuthModel {
   // Kiểm tra xem email đã tồn tại chưa
@@ -10,7 +11,7 @@ class AuthModel {
         ? `SELECT u.id, u.fullname, u.email, u.avatar_url, u.is_active, r.name AS role_name
            FROM users u
            LEFT JOIN roles r ON u.role_id = r.id
-           WHERE u.email = ? AND u.deleted_at IS NULL`
+           WHERE u.email = ? `
         : `SELECT COUNT(*) AS so_luong FROM users WHERE email = ? AND deleted_at IS NULL`;
 
       const result = await findOne(query, [email]);
@@ -28,7 +29,6 @@ class AuthModel {
         email,
         avatar_url,
         role_id: 1,
-        is_active: true,
       };
       const result = await insert('users', data);
       return result;
@@ -272,6 +272,10 @@ class AuthModel {
         'SELECT * FROM users WHERE email = ?',
         [email],
       );
+      console.log(
+        '🚀 ~ AuthModel ~ findOrCreate ~ existingUser:',
+        existingUser,
+      );
 
       if (existingUser) {
         if (!existingUser.google_id) {
@@ -293,9 +297,8 @@ class AuthModel {
         email_verified_at: new Date(),
       };
       const result = await insert('users', insertData);
-      return await findOne('SELECT * FROM users WHERE id = ?', [
-        result.insertId,
-      ]);
+      console.log('🚀 ~ AuthModel ~ findOrCreate ~ result:', result);
+      return await findOne('SELECT * FROM users WHERE id = ?', [result]);
     } catch (error) {
       throw error;
     }

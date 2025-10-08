@@ -14,9 +14,12 @@ import { useState } from "react";
 import Logo from "@/components/layout/Header/logo";
 import Loading from "@/app/(client)/loading";
 import GoogleAuthButton from "../GoogleAuthButton";
-
+import { useSearchParams } from "next/navigation";
+import InputOTPForm from "../otp";
 export default function LoginForm({ className, ...props }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const [loading, setLoading] = useState(false);
   const { login } = useAuthHook();
   const {
@@ -77,20 +80,25 @@ export default function LoginForm({ className, ...props }) {
                 <p className="text-red-500 text-sm">{errors.email.message}</p>
               )}
             </div>
-            <Button type="submit" className="w-full">
-              Đăng Nhập
-            </Button>
-          </div>
-          <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-            <span className="bg-background text-muted-foreground relative z-10 px-2">
-              Or
-            </span>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-1">
-            <GoogleAuthButton />
+            {!token && (
+              <>
+                <Button type="submit" className="w-full">
+                  Đăng Nhập
+                </Button>
+                <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                  <span className="bg-background text-muted-foreground relative z-10 px-2">
+                    Or
+                  </span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-1">
+                  <GoogleAuthButton />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </form>
+      {token && <InputOTPForm token={token} />}
     </div>
   );
 }

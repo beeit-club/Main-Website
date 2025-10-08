@@ -18,7 +18,7 @@ const AuthService = {
   registerUser: async (fullname, email) => {
     // Kiểm tra email đã tồn tại chưa
     const existingEmail = await AuthModel.isEmail(email);
-    if (existingEmail[0]?.so_luong > 0) {
+    if (existingEmail?.so_luong > 0) {
       throw new ServiceError(
         message.Auth.EMAIL_EXISTS,
         code.Auth.EMAIL_EXISTS,
@@ -76,7 +76,7 @@ const AuthService = {
   loginUser: async (email) => {
     // Kiểm tra user tồn tại
     const getUser = await AuthModel.isEmail(email, true);
-    if (getUser.length <= 0) {
+    if (!getUser) {
       throw new ServiceError(
         message.Auth.INVALID_CREDENTIALS,
         code.Auth.INVALID_CREDENTIALS,
@@ -85,8 +85,7 @@ const AuthService = {
       );
     }
 
-    const user = getUser[0];
-
+    const user = getUser;
     // Kiểm tra tài khoản có bị khóa không
     if (!user.is_active) {
       throw new ServiceError(
@@ -143,7 +142,7 @@ const AuthService = {
     }
     await AuthModel.updateOtp(email, 'null', false);
     // // Xóa tất cả session cũ và tạo session mới
-    const user = getUser[0];
+    const user = getUser;
     await AuthModel.deleteSessionById(user.id);
     const accessToken = utils.createAccessToken(user);
     const refreshToken = utils.createRefreshToken(user);
@@ -184,8 +183,7 @@ const AuthService = {
     }
     const permissions = await AuthModel.getPremiss(user_id);
     const getUser = await AuthModel.getUserById(user_id);
-    const user = getUser[0];
-
+    const user = getUser;
     return { user, permissions };
   },
 
@@ -207,7 +205,7 @@ const AuthService = {
 
       // Kiểm tra session trong database
       const sessionData = await AuthModel.checkSession(id);
-      if (sessionData.length === 0) {
+      if (!sessionData) {
         throw new ServiceError(
           message.Auth.SESSION_NOT_FOUND,
           code.Auth.SESSION_NOT_FOUND,
@@ -217,7 +215,7 @@ const AuthService = {
       }
 
       // Kiểm tra refresh token có khớp không
-      const storedRefreshToken = sessionData[0].refresh_token;
+      const storedRefreshToken = sessionData.refresh_token;
       if (storedRefreshToken !== refreshToken) {
         throw new ServiceError(
           message.Auth.INVALID_REFRESH_TOKEN,
@@ -229,7 +227,7 @@ const AuthService = {
 
       // Lấy thông tin user mới nhất
       const userData = await AuthModel.getUserById(id);
-      if (userData.length === 0) {
+      if (!userData) {
         throw new ServiceError(
           message.Auth.USER_NOT_FOUND,
           code.Auth.USER_NOT_FOUND,
@@ -238,7 +236,7 @@ const AuthService = {
         );
       }
 
-      const user = userData[0];
+      const user = userData;
 
       // Xóa session cũ và tạo session mới
       await AuthModel.deleteSessionById(id);

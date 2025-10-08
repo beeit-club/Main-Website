@@ -24,9 +24,11 @@ import { useEffect, useState } from "react";
 import { useAuthHook } from "@/hooks/useAuth";
 import { decodeJWT } from "@/lib/jwt";
 import { useRouter } from "next/navigation";
+import { getOtpLockStatus, setOtpLock } from "@/lib/datetime";
 
 export default function InputOTPForm({ token }) {
   const [loading, setLoading] = useState(false);
+  const { locked } = getOtpLockStatus();
   const router = useRouter();
   const form = useForm({
     resolver: yupResolver(otpSchema),
@@ -46,6 +48,15 @@ export default function InputOTPForm({ token }) {
   const { sendOtp } = useAuthHook();
   async function onSubmit(data) {
     data.email = email;
+    if (locked) {
+      const { locked, remaining } = getOtpLockStatus();
+      toast.error(
+        `Bạn đã nhập sai quá 5 lần. Thử lại sau ${Math.ceil(
+          remaining / 1000
+        )} giây`
+      );
+      return;
+    }
     try {
       setLoading(true);
       const res = await sendOtp(data);
@@ -59,14 +70,16 @@ export default function InputOTPForm({ token }) {
           setError(field, { type: "server", message: messages[0] });
         });
       } else {
-        toast.error(message);
+        if (code == "OTP_ATTEMPTS_EXCEEDED") {
+          toast.error(message);
+          setOtpLock();
+        }
       }
     }
   }
   if (loading) return <Loading />;
   return (
-    <div className={cn("flex flex-col gap-6 items-center justify-center")}>
-      <Logo />
+    <div className={cn("")}>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -80,17 +93,32 @@ export default function InputOTPForm({ token }) {
                 {/* <FormLabel>OTP</FormLabel> */}
                 <FormControl>
                   <InputOTP maxLength={6} {...field}>
-                    <InputOTPGroup className={"mx-auto"}>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
+                    <InputOTPGroup className={"mx-auto mt-5"}>
+                      <InputOTPSlot className={"border"} index={0} />
+                      <InputOTPSlot
+                        className={"border rounded-none"}
+                        index={1}
+                      />
+                      <InputOTPSlot
+                        className={"border rounded-none"}
+                        index={2}
+                      />
+                      <InputOTPSlot
+                        className={"border rounded-none"}
+                        index={3}
+                      />
+                      <InputOTPSlot
+                        className={"border rounded-none"}
+                        index={4}
+                      />
+                      <InputOTPSlot
+                        className={"border rounded-none"}
+                        index={5}
+                      />
                     </InputOTPGroup>
                   </InputOTP>
                 </FormControl>
-                <FormDescription>
+                <FormDescription className={"text-center"}>
                   Vui lòng nhập mã otp đã được gửi đên email của bạn
                 </FormDescription>
                 <FormMessage />

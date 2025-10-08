@@ -25,6 +25,7 @@ export const INVALID_REFRESH_TOKEN = 'Token không hợp lệ';
 export const USER_NOT_FOUND = 'Người dùng không tồn tại';
 export const INVALID_USER = 'Không thể xác định người dùng';
 export const LOGOUT_FAILED = 'Đăng xuất thất bại';
+export const NOT_PREMIS = 'Bạn không có quyền';
 
 // OTP Error
 export const OTP_INVALID = 'OTP không chính xác';

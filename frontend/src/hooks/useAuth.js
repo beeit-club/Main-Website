@@ -21,7 +21,7 @@ export function useAuthHook() {
         toast.error("Đăng nhập thất bại");
         return;
       }
-      const url = `/otp/${TokenOTP}`;
+      const url = `/login?token=${TokenOTP}`;
       router.push(url);
       return res;
     } catch (err) {
