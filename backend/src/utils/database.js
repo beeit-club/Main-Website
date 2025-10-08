@@ -148,13 +148,7 @@ export async function findOne(sql, params = []) {
     throw new Error('Phải truyền vào câu SQL dạng chuỗi');
   }
 
-  // Giới hạn chỉ lấy 1 bản ghi
-  let finalSql = sql.trim();
-  if (!/limit\s+\d+/i.test(finalSql)) {
-    finalSql += ' LIMIT 1';
-  }
-
-  const [rows] = await pool.query(finalSql, params);
+  const [rows] = await pool.query(sql, params);
 
   // Nếu có ít nhất 1 dòng thì trả dòng đầu tiên, ngược lại trả false
   return rows.length > 0 ? rows[0] : false;
