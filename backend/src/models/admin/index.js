@@ -1,3 +1,4 @@
 // a
 import categoryModel from './category.model.js';
-export { categoryModel };
+import tagModel from './tag.model.js';
+export { categoryModel, tagModel };
