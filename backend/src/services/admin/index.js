@@ -1,3 +1,3 @@
 import categoryService from './category.service.js';
-
-export { categoryService };
+import tagService from './tag.service.js';
+export { tagService, categoryService };
