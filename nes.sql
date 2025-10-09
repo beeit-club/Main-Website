@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS `post_categories` (
     `name` VARCHAR(255) NOT NULL,
     `slug` VARCHAR(255) UNIQUE NOT NULL,
     `parent_id` BIGINT UNSIGNED,
+    `status` INT DEFAULT 1
     `created_by` BIGINT UNSIGNED,
     `updated_by` BIGINT UNSIGNED,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

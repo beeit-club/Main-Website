@@ -28,10 +28,7 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
-app.use(
-  '/uploads/public',
-  express.static(path.join(__dirname, 'uploads/public')),
-);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const io = new Server(httpServer, {
   cors: {
     origin: `${config.API_FRONTEND}`,
