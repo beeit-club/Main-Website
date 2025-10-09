@@ -33,6 +33,8 @@ Router.get('/role/:roleId', userController.getUsersByRole);
  * GET /api/admin/users?page=1&limit=10
  */
 Router.get('/', userController.getAllUser);
+// -- tìm kiếm them name email phone
+// -- https localhost:8080/admin/users?search=":name,email,phone"&role="id"&active="0||1"
 
 /**
  * 🔹 Lấy thông tin chi tiết 1 user

@@ -16,8 +16,8 @@ class UserModel {
    * @param {number} options.limit - Số bản ghi mỗi trang (mặc định: 10)
    * @returns {Promise<Object>} Danh sách user với thông tin phân trang
    */
-  static async getAllUsers({ page = 1, limit = 10 } = {}) {
-    const baseSql = `
+  static async getAllUsers(option) {
+    let baseSql = `
       SELECT 
         u.id,
         u.fullname,
@@ -35,12 +35,26 @@ class UserModel {
       LEFT JOIN roles r ON u.role_id = r.id
       WHERE u.deleted_at IS NULL
     `;
+    let params = [];
 
-    return await selectWithPagination(baseSql, [], {
-      page: Math.max(1, parseInt(page) || 1),
-      limit: Math.max(1, Math.min(100, parseInt(limit) || 10)),
-      orderBy: { field: 'id', direction: 'DESC' },
-    });
+    if (option?.filters?.search) {
+      baseSql += ` AND u.fullname LIKE ? OR email LIKE ? OR phone LIKE ?  `;
+
+      params.push(`%${option.filters.search}%`);
+      params.push(`%${option.filters.search}%`);
+      params.push(`%${option.filters.search}%`);
+    }
+    if (option?.filters?.active) {
+      baseSql += ` AND u.is_active = ? `;
+      params.push(`${option?.filters?.active}`);
+    }
+    if (option?.filters?.roleId) {
+      baseSql += ` AND u.role_id = ? `;
+      params.push(`${option?.filters?.roleId}`);
+    }
+    option.orderBy = { field: 'id', direction: 'DESC' };
+
+    return await selectWithPagination(baseSql, params, option);
   }
 
   /**
@@ -200,40 +214,6 @@ class UserModel {
       TABLE,
       {
         is_active: isActive ? 1 : 0,
-        updated_at: new Date(),
-      },
-      { id },
-    );
-    return affected > 0;
-  }
-
-  /**
-   * Xác thực email
-   * @param {number} id - ID của user
-   * @returns {Promise<boolean>} true nếu thành công, false nếu không
-   */
-  static async verifyEmail(id) {
-    const affected = await update(
-      TABLE,
-      {
-        email_verified_at: new Date(),
-        updated_at: new Date(),
-      },
-      { id },
-    );
-    return affected > 0;
-  }
-
-  /**
-   * Khôi phục user đã bị xóa mềm
-   * @param {number} id - ID của user
-   * @returns {Promise<boolean>} true nếu khôi phục thành công, false nếu không
-   */
-  static async restoreUser(id) {
-    const affected = await update(
-      TABLE,
-      {
-        deleted_at: null,
         updated_at: new Date(),
       },
       { id },

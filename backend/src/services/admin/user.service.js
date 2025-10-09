@@ -7,9 +7,9 @@ const userService = {
   /**
    * 📋 Lấy danh sách tất cả user (có phân trang)
    */
-  getAllUser: async ({ page = 1, limit = 10 } = {}) => {
+  getAllUser: async (option) => {
     try {
-      const result = await userModel.getAllUsers({ page, limit });
+      const result = await userModel.getAllUsers(option);
 
       if (!result || !result.data || result.data.length === 0) {
         throw new ServiceError(
