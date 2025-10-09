@@ -37,3 +37,19 @@ export function createRefreshToken(user) {
     { expiresIn: Number(config.JWT_REFRESH_EXPIRES_IN) },
   );
 }
+
+export function slugify(str = '') {
+  if (!str) return '';
+
+  return str
+    .toString()
+    .normalize('NFD') // Tách dấu khỏi ký tự (ví dụ: "ấ" -> "a" + "̂")
+    .replace(/[\u0300-\u036f]/g, '') // Xóa toàn bộ dấu tiếng Việt
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '') // Xóa ký tự đặc biệt (ngoại trừ khoảng trắng và -)
+    .replace(/\s+/g, '-') // Chuyển khoảng trắng thành dấu gạch ngang
+    .replace(/-+/g, '-'); // Xóa gạch ngang thừa liên tiếp
+}
