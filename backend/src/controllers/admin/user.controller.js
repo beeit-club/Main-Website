@@ -5,38 +5,56 @@ import { utils } from '../../utils/index.js';
 import Schema from '../../validation/admin/user.validation.js';
 
 const userController = {
+  /**
+   * 📋 Lấy danh sách tất cả user (có phân trang)
+   * GET /api/users?page=1&limit=10
+   */
   getAllUser: asyncWrapper(async (req, res) => {
-    const users = await userService.getAllUser();
-    return utils.success(res, message.User.FETCH_SUCCESS, { users });
+    const { page, limit } = req.query;
+    const result = await userService.getAllUser({ page, limit });
+    return utils.success(res, message.User.FETCH_SUCCESS, result);
   }),
+
+  /**
+   * 🔹 Lấy thông tin chi tiết user theo ID
+   * GET /api/users/:id
+   */
   getUserById: asyncWrapper(async (req, res) => {
-    await Schema.param.validate(req.params, { abortEarly: false });
-    const { id } = req.params || {};
+    const { id } = req.params;
     const user = await userService.getUserById(id);
     return utils.success(res, message.User.FETCH_SUCCESS, { user });
   }),
+
+  /**
+   * ➕ Tạo user mới
+   * POST /api/users
+   */
   createUser: asyncWrapper(async (req, res) => {
     await Schema.createUser.validate(req.body, { abortEarly: false });
-    const data = req.body || {};
+    const data = req.body;
     const user = await userService.createUser(data);
-    return utils.success(res, message.User.CREATE_SUCCESS, {
-      user,
-    });
+    return utils.success(res, message.User.CREATE_SUCCESS, { user });
   }),
-  // cần validate lại, vẫn phải đảm bảo khi cập nhật thì các trường như
-  //  name email role vẫn phải có còn các trường khác ko có cũng đc
+
+  /**
+   * ✏️ Cập nhật thông tin user
+   * PUT /api/users/:id
+   */
   updateUser: asyncWrapper(async (req, res) => {
-    await Schema.param.validate(req.params, { abortEarly: false });
     await Schema.updateUser.validate(req.body, { abortEarly: false });
     const { id } = req.params;
-    const data = req.body; // có thể gồm fullname, email, phone, role_id...
+    const data = req.body;
     const updatedUser = await userService.updateUser(id, data);
     return utils.success(res, message.User.UPDATE_SUCCESS, {
       user: updatedUser,
     });
   }),
+
+  /**
+   * 🗑️ Xóa mềm user
+   * DELETE /api/users/:id
+   */
   deleteUser: asyncWrapper(async (req, res) => {
-    await Schema.param.validate(req.params, { abortEarly: false });
     const { id } = req.params;
     const { fullname, email } = await userService.getUserById(id);
     await userService.deleteUser(id);
@@ -45,6 +63,98 @@ const userController = {
       fullname,
       email,
     });
+  }),
+
+  /**
+   * 🔄 Kích hoạt/vô hiệu hóa user
+   * PATCH /api/users/:id/toggle-active
+   */
+  toggleUserActive: asyncWrapper(async (req, res) => {
+    await Schema.toggleActive.validate(req.body, { abortEarly: false });
+    const { id } = req.params;
+    const { is_active } = req.body;
+    const { fullname, email } = await userService.getUserById(id);
+    await userService.toggleUserActive(id, is_active);
+    return utils.success(
+      res,
+      is_active
+        ? message.User.ACTIVATE_SUCCESS
+        : message.User.DEACTIVATE_SUCCESS,
+      {
+        fullname,
+        email,
+      },
+    );
+  }),
+
+  /**
+   * ♻️ Khôi phục user đã xóa
+   * PATCH /api/users/:id/restore
+   */
+  restoreUser: asyncWrapper(async (req, res) => {
+    const { id } = req.params;
+    const { fullname, email } = await userService.getUserById(id);
+    await userService.restoreUser(id);
+    return utils.success(res, message.User.RESTORE_SUCCESS, {
+      fullname,
+      email,
+    });
+  }),
+
+  /**
+   * 💀 Xóa vĩnh viễn user (chỉ super admin)
+   * DELETE /api/users/:id/permanent
+   */
+  hardDeleteUser: asyncWrapper(async (req, res) => {
+    const { id } = req.params;
+    const { fullname, email } = await userService.getUserById(id);
+    await userService.hardDeleteUser(id);
+    return utils.success(res, message.User.HARD_DELETE_SUCCESS, {
+      id,
+      fullname,
+      email,
+    });
+  }),
+
+  /**
+   * 📋 Lấy danh sách user đã xóa
+   * GET /api/users/trash?page=1&limit=10
+   */
+  getDeletedUsers: asyncWrapper(async (req, res) => {
+    const { page, limit } = req.query;
+    const result = await userService.getDeletedUsers({ page, limit });
+    return utils.success(res, message.User.FETCH_DELETED_SUCCESS, result);
+  }),
+
+  /**
+   * 🔍 Tìm kiếm user
+   * GET /api/users/search?keyword=john&page=1&limit=10
+   */
+  searchUsers: asyncWrapper(async (req, res) => {
+    await Schema.searchUser.validate(req.query, { abortEarly: false });
+    const { keyword, page, limit } = req.query;
+    const result = await userService.searchUsers(keyword, { page, limit });
+    return utils.success(res, message.User.SEARCH_SUCCESS, result);
+  }),
+
+  /**
+   * 📋 Lấy danh sách user theo role
+   * GET /api/users/role/:roleId?page=1&limit=10
+   */
+  getUsersByRole: asyncWrapper(async (req, res) => {
+    const { roleId } = req.params;
+    const { page, limit } = req.query;
+    const result = await userService.getUsersByRole(roleId, { page, limit });
+    return utils.success(res, message.User.FETCH_BY_ROLE_SUCCESS, result);
+  }),
+
+  /**
+   * 📊 Thống kê user
+   * GET /api/users/stats
+   */
+  getUserStats: asyncWrapper(async (req, res) => {
+    const stats = await userService.getUserStats();
+    return utils.success(res, message.User.STATS_SUCCESS, { stats });
   }),
 };
 
