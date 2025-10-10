@@ -264,77 +264,15 @@ const userService = {
   /**
    * 📋 Lấy danh sách user đã xóa
    */
-  getDeletedUsers: async ({ page = 1, limit = 10 } = {}) => {
+  getDeletedUsers: async (option) => {
     try {
-      const result = await userModel.getDeletedUsers({ page, limit });
+      const result = await userModel.getDeletedUsers(option);
 
       if (!result || !result.data || result.data.length === 0) {
         throw new ServiceError(
           message.User.NO_DELETED_USERS,
           code.User.NO_DELETED_USERS_CODE,
           'Không có người dùng nào đã bị xóa',
-          404,
-        );
-      }
-
-      return result;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
-   * 🔍 Tìm kiếm user
-   */
-  searchUsers: async (keyword, { page = 1, limit = 10 } = {}) => {
-    try {
-      if (!keyword || keyword.trim() === '') {
-        throw new ServiceError(
-          message.User.KEYWORD_REQUIRED,
-          code.User.KEYWORD_REQUIRED_CODE,
-          'Từ khóa tìm kiếm không được để trống',
-          400,
-        );
-      }
-
-      const result = await userModel.searchUsers(keyword, { page, limit });
-
-      if (!result || !result.data || result.data.length === 0) {
-        throw new ServiceError(
-          message.User.SEARCH_NO_RESULT,
-          code.User.SEARCH_NO_RESULT_CODE,
-          `Không tìm thấy người dùng với từ khóa "${keyword}"`,
-          404,
-        );
-      }
-
-      return result;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
-   * 📋 Lấy danh sách user theo role
-   */
-  getUsersByRole: async (roleId, { page = 1, limit = 10 } = {}) => {
-    try {
-      if (!roleId) {
-        throw new ServiceError(
-          message.User.INVALID_ROLE_ID,
-          code.User.INVALID_ROLE_ID_CODE,
-          'Role ID không hợp lệ',
-          400,
-        );
-      }
-
-      const result = await userModel.getUsersByRole(roleId, { page, limit });
-
-      if (!result || !result.data || result.data.length === 0) {
-        throw new ServiceError(
-          message.User.NO_USERS_IN_ROLE,
-          code.User.NO_USERS_IN_ROLE_CODE,
-          'Không có người dùng nào trong role này',
           404,
         );
       }

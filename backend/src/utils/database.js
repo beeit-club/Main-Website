@@ -90,7 +90,6 @@ export async function remove(table, where) {
  * - Kết quả truy vấn và thông tin phân trang
  */
 export async function selectWithPagination(baseSql, params = [], options = {}) {
-  console.log('🚀 ~ selectWithPagination ~ baseSql:', baseSql);
   if (!baseSql || typeof baseSql !== 'string') {
     throw new Error('Phải truyền vào câu SQL dạng chuỗi');
   }

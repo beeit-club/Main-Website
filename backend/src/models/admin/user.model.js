@@ -52,7 +52,12 @@ class UserModel {
       baseSql += ` AND u.role_id = ? `;
       params.push(`${option?.filters?.roleId}`);
     }
-    option.orderBy = { field: 'id', direction: 'DESC' };
+    if (option?.filters?.sortBy && option?.filters?.sortDirection) {
+      option.orderBy = {
+        field: option?.filters?.sortBy,
+        direction: option?.filters?.sortDirection || 'DESC',
+      };
+    }
 
     return await selectWithPagination(baseSql, params, option);
   }
@@ -226,8 +231,8 @@ class UserModel {
    * @param {Object} options - Tùy chọn phân trang
    * @returns {Promise<Object>} Danh sách user đã xóa với thông tin phân trang
    */
-  static async getDeletedUsers({ page = 1, limit = 10 } = {}) {
-    const baseSql = `
+  static async getDeletedUsers(option) {
+    let baseSql = `
       SELECT 
         u.id,
         u.fullname,
@@ -247,85 +252,31 @@ class UserModel {
       WHERE u.deleted_at IS NOT NULL
     `;
 
-    return await selectWithPagination(baseSql, [], {
-      page: Math.max(1, parseInt(page) || 1),
-      limit: Math.max(1, Math.min(100, parseInt(limit) || 10)),
-      orderBy: { field: 'deleted_at', direction: 'DESC' },
-    });
-  }
+    let params = [];
 
-  /**
-   * Tìm kiếm user theo từ khóa (fullname, email, phone)
-   * @param {string} keyword - Từ khóa tìm kiếm
-   * @param {Object} options - Tùy chọn phân trang
-   * @returns {Promise<Object>} Danh sách user tìm được với thông tin phân trang
-   */
-  static async searchUsers(keyword, { page = 1, limit = 10 } = {}) {
-    const baseSql = `
-      SELECT 
-        u.id,
-        u.fullname,
-        u.email,
-        u.phone,
-        u.avatar_url,
-        u.bio,
-        u.role_id,
-        r.name AS role_name,
-        u.is_active,
-        u.email_verified_at,
-        u.created_at,
-        u.updated_at
-      FROM ${TABLE} u
-      LEFT JOIN roles r ON u.role_id = r.id
-      WHERE u.deleted_at IS NULL
-        AND (
-          u.fullname LIKE ?
-          OR u.email LIKE ?
-          OR u.phone LIKE ?
-        )
-    `;
+    if (option?.filters?.search) {
+      baseSql += ` AND u.fullname LIKE ? OR email LIKE ? OR phone LIKE ?  `;
 
-    const searchPattern = `%${keyword}%`;
-    const params = [searchPattern, searchPattern, searchPattern];
+      params.push(`%${option.filters.search}%`);
+      params.push(`%${option.filters.search}%`);
+      params.push(`%${option.filters.search}%`);
+    }
+    if (option?.filters?.active) {
+      baseSql += ` AND u.is_active = ? `;
+      params.push(`${option?.filters?.active}`);
+    }
+    if (option?.filters?.roleId) {
+      baseSql += ` AND u.role_id = ? `;
+      params.push(`${option?.filters?.roleId}`);
+    }
+    if (option?.filters?.sortBy && option?.filters?.sortDirection) {
+      option.orderBy = {
+        field: option?.filters?.sortBy,
+        direction: option?.filters?.sortDirection || 'DESC',
+      };
+    }
 
-    return await selectWithPagination(baseSql, params, {
-      page: Math.max(1, parseInt(page) || 1),
-      limit: Math.max(1, Math.min(100, parseInt(limit) || 10)),
-      orderBy: { field: 'created_at', direction: 'DESC' },
-    });
-  }
-
-  /**
-   * Lấy danh sách user theo role
-   * @param {number} roleId - ID của role
-   * @param {Object} options - Tùy chọn phân trang
-   * @returns {Promise<Object>} Danh sách user theo role với thông tin phân trang
-   */
-  static async getUsersByRole(roleId, { page = 1, limit = 10 } = {}) {
-    const baseSql = `
-      SELECT 
-        u.id,
-        u.fullname,
-        u.email,
-        u.phone,
-        u.avatar_url,
-        u.bio,
-        u.role_id,
-        r.name AS role_name,
-        u.is_active,
-        u.email_verified_at,
-        u.created_at,
-        u.updated_at
-      FROM ${TABLE} u
-      LEFT JOIN roles r ON u.role_id = r.id
-      WHERE u.deleted_at IS NULL AND u.role_id = ?
-    `;
-
-    return await selectWithPagination(baseSql, [roleId], {
-      page: Math.max(1, parseInt(page) || 1),
-      limit: Math.max(1, Math.min(100, parseInt(limit) || 10)),
-      orderBy: { field: 'created_at', direction: 'DESC' },
-    });
+    return await selectWithPagination(baseSql, params, option);
   }
 
   /**

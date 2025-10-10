@@ -11,22 +11,10 @@ const Router = express.Router();
 Router.get('/stats', userController.getUserStats);
 
 /**
- * 🔍 Tìm kiếm user
- * GET /api/admin/users/search?keyword=john&page=1&limit=10
- */
-Router.get('/search', userController.searchUsers);
-
-/**
  * 📋 Danh sách user đã xóa (trash)
  * GET /api/admin/users/trash?page=1&limit=10
  */
 Router.get('/trash', userController.getDeletedUsers);
-
-/**
- * 📋 Danh sách user theo role
- * GET /api/admin/users/role/:roleId?page=1&limit=10
- */
-Router.get('/role/:roleId', userController.getUsersByRole);
 
 /**
  * 📋 Lấy danh sách tất cả user (có phân trang)

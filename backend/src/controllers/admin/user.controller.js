@@ -21,13 +21,15 @@ const userController = {
     const valid = await PaginationSchema.validate(query, {
       stripUnknown: true,
     });
-    const { search, roleId, active } = req.query;
+    const { search, roleId, active, sortBy, sortDirection } = req.query;
     const result = await userService.getAllUser({
       ...valid,
       filters: {
         search,
         roleId,
         active,
+        sortBy,
+        sortDirection,
       },
     });
     return utils.success(res, message.User.FETCH_SUCCESS, result);
@@ -144,32 +146,24 @@ const userController = {
    * GET /api/users/trash?page=1&limit=10
    */
   getDeletedUsers: asyncWrapper(async (req, res) => {
-    const { page, limit } = req.query;
-    const result = await userService.getDeletedUsers({ page, limit });
+    const query = PaginationSchema.cast(req.query);
+
+    // Validate (nhưng sẽ không lỗi vì transform đã fallback)
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { search, roleId, active, sortBy, sortDirection } = req.query;
+    const result = await userService.getDeletedUsers({
+      ...valid,
+      filters: {
+        search,
+        roleId,
+        active,
+        sortBy,
+        sortDirection,
+      },
+    });
     return utils.success(res, message.User.FETCH_DELETED_SUCCESS, result);
-  }),
-
-  /**
-   * 🔍 Tìm kiếm user
-   * GET /api/users/search?keyword=john&page=1&limit=10
-   */
-  searchUsers: asyncWrapper(async (req, res) => {
-    await Schema.searchUser.validate(req.query, { abortEarly: false });
-    const { keyword, page, limit } = req.query;
-    const result = await userService.searchUsers(keyword, { page, limit });
-    return utils.success(res, message.User.SEARCH_SUCCESS, result);
-  }),
-
-  /**
-   * 📋 Lấy danh sách user theo role
-   * GET /api/users/role/:roleId?page=1&limit=10
-   */
-  getUsersByRole: asyncWrapper(async (req, res) => {
-    await params.id.validate(req.params, { abortEarly: false });
-    const { roleId } = req.params;
-    const { page, limit } = req.query;
-    const result = await userService.getUsersByRole(roleId, { page, limit });
-    return utils.success(res, message.User.FETCH_BY_ROLE_SUCCESS, result);
   }),
 
   /**
