@@ -34,4 +34,12 @@ export const params = {
       .min(1, 'Id phải lớn hơn 1')
       .required('Thiếu id'),
   }),
+  slug: yup.object({
+    slug: yup
+      .string()
+      .required('Slug là bắt buộc')
+      .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug không hợp lệ')
+      .min(3, 'Slug phải có ít nhất 3 ký tự')
+      .max(255, 'Slug không được vượt quá 255 ký tự'),
+  }),
 };

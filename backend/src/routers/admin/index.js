@@ -8,7 +8,7 @@ import { middleware } from '../../middlewares/index.js';
 const router = express.Router();
 
 router.use('/users', middleware.verifyToken, userRouter);
-router.use('/posts', middleware.verifyToken, postRouter);
+router.use('/posts', postRouter);
 router.use('/categories', categoryRouter);
 router.use('/tags', tagsRouter);
 router.use('/documentCategory', document_categoriesRouter);
