@@ -7,21 +7,20 @@ import asyncWrapper from '../../middlewares/error.handler.js';
 import { config } from '../../config/index.js';
 import AuthSchema from '../../validation/auth/auth.validation.js';
 
-const authController = {
+export const register = asyncWrapper(async (req, res) => {
+  await AuthSchema.register.validate(req.body, { abortEarly: false });
+
+  const { fullname, email } = req.body;
+  const result = await AuthService.registerUser(fullname, email);
+
+  return utils.success(res, message.Auth.REGISTER_SUCCESS, {
+    user_id: result.user_id,
+    email: result.email,
+    fullname: result.fullname,
+  });
+});
+export const authController = {
   //  Đăng ký
-  register: asyncWrapper(async (req, res) => {
-    await AuthSchema.register.validate(req.body, { abortEarly: false });
-
-    const { fullname, email } = req.body;
-    const result = await AuthService.registerUser(fullname, email);
-
-    return utils.success(res, message.Auth.REGISTER_SUCCESS, {
-      user_id: result.user_id,
-      email: result.email,
-      fullname: result.fullname,
-    });
-  }),
-
   //  Đăng nhập (gửi OTP)
   login: asyncWrapper(async (req, res) => {
     await AuthSchema.login.validate(req.body, { abortEarly: false });
@@ -162,4 +161,4 @@ const authController = {
   }),
 };
 
-export default authController;
+// export default authController;

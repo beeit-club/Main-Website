@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser';
 import pool from './db.js';
 import routers from './routers/index.js';
 import { initSocket } from './socket/index.js';
+import setupSwagger from './config/swagger-config.js';
 
 // cấu hình đường dẫn thư mục
 const __filename = fileURLToPath(import.meta.url);
@@ -51,8 +52,12 @@ app.get('/', async (req, res) => {
 // Router
 app.use('/', routers);
 
+//swagger
+setupSwagger(app);
+
 // Lắng nghe port
 const PORT = config.PORT || 8080;
 httpServer.listen(PORT, () => {
   console.log(`✅ Server đang chạy tại http://localhost:${PORT}`);
+  console.log(`Swagger Docs available at http://localhost:${PORT}/api-docs`);
 });

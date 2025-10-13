@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --import esm-module-alias src/server.js"
+    "dev": "nodemon --import esm-module-alias src/server.js \"npm run swagger\"",
+    "swagger": "node --experimental-specifier-resolution=node src/config/swagger-setup.js"
   },
   "author": "",
   "license": "ISC",
@@ -27,6 +28,9 @@
     "nodemailer": "^7.0.6",
     "nodemon": "^3.1.10",
     "socket.io": "^4.8.1",
+    "swagger-autogen": "^2.23.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "yup": "^1.7.1"
   },
   "alias": {

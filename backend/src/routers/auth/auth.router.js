@@ -1,9 +1,13 @@
 import express from 'express';
-import { authController } from '../../controllers/index.js';
 import { middleware } from '../../middlewares/index.js';
+import {
+  authController,
+  register,
+} from './../../controllers/auth/auth.controller.js';
 const Router = express.Router();
 // Đăng ký
-Router.post('/register', authController.register);
+
+Router.post('/register', register);
 // Đăng Nhập
 Router.post('/login', authController.login);
 // Đăng xuất
