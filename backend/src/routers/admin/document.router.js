@@ -7,7 +7,7 @@ const Router = express.Router();
 
 // Lấy danh sách tài liệu (có filter)
 Router.get('/', documentController.getDocuments);
-
+// Lấy danh sách tài liệu ĐÃ XÓA
 Router.get('/deleted', documentController.getDeletedDocuments);
 // Lấy tài liệu theo ID
 Router.get('/:id', documentController.getDocumentById);
@@ -22,7 +22,7 @@ Router.put('/:id', documentController.updateDocument);
 Router.delete('/:id', documentController.deleteDocument);
 // Khôi phục tài liệu đã xóa
 Router.patch('/:id/restore', documentController.restoreDocument);
-// Lấy danh sách tài liệu ĐÃ XÓA
+
 // Gán quyền truy cập cho một hoặc nhiều người dùng
 Router.post('/:id/assign-users', documentController.assignUsersToDocument);
 
