@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 
 const Schema = {
+  
   /**
    * Validate khi tạo user mới
    */

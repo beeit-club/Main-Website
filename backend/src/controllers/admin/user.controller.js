@@ -3,6 +3,10 @@ import asyncWrapper from '../../middlewares/error.handler.js';
 import userService from '../../services/admin/user.service.js';
 import { utils } from '../../utils/index.js';
 import Schema from '../../validation/admin/user.validation.js';
+import {
+  PaginationSchema,
+  params,
+} from '../../validation/common/common.schema.js';
 
 const userController = {
   /**
@@ -10,8 +14,24 @@ const userController = {
    * GET /api/users?page=1&limit=10
    */
   getAllUser: asyncWrapper(async (req, res) => {
-    const { page, limit } = req.query;
-    const result = await userService.getAllUser({ page, limit });
+    // Ép apply default trước khi validate
+    const query = PaginationSchema.cast(req.query);
+
+    // Validate (nhưng sẽ không lỗi vì transform đã fallback)
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { search, roleId, active, sortBy, sortDirection } = req.query;
+    const result = await userService.getAllUser({
+      ...valid,
+      filters: {
+        search,
+        roleId,
+        active,
+        sortBy,
+        sortDirection,
+      },
+    });
     return utils.success(res, message.User.FETCH_SUCCESS, result);
   }),
 
@@ -20,6 +40,7 @@ const userController = {
    * GET /api/users/:id
    */
   getUserById: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
     const { id } = req.params;
     const user = await userService.getUserById(id);
     return utils.success(res, message.User.FETCH_SUCCESS, { user });
@@ -55,6 +76,7 @@ const userController = {
    * DELETE /api/users/:id
    */
   deleteUser: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
     const { id } = req.params;
     const { fullname, email } = await userService.getUserById(id);
     await userService.deleteUser(id);
@@ -70,6 +92,7 @@ const userController = {
    * PATCH /api/users/:id/toggle-active
    */
   toggleUserActive: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
     await Schema.toggleActive.validate(req.body, { abortEarly: false });
     const { id } = req.params;
     const { is_active } = req.body;
@@ -92,6 +115,7 @@ const userController = {
    * PATCH /api/users/:id/restore
    */
   restoreUser: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
     const { id } = req.params;
     const { fullname, email } = await userService.getUserById(id);
     await userService.restoreUser(id);
@@ -106,6 +130,7 @@ const userController = {
    * DELETE /api/users/:id/permanent
    */
   hardDeleteUser: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
     const { id } = req.params;
     const { fullname, email } = await userService.getUserById(id);
     await userService.hardDeleteUser(id);
@@ -121,31 +146,24 @@ const userController = {
    * GET /api/users/trash?page=1&limit=10
    */
   getDeletedUsers: asyncWrapper(async (req, res) => {
-    const { page, limit } = req.query;
-    const result = await userService.getDeletedUsers({ page, limit });
+    const query = PaginationSchema.cast(req.query);
+
+    // Validate (nhưng sẽ không lỗi vì transform đã fallback)
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { search, roleId, active, sortBy, sortDirection } = req.query;
+    const result = await userService.getDeletedUsers({
+      ...valid,
+      filters: {
+        search,
+        roleId,
+        active,
+        sortBy,
+        sortDirection,
+      },
+    });
     return utils.success(res, message.User.FETCH_DELETED_SUCCESS, result);
-  }),
-
-  /**
-   * 🔍 Tìm kiếm user
-   * GET /api/users/search?keyword=john&page=1&limit=10
-   */
-  searchUsers: asyncWrapper(async (req, res) => {
-    await Schema.searchUser.validate(req.query, { abortEarly: false });
-    const { keyword, page, limit } = req.query;
-    const result = await userService.searchUsers(keyword, { page, limit });
-    return utils.success(res, message.User.SEARCH_SUCCESS, result);
-  }),
-
-  /**
-   * 📋 Lấy danh sách user theo role
-   * GET /api/users/role/:roleId?page=1&limit=10
-   */
-  getUsersByRole: asyncWrapper(async (req, res) => {
-    const { roleId } = req.params;
-    const { page, limit } = req.query;
-    const result = await userService.getUsersByRole(roleId, { page, limit });
-    return utils.success(res, message.User.FETCH_BY_ROLE_SUCCESS, result);
   }),
 
   /**
