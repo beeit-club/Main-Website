@@ -1,7 +1,17 @@
 import { code, message } from '../../common/message/index.js';
+import ServiceError from '../../error/service.error.js';
 import transactionModel from '../../models/admin/transaction.model.js';
 
 const transactionService = {
+  getBalance: async () => {
+    try {
+      const balance = await transactionModel.caculateBalance();
+      return balance;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   createTransaction: async (options) => {
     try {
       const transaction = await transactionModel.create(options);
