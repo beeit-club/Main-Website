@@ -64,7 +64,26 @@ const userController = {
   updateUser: asyncWrapper(async (req, res) => {
     await Schema.updateUser.validate(req.body, { abortEarly: false });
     const { id } = req.params;
-    const data = req.body;
+    const {
+      fullname,
+      email,
+      phone,
+      avatar_url,
+      bio,
+      role_id,
+      is_active,
+      email_verified_at,
+    } = req.body;
+    const data = {
+      ...(fullname && { fullname }),
+      ...(email && { email }),
+      ...(phone && { phone }),
+      ...(avatar_url && { avatar_url }),
+      ...(bio && { bio }),
+      ...(role_id && { role_id }),
+      ...(is_active && { is_active }),
+      ...(email_verified_at && { email_verified_at }),
+    };
     const updatedUser = await userService.updateUser(id, data);
     return utils.success(res, message.User.UPDATE_SUCCESS, {
       user: updatedUser,
