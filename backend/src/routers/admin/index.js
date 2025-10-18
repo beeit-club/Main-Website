@@ -5,6 +5,8 @@ import tagsRouter from './tags.router.js';
 import categoryRouter from './categories.router.js';
 import document_categoriesRouter from './document_categories.router.js';
 import documents from './document.router.js';
+import questionRouter from './question.router.js';
+import answerRouter from './answer.router.js';
 import enven from './event.router.js';
 import transactionRouter from './transaction.router.js';
 import { middleware } from '../../middlewares/index.js';
@@ -19,4 +21,6 @@ router.use('/documents', documents);
 router.use('/events', enven);
 router.use('/transaction', middleware.verifyToken, transactionRouter);
 
+router.use('/questions', questionRouter);
+router.use('/answers', answerRouter);
 export default router;
