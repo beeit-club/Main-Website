@@ -4,6 +4,7 @@ import transactionController from '../../controllers/admin/transantion.controlle
 const router = express.Router();
 
 router.post('/', transactionController.createTransaction);
+router.get('/balance', transactionController.getBalance);
 router.get('/', transactionController.getAll);
 router.patch('/:id', transactionController.updateTransaction);
 router.get('/:id', transactionController.getById);
