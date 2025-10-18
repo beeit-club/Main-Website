@@ -6,7 +6,6 @@ import {
   update,
 } from '../../utils/database.js';
 import { dateTime } from '../../utils/datetime.js';
-import pool from '../../db.js';
 
 class eventModel {
   // === EVENTS ===
