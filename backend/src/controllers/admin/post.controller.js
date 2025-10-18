@@ -21,7 +21,7 @@ const postController = {
       ...valid,
       filters: { status, category_id, title },
     });
-    utils.success(res, 'Lấy danh sách  post thành công', posts.data);
+    utils.success(res, 'Lấy danh sách  post thành công', posts);
   }),
   // lấy 1
   getPostBySlug: asyncWrapper(async (req, res) => {
