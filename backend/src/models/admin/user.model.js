@@ -117,34 +117,7 @@ class UserModel {
    * @returns {Promise<boolean>} true nếu cập nhật thành công, false nếu không
    */
   static async updateUser(id, data) {
-    const allowedFields = [
-      'fullname',
-      'email',
-      'phone',
-      'avatar_url',
-      'bio',
-      'role_id',
-      'is_active',
-      'email_verified_at',
-    ];
-
-    // Lọc chỉ các trường được phép
-    const updateData = {};
-    for (const key of allowedFields) {
-      if (data[key] !== undefined) {
-        updateData[key] = data[key];
-      }
-    }
-
-    // Không có gì để update
-    if (Object.keys(updateData).length === 0) {
-      return false;
-    }
-
-    // Tự động cập nhật updated_at
-    updateData.updated_at = new Date();
-
-    const affected = await update(TABLE, updateData, { id });
+    const affected = await update(TABLE, data, { id });
     return affected > 0;
   }
 
