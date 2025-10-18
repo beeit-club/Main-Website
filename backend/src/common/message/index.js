@@ -14,6 +14,8 @@ import * as EventMess from './event.message.js';
 import * as EventCode from './event.code.js';
 import * as CommentMess from './comment.message.js';
 import * as CommentCode from './comment.code.js';
+import * as TransactionCode from './transaction.code.js';
+import * as TransactionMess from './transaction.message.js';
 
 export const message = {
   Auth: AuthMessage,
@@ -24,6 +26,7 @@ export const message = {
   Doc: documents,
   Event: EventMess,
   Comment: CommentMess,
+  Transaction: TransactionMess,
 };
 
 export const code = {
@@ -35,4 +38,5 @@ export const code = {
   Doc: documents_code,
   Event: EventCode,
   Comment: CommentCode,
+  Transaction: TransactionCode,
 };
