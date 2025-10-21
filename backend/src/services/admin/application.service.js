@@ -1,4 +1,4 @@
-import { AppCode, AppMessage } from '../../common/message/index.js';
+import { code, message } from '../../common/message/index.js';
 import ServiceError from '../../error/service.error.js';
 import { applicationModel } from '../../models/admin/index.js';
 
@@ -13,8 +13,8 @@ const applicationService = {
       });
       if (isExist) {
         throw new ServiceError(
-          AppMessage.EMAIL_OR_STUDENT_ID_EXISTS,
-          AppCode.EMAIL_OR_STUDENT_ID_EXISTS_CODE,
+          message.EMAIL_OR_STUDENT_ID_EXISTS,
+          code.EMAIL_OR_STUDENT_ID_EXISTS_CODE,
           'Dữ liệu đã tồn tại',
           409,
         );
@@ -40,8 +40,8 @@ const applicationService = {
       const application = await applicationModel.getOneApplication(id);
       if (!application) {
         throw new ServiceError(
-          AppMessage.APPLICATION_NOT_FOUND,
-          AppCode.APPLICATION_NOT_FOUND_CODE,
+          message.APPLICATION_NOT_FOUND,
+          code.APPLICATION_NOT_FOUND_CODE,
         );
       }
       return application;
@@ -59,8 +59,8 @@ const applicationService = {
       if (application.status !== 2) {
         // 2 = Chờ xử lý
         throw new ServiceError(
-          AppMessage.APPLICATION_ALREADY_PROCESSED,
-          AppCode.APPLICATION_ALREADY_PROCESSED_CODE,
+          message.APPLICATION_ALREADY_PROCESSED,
+          code.APPLICATION_ALREADY_PROCESSED_CODE,
         );
       }
 
@@ -97,8 +97,8 @@ const applicationService = {
       // để tránh dữ liệu rác.
       console.error('Lỗi khi duyệt đơn:', error);
       throw new ServiceError(
-        AppMessage.APPROVAL_FAILED,
-        AppCode.APPROVAL_FAILED_CODE,
+        message.APPROVAL_FAILED,
+        code.APPROVAL_FAILED_CODE,
         error.message,
         500,
       );
@@ -111,8 +111,8 @@ const applicationService = {
       const application = await applicationService.getOneApplication(id);
       if (application.status !== 2) {
         throw new ServiceError(
-          AppMessage.APPLICATION_ALREADY_PROCESSED,
-          AppCode.APPLICATION_ALREADY_PROCESSED_CODE,
+          message.APPLICATION_ALREADY_PROCESSED,
+          code.APPLICATION_ALREADY_PROCESSED_CODE,
         );
       }
       return await applicationModel.updateApplication(id, { status: 0 }); // 0 = Bị từ chối

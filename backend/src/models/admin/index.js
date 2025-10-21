@@ -6,6 +6,7 @@ import DocumentCategoryModel from './document_category.model.js';
 import eventModel from './event.model.js';
 import questionModel from './question.model.js';
 import tagModel from './tag.model.js';
+import applicationModel from './application.model.js';
 export {
   questionModel,
   answerModel,
@@ -14,4 +15,5 @@ export {
   DocumentCategoryModel,
   categoryModel,
   tagModel,
+  applicationModel,
 };

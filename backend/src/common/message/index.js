@@ -12,6 +12,12 @@ import * as documents from './document.message.js';
 import * as documents_code from './document.code.js';
 import * as EventMess from './event.message.js';
 import * as EventCode from './event.code.js';
+import * as CommentMess from './comment.message.js';
+import * as CommentCode from './comment.code.js';
+import * as TransactionCode from './transaction.code.js';
+import * as TransactionMess from './transaction.message.js';
+import * as ApplicationMess from './application.message.js';
+import * as ApplicationCode from './application.code.js';
 
 export const message = {
   Auth: AuthMessage,
@@ -21,6 +27,9 @@ export const message = {
   DOCCA: document_category,
   Doc: documents,
   Event: EventMess,
+  Comment: CommentMess,
+  Transaction: TransactionMess,
+  Application: ApplicationMess,
 };
 
 export const code = {
@@ -31,4 +40,7 @@ export const code = {
   DOCCA: document_category_code,
   Doc: documents_code,
   Event: EventCode,
+  Comment: CommentCode,
+  Transaction: TransactionCode,
+  Application: ApplicationCode,
 };

@@ -6,6 +6,7 @@ import eventService from './event.service.js';
 import postService from './posts.service.js';
 import questionService from './question.service.js';
 import tagService from './tag.service.js';
+import applicationService from './application.service.js';
 export {
   questionService,
   answerService,
@@ -15,4 +16,5 @@ export {
   tagService,
   categoryService,
   documentCategoryService,
+  applicationService,
 };
