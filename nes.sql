@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS `membership_applications` (
     `email` VARCHAR(255) NOT NULL,
     `phone` VARCHAR(20),
     `fullname` VARCHAR(255) NOT NULL,
+    `student_id` VARCHAR(20) UNIQUE NOT NULL,
     `student_year` VARCHAR(10),
     `major` VARCHAR(100),
     `interview_notes` TEXT,

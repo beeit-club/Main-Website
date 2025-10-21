@@ -2,7 +2,7 @@ import asyncWrapper from '../../middlewares/error.handler.js';
 import { applicationService } from '../../services/admin/index.js';
 import { utils } from '../../utils/index.js';
 import ApplicationSchema from '../../validation/admin/application.validation.js';
-import { AppMessage } from '../../common/message/index.js';
+import { message } from '../../common/message/index.js';
 import {
   PaginationSchema,
   params,
@@ -22,7 +22,7 @@ const applicationController = {
     const application = await applicationService.createApplication(
       applicationData,
     );
-    utils.success(res, AppMessage.APPLICATION_SUBMIT_SUCCESS, {
+    utils.success(res, message.APPLICATION_SUBMIT_SUCCESS, {
       id: application.insertId,
     });
   }),
@@ -39,7 +39,7 @@ const applicationController = {
       ...valid,
       filters: { search, status },
     });
-    utils.success(res, AppMessage.GET_APPLICATIONS_SUCCESS, result);
+    utils.success(res, message.GET_APPLICATIONS_SUCCESS, result);
   }),
 
   // [ADMIN] Lấy chi tiết đơn
@@ -47,7 +47,7 @@ const applicationController = {
     await params.id.validate(req.params);
     const { id } = req.params;
     const application = await applicationService.getOneApplication(id);
-    utils.success(res, AppMessage.GET_APPLICATION_SUCCESS, { application });
+    utils.success(res, message.GET_APPLICATION_SUCCESS, { application });
   }),
 
   // [ADMIN] Phê duyệt đơn
@@ -58,7 +58,7 @@ const applicationController = {
     const adminId = req.user.id; // Thay `req.user.id` bằng biến chứa ID admin của bạn
 
     const result = await applicationService.approveApplication(id, adminId);
-    utils.success(res, AppMessage.APPLICATION_APPROVED_SUCCESS, {
+    utils.success(res, message.APPLICATION_APPROVED_SUCCESS, {
       newUserId: result.newUserId,
     });
   }),
@@ -68,7 +68,7 @@ const applicationController = {
     await params.id.validate(req.params);
     const { id } = req.params;
     await applicationService.rejectApplication(id);
-    utils.success(res, AppMessage.APPLICATION_REJECTED_SUCCESS, { id });
+    utils.success(res, message.APPLICATION_REJECTED_SUCCESS, { id });
   }),
 };
 
