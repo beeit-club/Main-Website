@@ -8,6 +8,7 @@ import documents from './document.router.js';
 import questionRouter from './question.router.js';
 import answerRouter from './answer.router.js';
 import enven from './event.router.js';
+import applicationRouter from './application.router.js';
 import { middleware } from '../../middlewares/index.js';
 const router = express.Router();
 
@@ -20,4 +21,5 @@ router.use('/documents', documents);
 router.use('/events', enven);
 router.use('/questions', questionRouter);
 router.use('/answers', answerRouter);
+router.use('/application', applicationRouter);
 export default router;
