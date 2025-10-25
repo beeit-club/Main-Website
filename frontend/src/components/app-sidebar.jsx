@@ -52,8 +52,8 @@ const data = {
       icon: User,
     },
     {
-      title: "Analytics",
-      url: "#",
+      title: "Posts",
+      url: "/admin/posts",
       icon: IconChartBar,
     },
     {

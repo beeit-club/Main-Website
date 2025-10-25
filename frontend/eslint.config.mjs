@@ -10,6 +10,7 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  { ignores: ["dist", "src/tinymce"] },
   ...compat.extends("next/core-web-vitals"),
   {
     ignores: [

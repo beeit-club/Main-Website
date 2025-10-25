@@ -22,6 +22,7 @@ class postModel {
     p.view_count,
     p.published_at,
     p.created_at,
+    p.status,
     pc.name AS category_name,
     pc.slug AS category_slug,
     u.fullname AS author_name,
