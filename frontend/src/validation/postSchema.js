@@ -48,3 +48,16 @@ export const postSchema = yup.object().shape({
     })
     .nullable(),
 });
+
+// src/lib/validations/tag-schema.js
+
+export const tagSchema = yup.object().shape({
+  name: yup
+    .string()
+    .required("Tên tag là bắt buộc.")
+    .max(100, "Tên tag không quá 100 ký tự."),
+  meta_description: yup
+    .string()
+    .max(160, "Mô tả meta không quá 160 ký tự.")
+    .nullable(), // Cho phép giá trị rỗng (null hoặc undefined)
+});

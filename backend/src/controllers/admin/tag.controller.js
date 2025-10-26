@@ -34,11 +34,14 @@ const tagController = {
     await TagSchema.create.validate(req.body, { abortEarly: false });
     const { name, meta_description } = req.body;
     const slug = slugify(name);
+    const user = req.user;
+    console.log('🚀 ~ user:', user);
+    const { id } = user;
     const tagData = {
       name,
       slug,
       meta_description,
-      created_by: null, // Sẽ cập nhật sau
+      created_by: id, // Sẽ cập nhật sau
       updated_by: null,
     };
     const tag = await tagService.createTag(tagData);
@@ -54,7 +57,8 @@ const tagController = {
     await TagSchema.update.validate(req.body, { abortEarly: false });
     const { id } = req.params;
     const { name, meta_description } = req.body;
-
+    const user = req.user;
+    const { id: userID } = user;
     const tagData = {};
     if (name) {
       tagData.name = name;
@@ -63,7 +67,7 @@ const tagController = {
     if (meta_description) {
       tagData.meta_description = meta_description;
     }
-    tagData.updated_by = null; // Sẽ cập nhật sau
+    tagData.updated_by = userID;
 
     await tagService.updateTag(id, tagData);
     utils.success(res, 'Cập nhật thẻ thành công');
