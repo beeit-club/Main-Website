@@ -66,7 +66,7 @@ axiosClient.interceptors.response.use(
             .catch((err) => {
               queue = [];
               alert("hết phiên vui lòng đăng nhập lại");
-              window.location.href = "/auth/login";
+              window.location.href = "/login";
               return Promise.reject(err);
             });
         }

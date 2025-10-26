@@ -1,5 +1,6 @@
 import express from 'express';
 import { postController } from '../../controllers/admin/index.js';
+import { upload } from '../upload/upload.js';
 
 const Router = express.Router();
 // lấy toàn bộ danh sách
@@ -9,7 +10,7 @@ Router.get('/', postController.getPosts);
 Router.get('/:slug', postController.getPostBySlug);
 
 // // Tạo bài viết mới
-Router.post('/', postController.createPost);
+Router.post('/', upload.single('featured_image'), postController.createPost);
 
 // // Cập nhật bài viết
 Router.put('/:id', postController.updatePost);

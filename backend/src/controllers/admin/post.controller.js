@@ -1,3 +1,4 @@
+import { API_BACKEND } from '../../config/server.config.js';
 import asyncWrapper from '../../middlewares/error.handler.js';
 import postService from '../../services/admin/posts.service.js';
 import { slugify } from '../../utils/function.js';
@@ -23,6 +24,7 @@ const postController = {
     });
     utils.success(res, 'Lấy danh sách  post thành công', posts);
   }),
+
   // lấy 1
   getPostBySlug: asyncWrapper(async (req, res) => {
     await params.slug.validate(req.params, { abortEarly: false });
@@ -36,6 +38,17 @@ const postController = {
     const { title, content, meta_description, category_id, status, tags } =
       req.body;
     const slug = slugify(title);
+    const file = req.file;
+    const user = req.user;
+    const { id } = user;
+    if (!file) {
+      return utils.validationError(
+        res,
+        { file: 'vui lòng chọn file' },
+        'Vui lòng chọn một file',
+      );
+    }
+    const featured_image = `${API_BACKEND}/uploads/posts/${file.filename}`;
     const data = {
       title,
       slug,
@@ -44,7 +57,10 @@ const postController = {
       category_id,
       status: status ?? 0,
       tags,
+      featured_image,
+      created_by: id,
     };
+
     const post = await postService.createPost(data);
 
     utils.success(res, 'Thêm danh mục thành công', {
