@@ -24,8 +24,10 @@ CREATE TABLE IF NOT EXISTS `users` (
     `fullname` VARCHAR(255) NOT NULL,
     `email` VARCHAR(255) UNIQUE NOT NULL,
     `phone` VARCHAR(20),
-    `password_hash` VARCHAR(255),
     `google_id` VARCHAR(255) UNIQUE,
+    `otp_code` VARCHAR(10),                         -- mã OTP gửi qua email
+    `otp_expires_at` TIMESTAMP NULL,                -- thời gian OTP hết hạn
+    `otp_attempts` INT UNSIGNED DEFAULT 0,          -- số lần nhập sai OTP
     `avatar_url` TEXT,
     `bio` TEXT,
     `role_id` BIGINT UNSIGNED,
@@ -37,6 +39,8 @@ CREATE TABLE IF NOT EXISTS `users` (
     PRIMARY KEY (`id`),
     FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
+
+
 
 CREATE TABLE IF NOT EXISTS `user_sessions` (
     `session_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -74,6 +78,7 @@ CREATE TABLE IF NOT EXISTS `membership_applications` (
     `email` VARCHAR(255) NOT NULL,
     `phone` VARCHAR(20),
     `fullname` VARCHAR(255) NOT NULL,
+    `student_id` VARCHAR(20) UNIQUE NOT NULL,
     `student_year` VARCHAR(10),
     `major` VARCHAR(100),
     `interview_notes` TEXT,
@@ -109,6 +114,7 @@ CREATE TABLE IF NOT EXISTS `post_categories` (
     `name` VARCHAR(255) NOT NULL,
     `slug` VARCHAR(255) UNIQUE NOT NULL,
     `parent_id` BIGINT UNSIGNED,
+    `status` INT DEFAULT 1
     `created_by` BIGINT UNSIGNED,
     `updated_by` BIGINT UNSIGNED,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

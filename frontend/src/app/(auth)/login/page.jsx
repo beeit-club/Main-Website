@@ -1,6 +1,12 @@
-"use client";
-import React from "react";
+import AuthGuard from "@/components/auth/AuthGuard";
+import LoginForm from "@/components/auth/LoginForm";
 
 export default function Login() {
-  return <div>Login</div>;
+  return (
+    <div>
+      <AuthGuard>
+        <LoginForm />
+      </AuthGuard>
+    </div>
+  );
 }

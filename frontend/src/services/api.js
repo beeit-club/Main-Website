@@ -2,7 +2,7 @@
 import axios from "axios";
 const axiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BACKEND,
-  timeout: 1000,
+  timeout: process.env.NEXT_PUBLIC_API_TIMEOUT,
   headers: {
     "Content-Type": "application/json",
   },
@@ -11,12 +11,12 @@ const axiosClient = axios.create({
 
 const refreshToken = async () => {
   try {
-    const res = await api.post("auth/refresh");
-    const accessToken = res.data?.access_token;
+    const res = await axiosClient.post("auth/refresh");
+    const accessToken = res.data?.accessToken;
     if (!accessToken) {
       throw new Error("No access token returned");
     }
-    localStorage.setItem("access_token", accessToken);
+    localStorage.setItem("accessToken", accessToken);
     return accessToken;
   } catch (error) {
     console.error("Refresh token failed:", error);
@@ -33,7 +33,7 @@ axiosClient.interceptors.request.use((config) => {
     config.url !== "auth/register" &&
     config.url !== "auth/refresh"
   ) {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -48,15 +48,15 @@ axiosClient.interceptors.response.use(
   (error) => {
     const originalReq = error.config;
     const code = error.response?.data?.errorCode;
-    if (code === "TOKEN_EXPIRED" || error.response.status === 401) {
+    if (code === "TOKEN_EXPIRED") {
       if (!originalReq._retry) {
         originalReq._retry = true;
         if (!isRefreshing) {
-          localStorage.removeItem("access_token");
+          localStorage.removeItem("accessToken");
           isRefreshing = true;
           return refreshToken()
             .then((newToken) => {
-              localStorage.setItem("access_token", newToken);
+              localStorage.setItem("accessToken", newToken);
               isRefreshing = false;
               queue.forEach((cb) => cb(newToken));
               queue = [];
@@ -66,7 +66,7 @@ axiosClient.interceptors.response.use(
             .catch((err) => {
               queue = [];
               alert("hết phiên vui lòng đăng nhập lại");
-              window.location.href = "/auth/login";
+              window.location.href = "/login";
               return Promise.reject(err);
             });
         }
