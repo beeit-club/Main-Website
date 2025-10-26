@@ -57,13 +57,13 @@ const data = {
       icon: IconChartBar,
     },
     {
-      title: "Projects",
-      url: "#",
+      title: "Tags",
+      url: "/admin/tags",
       icon: IconFolder,
     },
     {
-      title: "Team",
-      url: "#",
+      title: "Categories",
+      url: "/admin/categories",
       icon: IconUsers,
     },
   ],
