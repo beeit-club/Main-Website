@@ -25,7 +25,22 @@ const postService = {
           404,
         );
       }
-      console.log('🚀 ~ post:', post);
+      return post;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getPostById: async (id) => {
+    try {
+      const post = await postModel.getPostById(id);
+      if (!post) {
+        throw new ServiceError(
+          'Bài viết không tồn tại', // Bạn cần định nghĩa message này
+          'NO_POST', // và code này
+          'Bài viết không tồn tại',
+          404,
+        );
+      }
       return post;
     } catch (error) {
       throw error;
@@ -57,18 +72,18 @@ const postService = {
   updatePost: async (id, data) => {
     try {
       // check slug mới (nếu có) đã tồn tại chưa
-      if (data.slug) {
-        const isCheck = await postModel.checkIsPost(data.slug);
-        // Nếu slug đã tồn tại và không phải là của chính tag đang update
-        if (isCheck) {
-          throw new ServiceError(
-            'Conflict',
-            'Bài viết đã có',
-            'Bài viết đã tồn tại',
-            409,
-          );
-        }
-      }
+      // if (data.slug) {
+      //   const isCheck = await postModel.checkIsPost(data.slug);
+      //   // Nếu slug đã tồn tại và không phải là của chính tag đang update
+      //   if (isCheck) {
+      //     throw new ServiceError(
+      //       'Conflict',
+      //       'Bài viết đã có',
+      //       'Bài viết đã tồn tại',
+      //       409,
+      //     );
+      //   }
+      // }
       // cập nhật thẻ
       const { tags, ...files } = data;
       const post = await postModel.updatePost(id, files);

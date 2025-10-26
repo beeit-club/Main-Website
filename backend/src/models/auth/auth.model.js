@@ -272,11 +272,6 @@ class AuthModel {
         'SELECT * FROM users WHERE email = ?',
         [email],
       );
-      console.log(
-        '🚀 ~ AuthModel ~ findOrCreate ~ existingUser:',
-        existingUser,
-      );
-
       if (existingUser) {
         if (!existingUser.google_id) {
           await update(

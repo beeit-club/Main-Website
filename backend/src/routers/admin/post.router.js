@@ -13,7 +13,7 @@ Router.get('/:slug', postController.getPostBySlug);
 Router.post('/', upload.single('featured_image'), postController.createPost);
 
 // // Cập nhật bài viết
-Router.put('/:id', postController.updatePost);
+Router.put('/:id', upload.single('featured_image'), postController.updatePost);
 
 // // Xóa bài viết (soft delete)
 Router.delete('/:id', postController.deletePost);

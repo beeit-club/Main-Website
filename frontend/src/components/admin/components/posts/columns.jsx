@@ -1,6 +1,5 @@
 // src/components/columns.jsx
 import React from "react";
-import { ColumnDef } from "@tanstack/react-table"; // không bắt buộc, ok nếu còn
 import { RowActions } from "./RowActions";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -49,8 +48,7 @@ export const columns = [
     header: "Trạng thái",
     cell: ({ row }) => {
       const status = row.getValue("status");
-      if (!status)
-        return <span className="text-gray-400 italic">Chưa xác định</span>;
+
       return (
         <span
           className={`px-2 py-1 text-xs rounded-full ${
@@ -59,7 +57,7 @@ export const columns = [
               : "bg-red-100 text-red-700"
           }`}
         >
-          {status == 1 ? "Hoạt động" : "Ngừng"}
+          {status == 1 ? "Hoạt động" : "Nháp"}
         </span>
       );
     },
