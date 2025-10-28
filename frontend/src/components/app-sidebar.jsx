@@ -66,6 +66,21 @@ const data = {
       url: "/admin/categories",
       icon: IconUsers,
     },
+    {
+      title: "Question",
+      url: "/admin/questions",
+      icon: IconUsers,
+    },
+    {
+      title: "Applications",
+      url: "/admin/applications",
+      icon: IconUsers,
+    },
+    {
+      title: "Interviews",
+      url: "/admin/interviews",
+      icon: IconUsers,
+    },
   ],
   navClouds: [
     {

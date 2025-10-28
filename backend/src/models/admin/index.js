@@ -7,7 +7,9 @@ import eventModel from './event.model.js';
 import questionModel from './question.model.js';
 import tagModel from './tag.model.js';
 import applicationModel from './application.model.js';
+import InterviewModel from './interview.model.js';
 export {
+  InterviewModel,
   questionModel,
   answerModel,
   eventModel,

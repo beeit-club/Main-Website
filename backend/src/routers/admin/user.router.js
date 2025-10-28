@@ -35,25 +35,24 @@ Router.get('/:id', userController.getUserById);
  * POST /api/admin/users
  */
 Router.post('/', userController.createUser);
-
-/**
- * ✏️ Cập nhật thông tin user
- * PATCH /api/admin/users/:id
- */
-Router.patch('/:id', userController.updateUser);
-
 /**
  * 🔄 Kích hoạt/vô hiệu hóa user
  * PATCH /api/admin/users/:id/toggle-active
  * Body: { is_active: 0 | 1 }
  */
-Router.patch('/:id/toggle-active', userController.toggleUserActive);
+Router.put('/:id/toggleActive', userController.toggleUserActive);
 
 /**
  * ♻️ Khôi phục user đã xóa
  * PATCH /api/admin/users/:id/restore
  */
 Router.patch('/:id/restore', userController.restoreUser);
+
+/**
+ * ✏️ Cập nhật thông tin user
+ * PATCH /api/admin/users/:id
+ */
+Router.patch('/:id', userController.updateUser);
 
 /**
  * 🗑️ Xóa mềm user

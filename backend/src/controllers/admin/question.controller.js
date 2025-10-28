@@ -32,6 +32,7 @@ const questionController = {
   getQuestionById: asyncWrapper(async (req, res) => {
     await params.id.validate(req.params);
     const { id } = req.params;
+    console.log('🚀 ~ id:', id);
     const question = await questionService.getOneQuestion(id);
     utils.success(res, QUESTION_GET_DETAIL_SUCCESS, { question });
   }),

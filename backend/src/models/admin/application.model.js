@@ -9,7 +9,7 @@ class ApplicationModel {
   // Lấy danh sách đơn (cho Admin)
   static async getAllApplications(options = {}) {
     try {
-      let sql = `SELECT id, fullname, email, major, status, created_at FROM membership_applications WHERE 1=1`;
+      let sql = `SELECT * FROM membership_applications WHERE 1=1`;
       let params = [];
 
       if (options?.filters?.search) {
@@ -93,6 +93,21 @@ class ApplicationModel {
     } catch (error) {
       throw error;
     }
+  }
+
+  // (HÀM MỚI) Lấy đơn kèm thông tin lịch để gửi email
+  static async getApplicationWithSchedule(id) {
+    const sql = `
+      SELECT 
+        app.*, 
+        sch.title as schedule_title, 
+        sch.interview_date, 
+        sch.location as schedule_location
+      FROM membership_applications app
+      LEFT JOIN interview_schedules sch ON app.schedule_id = sch.id
+      WHERE app.id = ?
+    `;
+    return await findOne(sql, [id]);
   }
 }
 

@@ -10,16 +10,12 @@ class categoryModel {
   // lấy toàn bộ
   static async getAllCategory(options = {}) {
     try {
-      let sql = `SELECT * FROM post_categories Where 1=1 `;
+      let sql = `SELECT * FROM post_categories Where 1=1 AND deleted_at is NULL `;
       let params = [];
 
       if (options?.filters?.name) {
         sql += ` AND name LIKE ? `;
         params.push(`%${options.filters.name}%`);
-      }
-      if (options?.filters?.status) {
-        sql += ` AND status = ? `;
-        params.push(`${options?.filters?.status}`);
       }
       const category = await selectWithPagination(sql, params, options);
       return category;

@@ -1,1 +1,0 @@
-// các thành phần componet đi theo module
