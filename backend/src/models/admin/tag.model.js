@@ -40,7 +40,6 @@ WHERE
 
   // lấy 1
   static async getOneTag(id) {
-    console.log('🚀 ~ tagModel ~ getOneTag ~ id:', id);
     try {
       const sql = `SELECT
   t.id,

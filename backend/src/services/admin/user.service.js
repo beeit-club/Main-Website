@@ -41,6 +41,7 @@ const userService = {
       }
 
       const user = await userModel.getUserById(id);
+      console.log('🚀 ~ user:', user);
 
       if (!user) {
         throw new ServiceError(
@@ -189,6 +190,7 @@ const userService = {
     try {
       // Kiểm tra user tồn tại (có thể đã bị soft delete)
       const deleted = await userModel.hardDeleteUser(id);
+      console.log('🚀 ~ deleted:', deleted);
 
       if (!deleted) {
         throw new ServiceError(

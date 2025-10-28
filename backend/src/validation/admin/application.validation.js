@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 
 const ApplicationSchema = {
-  // 🟢 Nộp đơn (Public)
+  // 🟢 Nộp đơn (Public) - Giữ nguyên file gốc
   create: yup.object({
     fullname: yup
       .string()
@@ -36,8 +36,17 @@ const ApplicationSchema = {
       .max(100, 'Chuyên ngành không được vượt quá 100 ký tự'),
   }),
 
-  // 🟡 Admin cập nhật ghi chú
-  update: yup.object({
+  // 🟡 Admin đặt lịch (Workflow mới)
+  schedule: yup.object({
+    schedule_id: yup
+      .number()
+      .required('Cần chọn lịch phỏng vấn')
+      .positive('ID lịch không hợp lệ')
+      .integer('ID lịch không hợp lệ'),
+  }),
+
+  // 🔴 Admin Phê duyệt/Từ chối (Workflow mới)
+  decision: yup.object({
     interview_notes: yup.string().trim().nullable(),
   }),
 };

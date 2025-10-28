@@ -42,6 +42,7 @@ const userController = {
   getUserById: asyncWrapper(async (req, res) => {
     await params.id.validate(req.params, { abortEarly: false });
     const { id } = req.params;
+    console.log('🚀 ~ id: view', id);
     const user = await userService.getUserById(id);
     return utils.success(res, message.User.FETCH_SUCCESS, { user });
   }),
@@ -151,6 +152,7 @@ const userController = {
   hardDeleteUser: asyncWrapper(async (req, res) => {
     await params.id.validate(req.params, { abortEarly: false });
     const { id } = req.params;
+    console.log('🚀 ~ id:', id);
     const { fullname, email } = await userService.getUserById(id);
     await userService.hardDeleteUser(id);
     return utils.success(res, message.User.HARD_DELETE_SUCCESS, {

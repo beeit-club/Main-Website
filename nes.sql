@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `member_profiles` (
     `user_id` BIGINT UNSIGNED NOT NULL,
     `student_id` VARCHAR(20) UNIQUE NOT NULL,
     `academic_year` DATE,
-    `course` INT,
+    `course` VARCHAR(20),
     `join_date` DATE DEFAULT (CURRENT_DATE),
     `created_by` BIGINT UNSIGNED,
     `updated_by` BIGINT UNSIGNED,
@@ -114,7 +114,6 @@ CREATE TABLE IF NOT EXISTS `post_categories` (
     `name` VARCHAR(255) NOT NULL,
     `slug` VARCHAR(255) UNIQUE NOT NULL,
     `parent_id` BIGINT UNSIGNED,
-    `status` INT DEFAULT 1
     `created_by` BIGINT UNSIGNED,
     `updated_by` BIGINT UNSIGNED,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -360,4 +359,24 @@ CREATE TABLE IF NOT EXISTS `transactions` (
     FOREIGN KEY (`updated_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
 
+CREATE TABLE IF NOT EXISTS `interview_schedules` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `title` VARCHAR(255) NOT NULL COMMENT 'VD: Đợt 1 - Online Google Meet',
+    `interview_date` DATE NOT NULL COMMENT 'Ngày phỏng vấn (YYYY-MM-DD)',
+    `start_time` TIME NOT NULL COMMENT 'Giờ bắt đầu (HH:MM:SS)',
+    `end_time` TIME NOT NULL COMMENT 'Giờ kết thúc (HH:MM:SS)',
+    `location` TEXT COMMENT 'Link Meet hoặc Địa điểm',
+    `description` TEXT COMMENT 'Mô tả thêm',
+    `created_by` BIGINT UNSIGNED,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
+ALTER TABLE `membership_applications`
+ADD COLUMN `schedule_id` BIGINT UNSIGNED NULL AFTER `major`,
+ADD CONSTRAINT `fk_app_schedule` 
+    FOREIGN KEY (`schedule_id`) 
+    REFERENCES `interview_schedules`(`id`) 
+    ON DELETE SET NULL;
 SET FOREIGN_KEY_CHECKS = 1;

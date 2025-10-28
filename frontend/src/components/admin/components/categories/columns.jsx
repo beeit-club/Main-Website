@@ -1,7 +1,8 @@
-// src/components/columns.jsx
+// src/components/admin/components/categories/columns.jsx
 import React from "react";
-import { RowActions } from "./RowActions";
+import { RowActions } from "./RowActions"; // <-- Trỏ tới RowActions của categories
 import { Checkbox } from "@/components/ui/checkbox";
+import { formatDate } from "@/lib/datetime";
 
 export const columns = [
   {
@@ -10,56 +11,44 @@ export const columns = [
       <Checkbox
         checked={table.getIsAllPageRowsSelected()}
         onCheckedChange={(val) => table.toggleAllPageRowsSelected(!!val)}
-        aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(val) => row.toggleSelected(!!val)}
-        aria-label="Select row"
       />
     ),
     enableSorting: false,
     enableHiding: false,
   },
   {
-    accessorKey: "title",
-    header: "Title",
-    cell: (info) => info.getValue(),
+    accessorKey: "name",
+    header: "Tên Danh mục",
+    cell: (info) => <span className="font-medium">{info.getValue()}</span>,
   },
   {
-    accessorKey: "category_name",
-    header: "Danh mục",
-    cell: (info) => info.getValue(),
+    accessorKey: "slug",
+    header: "Slug",
+    cell: (info) => <span className="italic">{info.getValue()}</span>,
   },
   {
-    accessorKey: "author_name",
-    header: "Người đăng",
+    // Giả sử API trả về { ..., parent: { id: 1, name: "Cha" } }
+    accessorKey: "parent.name",
+    header: "Danh mục cha",
     cell: ({ row }) => {
-      const username = row.getValue("author_name");
-      if (!username)
-        return <span className="text-gray-400 italic">Chưa xác định</span>;
-      return username;
+      const parentName = row.original.parent?.name;
+      if (!parentName)
+        return <span className="text-gray-400 italic">— Không có —</span>;
+      return parentName;
     },
   },
   {
-    accessorKey: "status",
-    header: "Trạng thái",
+    accessorKey: "created_at",
+    header: "Ngày tạo",
     cell: ({ row }) => {
-      const status = row.getValue("status");
-
-      return (
-        <span
-          className={`px-2 py-1 text-xs rounded-full ${
-            status == 1
-              ? "bg-green-100 text-green-700"
-              : "bg-red-100 text-red-700"
-          }`}
-        >
-          {status == 1 ? "Hoạt động" : "Nháp"}
-        </span>
-      );
+      const date = row.getValue("created_at");
+      return <span>{date ? formatDate(date) : "N/A"}</span>;
     },
   },
   {
