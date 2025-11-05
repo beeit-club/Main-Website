@@ -195,6 +195,11 @@ const userController = {
     const stats = await userService.getUserStats();
     return utils.success(res, message.User.STATS_SUCCESS, { stats });
   }),
+  // lấy toàn bộ role
+  getAllRoles: asyncWrapper(async (req, res) => {
+    const roles = await userService.getAllRoles();
+    return utils.success(res, message.User.STATS_SUCCESS, { roles });
+  }),
 };
 
 export default userController;

@@ -51,12 +51,10 @@ const getInitials = (name) => {
 };
 
 export function RowActions({ row, viewMode = "active" }) {
-  console.log("🚀 ~ RowActions ~ viewMode:", viewMode);
   // States cho các dialog
   const [openDelete, setOpenDelete] = useState(false);
   const [openView, setOpenView] = useState(false);
   const [openPermanentDelete, setOpenPermanentDelete] = useState(false);
-  // !! ĐÃ XÓA: [openEdit, setOpenEdit]
 
   // States loading
   const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
@@ -72,12 +70,8 @@ export function RowActions({ row, viewMode = "active" }) {
   const userName = row.original.fullname;
   const isActive = row.original.is_active;
 
-  // !! ĐÃ XÓA: Cấu hình React Hook Form (cho Edit)
-
   // --- Hàm reload trang ---
   const reloadPage = () => window.location.reload();
-
-  // --- Xử lý XÓA MỀM (Active View) ---
   async function onConfirmDelete() {
     setIsDeleteSubmitting(true);
     try {
@@ -133,12 +127,11 @@ export function RowActions({ row, viewMode = "active" }) {
     }
   }
 
-  // --- Xử lý BẬT/TẮT TRẠNG THÁI (Active View) ---
   async function onToggleActive() {
     setIsToggleSubmitting(true);
     try {
       const res = await usersServices.toggleUserActive(userId, {
-        is_active: isActive ? 0 : 1, // Gửi giá trị ngược lại
+        is_active: isActive ? 0 : 1,
       });
       if (res.status == "success") {
         toast.success("Thay đổi trạng thái thành công");
@@ -171,8 +164,6 @@ export function RowActions({ row, viewMode = "active" }) {
       setOpenView(true);
     }
   }
-
-  // !! ĐÃ XÓA: Logic Sửa (onEditClick, onConfirmEdit, handleCloseEditDialog)
 
   return (
     <>
@@ -403,8 +394,6 @@ export function RowActions({ row, viewMode = "active" }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* !! ĐÃ XÓA: Dialog Sửa */}
     </>
   );
 }

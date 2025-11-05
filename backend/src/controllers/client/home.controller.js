@@ -23,5 +23,15 @@ const HomeControler = {
     });
     utils.success(res, 'Lấy danh sách thẻ thành công', tags);
   }),
+  // lấy chi tiết bài viết
+  postDetaill: asyncWrapper(async (req, res) => {
+    const { slug } = req.params;
+    const post = await HomeService.getPostDetaill(slug);
+    utils.success(res, 'Lấy post thành công', post);
+  }),
+  getAllPost: asyncWrapper(async (req, res) => {
+    const post = await HomeService.getAllPost();
+    utils.success(res, 'Lấy post thành công', post);
+  }),
 };
 export default HomeControler;

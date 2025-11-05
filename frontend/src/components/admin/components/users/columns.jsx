@@ -5,15 +5,31 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDate } from "@/lib/datetime";
-import { User } from "lucide-react";
 
-// Helper function để lấy 2 chữ cái đầu
 const getInitials = (name) => {
   if (!name) return "U";
   const names = name.split(" ");
   const initials = names.map((n) => n[0]).join("");
   return initials.substring(0, 2).toUpperCase();
 };
+
+//  tìm hiểu
+// khi có id và khi không có id, nó để làm bộ lọc trên url
+// {
+//     id: "active",
+//     accessorKey: "is_active",
+//     header: "Trạng thái",
+//     cell: ({ row }) => {
+//       const isActive = row.getValue("active");
+//       return isActive ? (
+//         <Badge variant="default" className="bg-green-600">
+//           Hoạt động
+//         </Badge>
+//       ) : (
+//         <Badge variant="outline">Vô hiệu hóa</Badge>
+//       );
+//     },
+//   },
 
 export const columns = [
   // 1. Cột chọn
@@ -58,23 +74,17 @@ export const columns = [
     },
   },
 
-  // 3. Cột Vai trò (Giả định API trả về user.role.name)
-  // src/components/admin/components/users/columns.jsx
-  // ... (Hãy đảm bảo bạn đã import Badge: import { Badge } from "@/components/ui/badge";)
-
   {
-    accessorKey: "role_name", // Giữ nguyên accessorKey bạn cung cấp
+    id: "roleId",
+    accessorKey: "role_name",
     header: "Vai trò",
     cell: ({ row }) => {
-      const roleName = row.original.role_name; // Lấy role_name từ data
-
+      const roleName = row.original.role_name;
       if (!roleName) {
         return <span className="text-gray-400 italic">Chưa rõ</span>;
       }
 
       let variant;
-
-      // Logic gán màu sắc (variant) cho Badge dựa trên tên role
       switch (roleName) {
         case "Super Admin":
           variant = "destructive"; // Màu đỏ, nổi bật nhất
@@ -101,10 +111,11 @@ export const columns = [
 
   // 4. Cột Trạng thái (is_active)
   {
+    id: "active",
     accessorKey: "is_active",
     header: "Trạng thái",
     cell: ({ row }) => {
-      const isActive = row.getValue("is_active");
+      const isActive = row.getValue("active");
       return isActive ? (
         <Badge variant="default" className="bg-green-600">
           Hoạt động
@@ -130,10 +141,8 @@ export const columns = [
     id: "actions",
     header: "Actions",
     cell: ({ row, table }) => {
-      console.log("🚀 ~ table:", table);
       // Lấy viewMode từ meta của table (sẽ được truyền từ page.jsx)
       const viewMode = table.options.meta?.viewMode;
-      console.log("🚀 ~ viewMode:", viewMode);
       return <RowActions row={row} viewMode={viewMode} />;
     },
     enableSorting: false,

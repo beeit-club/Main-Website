@@ -19,4 +19,7 @@ Router.delete('/:id', categoryControler.deleteCategory);
 
 // // Khôi phục category
 Router.patch('/:id/restore', categoryControler.restoreCategory);
+
+// // Lấy tags đã xóa (trash)
+Router.get('/trash/list', categoryControler.getCategoriesDelete);
 export default Router;

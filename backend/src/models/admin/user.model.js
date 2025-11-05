@@ -61,6 +61,17 @@ class UserModel {
 
     return await selectWithPagination(baseSql, params, option);
   }
+  static async getAllRoles() {
+    let baseSql = `
+      SELECT *
+      FROM roles
+    `;
+    const option = {};
+    option.page = 1;
+    option.limit = 1000;
+    let params = [];
+    return await selectWithPagination(baseSql, params, option);
+  }
 
   /**
    * Lấy thông tin chi tiết user theo ID

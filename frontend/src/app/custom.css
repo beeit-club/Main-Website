@@ -1,0 +1,57 @@
+.bg-hero {
+  /* Tạo nền lưới (grid) */
+  background-image: linear-gradient(to right, #e7e5e4 1px, transparent 1px),
+    linear-gradient(to bottom, #e7e5e4 1px, transparent 1px);
+
+  /* Đặt kích thước cho mỗi ô lưới */
+  background-size: 20px 20px;
+
+  /* Căn chỉnh vị trí nền */
+  background-position: 0 0, 0 0;
+
+  /* --- Định nghĩa mặt nạ (Mask) --- */
+
+  /* * Tạo mặt nạ kết hợp:
+   * 1. Các đường sọc ngang (repeating-linear-gradient to right)
+   * 2. Các đường sọc dọc (repeating-linear-gradient to bottom)
+   * 3. Một hình elip ở giữa (radial-gradient)
+   */
+  -webkit-mask-image: repeating-linear-gradient(
+      to right,
+      black 0px,
+      black 3px,
+      transparent 3px,
+      transparent 8px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      black 0px,
+      black 3px,
+      transparent 3px,
+      transparent 8px
+    ),
+    radial-gradient(ellipse 60% 60% at 50% 50%, #000 30%, transparent 70%);
+
+  mask-image: repeating-linear-gradient(
+      to right,
+      black 0px,
+      black 3px,
+      transparent 3px,
+      transparent 8px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      black 0px,
+      black 3px,
+      transparent 3px,
+      transparent 8px
+    ),
+    radial-gradient(ellipse 60% 60% at 50% 50%, #000 30%, transparent 70%);
+
+  /* * Xác định cách các lớp mặt nạ kết hợp với nhau.
+   * 'intersect' (chuẩn) và 'source-in' (-webkit) đều có nghĩa là 
+   * chỉ hiển thị phần giao nhau của tất cả các lớp mặt nạ.
+   */
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}

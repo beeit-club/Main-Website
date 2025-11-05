@@ -23,6 +23,21 @@ class categoryModel {
       throw error;
     }
   }
+  static async getCategoriesDelete(options = {}) {
+    try {
+      let sql = `SELECT * FROM post_categories Where 1=1 AND deleted_at is NOT NULL `;
+      let params = [];
+
+      if (options?.filters?.name) {
+        sql += ` AND name LIKE ? `;
+        params.push(`%${options.filters.name}%`);
+      }
+      const category = await selectWithPagination(sql, params, options);
+      return category;
+    } catch (error) {
+      throw error;
+    }
+  }
   // lấy 1
   static async getOneCategory(id) {
     try {

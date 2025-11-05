@@ -10,16 +10,14 @@ const userService = {
   getAllUser: async (option) => {
     try {
       const result = await userModel.getAllUsers(option);
-
-      if (!result || !result.data || result.data.length === 0) {
-        throw new ServiceError(
-          message.User.USER_NOT_FOUND,
-          code.User.USER_NOT_FOUND_CODE,
-          'Không tìm thấy người dùng nào',
-          404,
-        );
-      }
-
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getAllRoles: async () => {
+    try {
+      const result = await userModel.getAllRoles();
       return result;
     } catch (error) {
       throw error;
@@ -269,16 +267,6 @@ const userService = {
   getDeletedUsers: async (option) => {
     try {
       const result = await userModel.getDeletedUsers(option);
-
-      if (!result || !result.data || result.data.length === 0) {
-        throw new ServiceError(
-          message.User.NO_DELETED_USERS,
-          code.User.NO_DELETED_USERS_CODE,
-          'Không có người dùng nào đã bị xóa',
-          404,
-        );
-      }
-
       return result;
     } catch (error) {
       throw error;

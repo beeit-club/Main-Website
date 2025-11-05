@@ -12,6 +12,14 @@ const categoryService = {
       throw error;
     }
   },
+  getCategoriesDelete: async (option) => {
+    try {
+      const categories = await categoryModel.getCategoriesDelete(option);
+      return categories;
+    } catch (error) {
+      throw error;
+    }
+  },
   //   lấy 1
   getOneCategory: async (id) => {
     try {

@@ -1,6 +1,7 @@
 import { selectWithPagination } from '../../utils/database.js';
+import postModel from '../admin/post.model.js';
 
-class HomeModel {
+class HomeModel extends postModel {
   // lấy toàn bộ
   static async getAllCategory(options = {}) {
     try {
@@ -35,6 +36,12 @@ class HomeModel {
     } catch (error) {
       throw error;
     }
+  }
+  static async getPostDetaill(slug) {
+    return super.getPostBySlug(slug);
+  }
+  static async getAllPost() {
+    return super.getAllPosts();
   }
 }
 export default HomeModel;

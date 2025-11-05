@@ -18,7 +18,7 @@ Router.get('/trash', userController.getDeletedUsers);
 
 /**
  * 📋 Lấy danh sách tất cả user (có phân trang)
- * GET /api/admin/users?page=1&limit=10
+ * GET /api/admin/users?page=1&limit=1000
  */
 Router.get('/', userController.getAllUser);
 // -- tìm kiếm them name email phone

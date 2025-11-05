@@ -12,6 +12,17 @@ const nextConfig = {
         hostname: "picsum.photos",
         pathname: "/**", // cho phép tất cả path của domain
       },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+        pathname: "/**", // cho phép tất cả path của domain
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8080", // Tách port ra đây
+        pathname: "/**",
+      },
     ],
   },
 };

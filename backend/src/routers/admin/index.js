@@ -11,6 +11,7 @@ import enven from './event.router.js';
 import applicationRouter from './application.router.js';
 import transactionRouter from './transaction.router.js';
 import interviewsRouter from './interview.router.js';
+import userController from '../../controllers/admin/user.controller.js';
 const router = express.Router();
 
 router.use('/users', userRouter);
@@ -20,10 +21,12 @@ router.use('/tags', tagsRouter);
 router.use('/documentCategory', document_categoriesRouter);
 router.use('/documents', documents);
 router.use('/events', enven);
-router.use('/transaction', transactionRouter);
+router.use('/transactions', transactionRouter);
 router.use('/interviews', interviewsRouter);
 
 router.use('/questions', questionRouter);
 router.use('/answers', answerRouter);
 router.use('/applications', applicationRouter);
+
+router.get('/roles', userController.getAllRoles);
 export default router;

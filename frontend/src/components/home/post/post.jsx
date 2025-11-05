@@ -41,7 +41,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen ">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 ">
         <div className="mb-6 space-y-1 text-center">
           <h1 className="text-2xl font-bold tracking-tight text-balance lg:text-3xl">
             Blog Câu lạc bộ

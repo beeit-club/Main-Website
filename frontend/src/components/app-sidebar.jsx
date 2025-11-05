@@ -81,6 +81,21 @@ const data = {
       url: "/admin/interviews",
       icon: IconUsers,
     },
+    {
+      title: "Transactions",
+      url: "/admin/transactions",
+      icon: IconUsers,
+    },
+    {
+      title: "Documents",
+      url: "/admin/documents",
+      icon: IconUsers,
+    },
+    {
+      title: "Document Categories",
+      url: "/admin/document-categories",
+      icon: IconUsers,
+    },
   ],
   navClouds: [
     {

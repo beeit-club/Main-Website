@@ -20,4 +20,7 @@ Router.delete('/:id', tagController.deleteTag);
 // Khôi phục tag
 Router.patch('/:id/restore', tagController.restoreTag);
 
+// // Lấy tags đã xóa (trash)
+Router.get('/trash/list', tagController.getTagsDelete);
+
 export default Router;

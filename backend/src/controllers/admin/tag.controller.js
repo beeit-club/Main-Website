@@ -22,6 +22,18 @@ const tagController = {
     });
     utils.success(res, 'Lấy danh sách thẻ thành công', tags);
   }),
+  getTagsDelete: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { name } = req.query;
+    const tags = await tagService.getTagsDelete({
+      ...valid,
+      filters: { name },
+    });
+    utils.success(res, 'Lấy danh sách thẻ thành công', tags);
+  }),
   //   lấy 1
   getTagById: asyncWrapper(async (req, res) => {
     await params.id.validate(req.params, { abortEarly: false });

@@ -1,56 +1,81 @@
 // src/components/DataTable.jsx
-import React, { useState } from "react";
+import React from "react";
 import {
   useReactTable,
   getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
 import { DataTableToolbar } from "./DataTableToolbar";
-import { Button } from "@/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
 
-export function DataTable({ columns, data, meta }) {
-  console.log("🚀 ~ DataTable ~ meta:", meta);
-  const [sorting, setSorting] = useState([]);
-  const [globalFilter, setGlobalFilter] = useState("");
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const [rowSelection, setRowSelection] = useState({});
+// manualSorting; tìm hiều cái này khi thêm vào vs giá trị true thì nó sẽ làm gì
 
+// Props đã bị BỎ: pagination, setPagination
+export function DataTable({
+  columns,
+  data,
+  meta, // (meta này chứa viewMode cho cột Actions)
+  isLoading,
+  rolesList,
+  // State
+  sorting,
+  globalFilter,
+  columnFilters,
+  // Setters
+  setSorting,
+  setGlobalFilter,
+  setColumnFilters,
+}) {
+  // State local cho UI, không ảnh hưởng BE
+  const [columnVisibility, setColumnVisibility] = React.useState({});
+  const [rowSelection, setRowSelection] = React.useState({});
+
+  // Cấu hình table (ĐÃ BỎ pagination)
   const table = useReactTable({
     data,
     columns,
-    meta,
-    state: { sorting, globalFilter, columnVisibility, rowSelection },
+    meta: meta, // Truyền viewMode vào cột Actions
+
+    // Bật chế độ manual cho 2 cái còn lại
+    manualSorting: true,
+    manualFiltering: true,
+
+    // BỎ: manualPagination, pageCount
+
+    // Kết nối state (đã bỏ pagination)
+    state: {
+      sorting,
+      globalFilter,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+
+    // Kết nối setters (đã bỏ onPaginationChange)
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    // initial pagination
-    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
-  });
 
-  const pageCount = table.getPageCount();
-  const pageIndex = table.getState().pagination.pageIndex;
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
     <div>
-      <DataTableToolbar table={table} />
+      {/* Toolbar (Lọc) vẫn giữ nguyên */}
+      <DataTableToolbar table={table} rolesList={rolesList} />
 
+      {/* Bảng <table> */}
       <div className="rounded-md border">
         <table className="w-full">
+          {/* <thead> (Phần header sắp xếp giữ nguyên) */}
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   const canSort = header.column.getCanSort();
-                  const sortState = header.column.getIsSorted(); // 'asc' | 'desc' | false
+                  const sortState = header.column.getIsSorted();
                   return (
                     <th
                       key={header.id}
@@ -70,13 +95,9 @@ export function DataTable({ columns, data, meta }) {
                             )}
                         {canSort ? (
                           <ChevronsUpDown
-                            className={`h-4 w-4 ${
-                              sortState
-                                ? sortState === "asc"
-                                  ? "rotate-180"
-                                  : ""
-                                : "opacity-40"
-                            }`}
+                            className={`h-4 w-4 transition-opacity ${
+                              sortState ? "opacity-100" : "opacity-30"
+                            } ${sortState === "desc" ? "rotate-180" : ""}`}
                           />
                         ) : null}
                       </div>
@@ -87,11 +108,18 @@ export function DataTable({ columns, data, meta }) {
             ))}
           </thead>
 
+          {/* <tbody> (Phần loading / no results giữ nguyên) */}
           <tbody>
-            {table.getRowModel().rows.length === 0 ? (
+            {isLoading ? (
               <tr>
-                <td colSpan={columns.length} className="p-4 text-center">
-                  No results.
+                <td colSpan={columns.length} className="h-24 text-center">
+                  Đang tải...
+                </td>
+              </tr>
+            ) : table.getRowModel().rows.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="h-24 text-center">
+                  Không tìm thấy kết quả.
                 </td>
               </tr>
             ) : (
@@ -112,73 +140,7 @@ export function DataTable({ columns, data, meta }) {
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {"<<"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Prev
-          </Button>
-
-          {/* page numbers */}
-          <div className="flex items-center gap-1">
-            {Array.from({ length: pageCount }).map((_, i) => {
-              // only render a window around current page to avoid huge list
-              if (pageCount > 7) {
-                const start = Math.max(0, pageIndex - 3);
-                const end = Math.min(pageCount, pageIndex + 4);
-                if (i < start || i >= end) return null;
-              }
-              return (
-                <Button
-                  key={i}
-                  variant={i === pageIndex ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => table.setPageIndex(i)}
-                >
-                  {i + 1}
-                </Button>
-              );
-            })}
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(pageCount - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            {">>"}
-          </Button>
-        </div>
-
-        <div className="text-sm text-muted-foreground">
-          Page <strong>{table.getState().pagination.pageIndex + 1}</strong> of{" "}
-          <strong>{pageCount}</strong>
-          {" • "}
-          <span>{table.getRowModel().rows.length} items (current page)</span>
-        </div>
-      </div>
+      {/* === PHẦN PHÂN TRANG ĐÃ BỊ XÓA HOÀN TOÀN === */}
     </div>
   );
 }

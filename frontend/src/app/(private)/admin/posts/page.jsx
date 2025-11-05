@@ -6,7 +6,20 @@ import { Button } from "@/components/ui/button";
 import { postServices } from "@/services/admin/post";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 
+// Thư viện này rất nặng và sẽ không được tải cho đến khi cần
+// CÁCH MỚI (Dành cho named export 'DataTable')
+const HeavyChartComponent = dynamic(
+  () =>
+    import("@/components/admin/components/posts/data-table").then(
+      (mod) => mod.DataTable // <--- Thêm dòng này
+    ),
+  {
+    ssr: false,
+    loading: () => <p>Đang tải bảng...</p>,
+  }
+);
 export default function ListPost() {
   const [data, setData] = useState([]);
   async function getPost() {
@@ -24,7 +37,7 @@ export default function ListPost() {
           <Button>Thêm bài viết</Button>
         </Link>
       </div>
-      <DataTable columns={columns} data={data} />
+      <HeavyChartComponent columns={columns} data={data} />
     </div>
   );
 }

@@ -15,11 +15,11 @@ Router.post('/', upload.single('featured_image'), postController.createPost);
 // // Cập nhật bài viết
 Router.put('/:id', upload.single('featured_image'), postController.updatePost);
 
-// // Xóa bài viết (soft delete)
-Router.delete('/:id', postController.deletePost);
-
 // // Xóa vĩnh viễn bài viết
 Router.delete('/:id/permanent', postController.permanentDeletePost);
+
+// // Xóa bài viết (soft delete)
+Router.delete('/:id', postController.deletePost);
 
 // // Khôi phục bài viết
 Router.patch('/:id/restore', postController.restorePost);
