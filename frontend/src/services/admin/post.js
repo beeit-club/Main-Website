@@ -2,9 +2,9 @@ import axios from "axios";
 import axiosClient from "../api";
 
 export const postServices = {
-  getAllPost: async () => {
+  getAllPost: async (params) => {
     try {
-      const res = await axiosClient.get("admin/posts");
+      const res = await axiosClient.get("admin/posts", {params});
       return res;
     } catch (error) {
       throw error?.response?.data || error;
