@@ -15,6 +15,15 @@ export const categoryServices = {
     }
   },
 
+  getAllClientCategories: async () => {
+    try {
+      const res = await axiosClient.get("client/category");
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
   /**
    * LẤY CHI TIẾT (XEM CHI TIẾT)
    * Tương ứng với: GET /admin/categories/:id
