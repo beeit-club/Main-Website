@@ -1,5 +1,5 @@
 // src/components/DataTableToolbar.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +8,6 @@ import {
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { useDebouncedSearch } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -16,24 +15,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { X } from "lucide-react";
 
-export function DataTableToolbar({ table, categoryList }) {
+export function DataTableToolbar({ table, categoryList, title, setTitle }) {
   const statusColumn = table.getColumn("status");
   const categoryColumn = table.getColumn("category_name");
-  // useDebouncedSearch một hook tự custom để sử dụng làm độ trễ khi search
-  const [searchValue, setSearchValue] = useDebouncedSearch(
-    table.getState().globalFilter || "",
-    table.setGlobalFilter,
-    500 // 500ms delay
-  );
+  const isFiltered = table.getState().columnFilters.length > 0;
+
+  // độ trễ khi search
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setTitle(title);
+    }, 500);
+    return () => clearTimeout(delay);
+  }, [title]);
+
 
   return (
     <div className="flex items-center justify-between py-4 gap-4">
       <div className="flex items-center gap-2">
         <Input
           placeholder="Tìm kiếm..."
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           className="max-w-xs w-full sm:w-64"
         />
         {categoryColumn && (
@@ -68,6 +72,20 @@ export function DataTableToolbar({ table, categoryList }) {
               <SelectItem value="0">Nháp</SelectItem>
             </SelectContent>
           </Select>
+        )}
+        {/* 4. Nút Reset */}
+        {isFiltered && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              table.resetColumnFilters();
+              table.setGlobalFilter("");
+            }}
+            className="h-8 px-2 lg:px-3"
+          >
+            Reset
+            <X className="ml-2 h-4 w-4" />
+          </Button>
         )}
         <div>
         </div>

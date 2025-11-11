@@ -14,7 +14,7 @@ import { ChevronsUpDown } from "lucide-react";
 import { PaginationControls } from "@/components/common/Pagination";
 import { useSearchParams } from "next/navigation";
 
-export function DataTable({ columns, data, globalFilter, setGlobalFilter, columnFilters, setColumnFilters, categoryList }) {
+export function DataTable({ columns, data, meta, columnFilters, setColumnFilters, categoryList, title, setTitle }) {
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
@@ -24,14 +24,13 @@ export function DataTable({ columns, data, globalFilter, setGlobalFilter, column
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, globalFilter, columnVisibility, rowSelection, columnFilters },
+    meta: meta, // Truyền viewMode vào cột Actions
+    state: { sorting, columnVisibility, rowSelection, columnFilters },
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
-    // getFilteredRowModel: getFilteredRowModel(),// dòng này làm filter fe ghi đè be
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     // initial pagination
@@ -43,7 +42,7 @@ export function DataTable({ columns, data, globalFilter, setGlobalFilter, column
   const pageIndex = table.getState().pagination.pageIndex;
   return (
     <div>
-      <DataTableToolbar table={table} categoryList={categoryList} />
+      <DataTableToolbar table={table} categoryList={categoryList} title={title} setTitle={setTitle} />
       <div className="rounded-md border">
         <table className="w-full">
           <thead>

@@ -61,10 +61,15 @@ export const columns = [
       );
     },
   },
+  // 6. Cột Hành động (Sẽ nhận viewMode từ page.jsx)
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => <RowActions row={row} />,
+    cell: ({ row, table }) => {
+      // Lấy viewMode từ meta của table (sẽ được truyền từ page.jsx)
+      const viewMode = table.options.meta?.viewMode;
+      return <RowActions row={row} viewMode={viewMode} />;
+    },
     enableSorting: false,
     enableHiding: false,
   },
