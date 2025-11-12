@@ -12,18 +12,19 @@ import { DataTableToolbar } from "./DataTableToolbar";
 import { Button } from "@/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
 
-export function DataTable({ columns, data }) {
+export function DataTable({ columns, data, meta, tagName, setTagName, columnFilters, setColumnFilters }) {
   const [sorting, setSorting] = useState([]);
-  const [globalFilter, setGlobalFilter] = useState("");
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, globalFilter, columnVisibility, rowSelection },
+    meta: meta, // Truyền viewMode vào cột Actions
+    state: { sorting, columnVisibility, rowSelection, columnFilters },
+    onColumnFiltersChange: setColumnFilters,
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
+    // onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
@@ -39,7 +40,7 @@ export function DataTable({ columns, data }) {
 
   return (
     <div>
-      <DataTableToolbar table={table} />
+      <DataTableToolbar table={table} tagName={tagName} setTagName={setTagName} />
 
       <div className="rounded-md border">
         <table className="w-full">
@@ -63,18 +64,17 @@ export function DataTable({ columns, data }) {
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                         {canSort ? (
                           <ChevronsUpDown
-                            className={`h-4 w-4 ${
-                              sortState
-                                ? sortState === "asc"
-                                  ? "rotate-180"
-                                  : ""
-                                : "opacity-40"
-                            }`}
+                            className={`h-4 w-4 ${sortState
+                              ? sortState === "asc"
+                                ? "rotate-180"
+                                : ""
+                              : "opacity-40"
+                              }`}
                           />
                         ) : null}
                       </div>
@@ -111,72 +111,7 @@ export function DataTable({ columns, data }) {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {"<<"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Prev
-          </Button>
 
-          {/* page numbers */}
-          <div className="flex items-center gap-1">
-            {Array.from({ length: pageCount }).map((_, i) => {
-              // only render a window around current page to avoid huge list
-              if (pageCount > 7) {
-                const start = Math.max(0, pageIndex - 3);
-                const end = Math.min(pageCount, pageIndex + 4);
-                if (i < start || i >= end) return null;
-              }
-              return (
-                <Button
-                  key={i}
-                  variant={i === pageIndex ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => table.setPageIndex(i)}
-                >
-                  {i + 1}
-                </Button>
-              );
-            })}
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(pageCount - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            {">>"}
-          </Button>
-        </div>
-
-        <div className="text-sm text-muted-foreground">
-          Page <strong>{table.getState().pagination.pageIndex + 1}</strong> of{" "}
-          <strong>{pageCount}</strong>
-          {" • "}
-          <span>{table.getRowModel().rows.length} items (current page)</span>
-        </div>
-      </div>
     </div>
   );
 }

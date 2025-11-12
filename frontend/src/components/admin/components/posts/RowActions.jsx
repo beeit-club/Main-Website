@@ -114,7 +114,6 @@ export function RowActions({ row, viewMode = "active" }) {
     setIsRestoreSubmitting(true);
     try {
       const res = await postServices.restorePost(postId);
-      console.log("restore", res);
       if (res.status == 200) {
         toast.success("Khôi phục user thành công");
         reloadPage();

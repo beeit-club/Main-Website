@@ -146,7 +146,7 @@ const postController = {
       ...valid,
       filters: { status, category_id, title },
     });
-    utils.success(res, 'Lấy Danh sách bài viết xóa thành công', post.data);
+    utils.success(res, 'Lấy Danh sách bài viết xóa thành công', post);
   }),
   // xóa vĩnh viễn
   permanentDeletePost: asyncWrapper(async (req, res) => {

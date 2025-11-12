@@ -69,7 +69,6 @@ export default function ListPost() {
   );
 
   async function getPost() {
-    // debugger;
     const params = new URLSearchParams();
     // 1. State Phân trang
     params.set("page", (pagination.pageIndex + 1).toString());

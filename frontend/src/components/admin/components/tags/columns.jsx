@@ -67,7 +67,11 @@ export const columns = [
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => <RowActions row={row} />, // <-- Sử dụng RowActions của Tags
+    cell: ({ row, table }) => {
+      // Lấy viewMode từ meta của table (sẽ được truyền từ page.jsx)
+      const viewMode = table.options.meta?.viewMode;
+      return <RowActions row={row} viewMode={viewMode} />;
+    },
     enableSorting: false,
     enableHiding: false,
   },
