@@ -6,10 +6,8 @@ import fs from 'fs';
 
 const Router = express.Router();
 
-// --- CẤU HÌNH MULTER ---
 const uploadPath = path.join('src', 'uploads', 'posts');
 
-// ✅ Kiểm tra và tự tạo thư mục nếu chưa có
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
   console.log('Đã tạo thư mục upload:', uploadPath);
@@ -18,10 +16,9 @@ if (!fs.existsSync(uploadPath)) {
 // 1. Cấu hình nơi lưu trữ và tên file
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadPath); // Lưu file vào thư mục 'uploads'
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    // Tạo tên file duy nhất: originalname-timestamp.ext
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(
       null,
@@ -33,7 +30,6 @@ const storage = multer.diskStorage({
   },
 });
 
-// 2. Khởi tạo middleware Multer với đầy đủ cấu hình
 export const upload = multer({
   storage: storage,
   limits: {
@@ -57,8 +53,6 @@ export const upload = multer({
     ); // Từ chối file
   },
 });
-
-// --- ROUTE ĐỂ UPLOAD ---
 
 // 'photos' là name của input, 12 là số lượng file tối đa
 // Router.post(
@@ -96,5 +90,37 @@ Router.post('/', upload.single('file'), (req, res) => {
   const fileUrl = `${API_BACKEND}/uploads/posts/${file.filename}`;
   res.json({ location: fileUrl });
 });
+export const handleDeleteImage = (fileUrl) => {
+  if (!fileUrl) {
+    console.error('Lỗi: Cần cung cấp fileUrl để xóa.');
+    return false; // Trả về false nếu không có URL
+  }
 
+  try {
+    // 1. Cắt lấy tên file từ URL
+    const filename = path.basename(fileUrl);
+
+    // 2. Nối tên file với đường dẫn upload trên server
+    const filePath = path.join(uploadPath, filename);
+
+    // 3. Kiểm tra xem file có tồn tại không
+    if (fs.existsSync(filePath)) {
+      // 4. Nếu có, thực hiện xóa file
+      fs.unlinkSync(filePath);
+      console.log('Đã xóa file:', filePath);
+      return true; // Trả về true khi xóa thành công
+    } else {
+      // 5. Nếu file không tồn tại, coi như đã "xóa" thành công
+      console.warn(
+        'Yêu cầu xóa file không tồn tại (coi như thành công):',
+        filePath,
+      );
+      return true; // Vẫn trả về true vì file không còn
+    }
+  } catch (error) {
+    // 6. Xử lý nếu có lỗi (vd: không có quyền xóa)
+    console.error('Lỗi khi xóa file:', error);
+    return false; // Trả về false khi có lỗi
+  }
+};
 export default Router;

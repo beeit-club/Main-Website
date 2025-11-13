@@ -1,6 +1,7 @@
 import {
   findOne,
   insert,
+  remove,
   selectWithPagination,
   update,
 } from '../../utils/database.js';
@@ -10,7 +11,50 @@ class tagModel {
   // lấy toàn bộ
   static async getAllTag(options = {}) {
     try {
-      let sql = `SELECT id, name, slug, meta_description, created_at FROM tags WHERE deleted_at IS NULL`;
+      let sql = `SELECT
+  t.id,
+  t.name,
+  t.slug,
+  t.meta_description,
+  t.created_at,
+  t.updated_at,
+  t.created_by,
+  t.updated_by,
+  u.fullname AS created_by_name 
+FROM
+  tags AS t 
+ LEFT JOIN users AS u ON t.created_by = u.id 
+WHERE
+  t.deleted_at IS NULL`;
+      let params = [];
+
+      if (options?.filters?.name) {
+        sql += ` AND name LIKE ?`;
+        params.push(`%${options.filters.name}%`);
+      }
+      const tags = await selectWithPagination(sql, params, options);
+      return tags;
+    } catch (error) {
+      throw error;
+    }
+  }
+  static async getTagsDelete(options = {}) {
+    try {
+      let sql = `SELECT
+  t.id,
+  t.name,
+  t.slug,
+  t.meta_description,
+  t.created_at,
+  t.updated_at,
+  t.created_by,
+  t.updated_by,
+  u.fullname AS created_by_name 
+FROM
+  tags AS t 
+ LEFT JOIN users AS u ON t.created_by = u.id 
+WHERE
+  t.deleted_at IS NOT NULL`;
       let params = [];
 
       if (options?.filters?.name) {
@@ -27,7 +71,20 @@ class tagModel {
   // lấy 1
   static async getOneTag(id) {
     try {
-      const sql = `SELECT id, name, slug, meta_description, created_at FROM tags WHERE id = ? AND deleted_at IS NULL`;
+      const sql = `SELECT
+  t.id,
+  t.name,
+  t.slug,
+  t.meta_description,
+  t.created_at,
+  t.updated_at,
+  t.created_by,
+  t.updated_by,
+  u.fullname AS created_by_name 
+FROM
+  tags AS t 
+ LEFT JOIN users AS u ON t.created_by = u.id 
+WHERE t.id = ?  `;
       const result = await findOne(sql, [id]);
       return result;
     } catch (error) {
@@ -87,5 +144,15 @@ class tagModel {
       throw error;
     }
   }
+
+   // xóa vĩnh viễn
+    static async permanentDeleteTag(id) {
+      try {
+        const result = await remove('tags', { id: id });
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    }
 }
 export default tagModel;

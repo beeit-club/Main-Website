@@ -57,13 +57,43 @@ const data = {
       icon: IconChartBar,
     },
     {
-      title: "Projects",
-      url: "#",
+      title: "Tags",
+      url: "/admin/tags",
       icon: IconFolder,
     },
     {
-      title: "Team",
-      url: "#",
+      title: "Categories",
+      url: "/admin/categories",
+      icon: IconUsers,
+    },
+    {
+      title: "Question",
+      url: "/admin/questions",
+      icon: IconUsers,
+    },
+    {
+      title: "Applications",
+      url: "/admin/applications",
+      icon: IconUsers,
+    },
+    {
+      title: "Interviews",
+      url: "/admin/interviews",
+      icon: IconUsers,
+    },
+    {
+      title: "Transactions",
+      url: "/admin/transactions",
+      icon: IconUsers,
+    },
+    {
+      title: "Documents",
+      url: "/admin/documents",
+      icon: IconUsers,
+    },
+    {
+      title: "Document Categories",
+      url: "/admin/document-categories",
       icon: IconUsers,
     },
   ],

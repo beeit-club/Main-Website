@@ -30,20 +30,23 @@ export default function Header() {
   return (
     <div className="h-20">
       <header
-        className={`border-b-2 fixed left-0 right-0 top-0 z-50 bg-background transition-transform duration-300 ${
+        className={` fixed left-0 right-0 top-0 z-50 transition-transform duration-300 bg-background ${
           show ? "translate-y-0" : "-translate-y-full"
         }`}
       >
         <div className="flex justify-between max-w-7xl mx-auto h-20 items-center px-4 py-6">
-          <div className="flex gap-11 items-center">
-            {/* logo */}
+          {/* logo */}
+          <div className=" order-2 lg:order-1">
             <Logo />
-            {/* nav */}
+          </div>
+          {/* nav */}
+          <div className=" order-1 lg:order-2">
             <Nav />
           </div>
-          <div className="flex gap-5 items-center">
+          {/* </div> */}
+          <div className=" order-3 flex gap-5 items-center lg:order-3">
             <Search />
-            <ModeToggle />
+
             <Account />
           </div>
         </div>

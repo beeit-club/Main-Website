@@ -19,7 +19,7 @@ import { otpSchema } from "@/validation/authSchema";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/layout/Header/logo";
-import Loading from "@/app/(client)/loading";
+import Loading from "@/app/(private)/loading";
 import { useEffect, useState } from "react";
 import { useAuthHook } from "@/hooks/useAuth";
 import { decodeJWT } from "@/lib/jwt";

@@ -36,7 +36,33 @@ class documentModel {
 
   // Lấy 1
   static async getOneDocument(id) {
-    const sql = `SELECT * FROM documents WHERE id = ? AND deleted_at IS NULL`;
+    const sql = `SELECT
+    d.*,
+    COALESCE(assigned_data.assigned_users, JSON_ARRAY()) AS assigned_users
+FROM
+    documents d
+LEFT JOIN (
+    SELECT
+        dru.document_id,
+        JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'id', u.id,
+                'fullname', u.fullname,
+                'email', u.email,
+                'avatar_url', u.avatar_url
+            )
+        ) AS assigned_users
+    FROM
+        document_restricted_users dru 
+    JOIN
+        users u ON dru.user_id = u.id 
+    WHERE
+        u.deleted_at IS NULL
+    GROUP BY
+        dru.document_id
+) AS assigned_data ON d.id = assigned_data.document_id
+WHERE
+    d.id = ? AND d.deleted_at IS NULL;`;
     return await findOne(sql, [id]);
   } // Lấy 1 tài liệu đã xóa (để kiểm tra)
   static async getOneDeletedDocument(id) {

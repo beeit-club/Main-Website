@@ -7,7 +7,9 @@ import postService from './posts.service.js';
 import questionService from './question.service.js';
 import tagService from './tag.service.js';
 import applicationService from './application.service.js';
+import interviewService from './interview.service.js';
 export {
+  interviewService,
   questionService,
   answerService,
   eventService,

@@ -80,6 +80,8 @@ WHERE
     p.view_count,
     p.published_at,
     p.created_at,
+    p.status,
+    p.category_id,
     pc.name AS category_name,
     pc.slug AS category_slug,
     u.fullname AS author_name,
@@ -105,6 +107,50 @@ LEFT JOIN
 WHERE
     p.slug = ? AND p.deleted_at IS NULL;`;
       const result = await findOne(sql, [slug]);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+  static async getPostById(id) {
+    try {
+      const sql = `SELECT
+    p.id,
+    p.title,
+    p.slug,
+    p.content,
+    p.featured_image,
+    p.meta_description,
+    p.view_count,
+    p.published_at,
+    p.created_at,
+    p.status,
+    p.category_id,
+    pc.name AS category_name,
+    pc.slug AS category_slug,
+    u.fullname AS author_name,
+    u.avatar_url AS author_avatar,
+    (
+        SELECT
+            JSON_ARRAYAGG(
+                JSON_OBJECT('id', t.id, 'name', t.name, 'slug', t.slug)
+            )
+        FROM
+            post_tags AS pt
+        JOIN
+            tags AS t ON pt.tag_id = t.id
+        WHERE
+            pt.post_id = p.id
+    ) AS tags
+FROM
+    posts AS p
+LEFT JOIN
+    post_categories AS pc ON p.category_id = pc.id
+LEFT JOIN
+    users AS u ON p.created_by = u.id
+WHERE
+    p.id = ? AND p.deleted_at IS NULL;`;
+      const result = await findOne(sql, [id]);
       return result;
     } catch (error) {
       throw error;

@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Logo from "@/components/layout/Header/logo";
-import Loading from "@/app/(client)/loading";
+import Loading from "@/app/(private)/loading";
 import GoogleAuthButton from "../GoogleAuthButton";
 import { useSearchParams } from "next/navigation";
 import InputOTPForm from "../otp";

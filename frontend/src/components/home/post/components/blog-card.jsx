@@ -14,7 +14,7 @@ import { formatDate } from "@/lib/datetime";
 export function BlogCard({ post }) {
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg pt-0">
-      <Link href={`/blog/${post.slug}`}>
+      <Link href={`/post/${post.slug}`}>
         <div className="relative aspect-video overflow-hidden">
           <Image
             src={post.featured_image || "/placeholder.svg"}

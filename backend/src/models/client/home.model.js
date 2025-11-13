@@ -1,10 +1,11 @@
 import { selectWithPagination } from '../../utils/database.js';
+import postModel from '../admin/post.model.js';
 
-class HomeModel {
+class HomeModel extends postModel {
   // lấy toàn bộ
   static async getAllCategory(options = {}) {
     try {
-      let sql = `SELECT id,name,slug,parent_id FROM post_categories Where 1=1  AND status = 1 `;
+      let sql = `SELECT id,name,slug,parent_id FROM post_categories Where 1=1  AND deleted_at is NULL `;
       let params = [];
 
       if (options?.filters?.name) {
@@ -35,6 +36,12 @@ class HomeModel {
     } catch (error) {
       throw error;
     }
+  }
+  static async getPostDetaill(slug) {
+    return super.getPostBySlug(slug);
+  }
+  static async getAllPost() {
+    return super.getAllPosts();
   }
 }
 export default HomeModel;

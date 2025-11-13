@@ -48,3 +48,29 @@ export const postSchema = yup.object().shape({
     })
     .nullable(),
 });
+
+// src/lib/validations/tag-schema.js
+
+export const tagSchema = yup.object().shape({
+  name: yup
+    .string()
+    .required("Tên tag là bắt buộc.")
+    .max(100, "Tên tag không quá 100 ký tự."),
+  meta_description: yup
+    .string()
+    .max(160, "Mô tả meta không quá 160 ký tự.")
+    .nullable(), // Cho phép giá trị rỗng (null hoặc undefined)
+});
+export const categorySchema = yup.object().shape({
+  name: yup
+    .string()
+    .required("Tên danh mục là bắt buộc.")
+    .max(255, "Tên không quá 255 ký tự."),
+  parent_id: yup
+    .mixed() // Dùng mixed để chấp nhận cả number và string (từ select)
+    .nullable()
+    .transform((value) =>
+      // Chuyển rỗng ("") thành null, giữ nguyên số
+      value === "" || value === null ? null : Number(value)
+    ),
+});

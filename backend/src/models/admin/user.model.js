@@ -61,6 +61,17 @@ class UserModel {
 
     return await selectWithPagination(baseSql, params, option);
   }
+  static async getAllRoles() {
+    let baseSql = `
+      SELECT *
+      FROM roles
+    `;
+    const option = {};
+    option.page = 1;
+    option.limit = 1000;
+    let params = [];
+    return await selectWithPagination(baseSql, params, option);
+  }
 
   /**
    * Lấy thông tin chi tiết user theo ID
@@ -84,7 +95,7 @@ class UserModel {
         u.updated_at
       FROM ${TABLE} u
       LEFT JOIN roles r ON u.role_id = r.id
-      WHERE u.id = ? AND u.deleted_at IS NULL
+      WHERE u.id = ?
       LIMIT 1
     `;
     return await findOne(sql, [id]);
@@ -128,8 +139,19 @@ class UserModel {
    */
   static async softDeleteUser(id) {
     const deleteData = {
+      is_active: 0,
       deleted_at: new Date(),
       updated_at: new Date(),
+    };
+
+    const affected = await update(TABLE, deleteData, { id });
+    return affected > 0;
+  }
+  static async restoreUser(id) {
+    const deleteData = {
+      is_active: 1,
+      updated_at: new Date(),
+      deleted_at: null,
     };
 
     const affected = await update(TABLE, deleteData, { id });

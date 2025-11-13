@@ -22,6 +22,18 @@ const tagController = {
     });
     utils.success(res, 'Lấy danh sách thẻ thành công', tags);
   }),
+  getTagsDelete: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { name } = req.query;
+    const tags = await tagService.getTagsDelete({
+      ...valid,
+      filters: { name },
+    });
+    utils.success(res, 'Lấy danh sách thẻ thành công', tags);
+  }),
   //   lấy 1
   getTagById: asyncWrapper(async (req, res) => {
     await params.id.validate(req.params, { abortEarly: false });
@@ -34,11 +46,14 @@ const tagController = {
     await TagSchema.create.validate(req.body, { abortEarly: false });
     const { name, meta_description } = req.body;
     const slug = slugify(name);
+    const user = req.user;
+    console.log('🚀 ~ user:', user);
+    const { id } = user;
     const tagData = {
       name,
       slug,
       meta_description,
-      created_by: null, // Sẽ cập nhật sau
+      created_by: id, // Sẽ cập nhật sau
       updated_by: null,
     };
     const tag = await tagService.createTag(tagData);
@@ -54,7 +69,8 @@ const tagController = {
     await TagSchema.update.validate(req.body, { abortEarly: false });
     const { id } = req.params;
     const { name, meta_description } = req.body;
-
+    const user = req.user;
+    const { id: userID } = user;
     const tagData = {};
     if (name) {
       tagData.name = name;
@@ -63,7 +79,7 @@ const tagController = {
     if (meta_description) {
       tagData.meta_description = meta_description;
     }
-    tagData.updated_by = null; // Sẽ cập nhật sau
+    tagData.updated_by = userID;
 
     await tagService.updateTag(id, tagData);
     utils.success(res, 'Cập nhật thẻ thành công');
@@ -81,6 +97,13 @@ const tagController = {
     const { id } = req.params;
     await tagService.restoreTag(id);
     utils.success(res, 'Khôi phục thẻ thành công');
+  }),
+  // xóa vĩnh viễn
+  permanentDeleteTag: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
+    const { id } = req.params;
+    await tagService.permanentDeleteTag(id);
+    utils.success(res, 'Xóa vĩnh viễn thẻ thành công');
   }),
 };
 export default tagController;

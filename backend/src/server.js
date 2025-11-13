@@ -22,7 +22,7 @@ const httpServer = createServer(app);
 app.use(
   cors({
     origin: config.API_FRONTEND,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   }),
 );

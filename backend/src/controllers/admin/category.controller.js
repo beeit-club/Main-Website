@@ -28,6 +28,23 @@ const categoryControler = {
       categories,
     });
   }),
+  getCategoriesDelete: asyncWrapper(async (req, res) => {
+    // Ép apply default trước khi validate
+    const query = PaginationSchema.cast(req.query);
+
+    // Validate (nhưng sẽ không lỗi vì transform đã fallback)
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { name, status } = req.query;
+    const categories = await categoryService.getCategoriesDelete({
+      ...valid,
+      filters: { name, status },
+    });
+    utils.success(res, 'Lấy danh sách thành công', {
+      categories,
+    });
+  }),
   //   lấy 1
   getCategoryById: asyncWrapper(async (req, res) => {
     await params.id.validate(req.params, { abortEarly: false });
@@ -40,13 +57,12 @@ const categoryControler = {
   //   thêm
   createCategory: asyncWrapper(async (req, res) => {
     await CategorySchema.create.validate(req.body, { abortEarly: false });
-    const { name, parent_id, status } = req.body;
+    const { name, parent_id } = req.body;
     const slug = slugify(name);
     const cate = {
       name,
       slug,
       parent_id: parent_id ?? null,
-      status: status ?? 0,
     };
     const category = await categoryService.createCategory(cate);
 
@@ -61,13 +77,12 @@ const categoryControler = {
     await params.id.validate(req.params, { abortEarly: false });
     await CategorySchema.update.validate(req.body, { abortEarly: false });
     const { id } = req.params;
-    const { name, parent_id, status } = req.body;
+    const { name, parent_id } = req.body;
     const slug = slugify(name);
     const cate = {
       name,
       slug,
       parent_id: parent_id ?? null,
-      status: status ?? 0,
     };
     const category = await categoryService.updateCategory(id, cate);
 

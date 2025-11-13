@@ -2,9 +2,9 @@ import axios from "axios";
 import axiosClient from "../api";
 
 export const postServices = {
-  getAllPost: async () => {
+  getAllPost: async (params) => {
     try {
-      const res = await axiosClient.get("admin/posts");
+      const res = await axiosClient.get("admin/posts", {params});
       return res;
     } catch (error) {
       throw error?.response?.data || error;
@@ -13,6 +13,14 @@ export const postServices = {
   getAllcategory: async () => {
     try {
       const res = await axiosClient.get("client/category");
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+  getDeletedPosts: async (params) => {
+    try {
+      const res = await axiosClient.get("admin/posts/trash/list", {params});
       return res;
     } catch (error) {
       throw error?.response?.data || error;
@@ -30,25 +38,51 @@ export const postServices = {
   delete: async (id) => {
     try {
       const res = await axiosClient.delete(`/admin/posts/${id}`);
-      console.log("🚀 ~ res:", res);
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+  // xóa vĩnh viễn bài viết
+  deletePostPermanent: async (id) => {
+    try {
+      const res = await axiosClient.delete(`/admin/posts/${id}/permanent`);
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+  restorePost: async (id) => {
+    try {
+      const res = await axiosClient.patch(`/admin/posts/${id}/restore`);
+      return res;
     } catch (error) {
       throw error?.response?.data || error;
     }
   },
   createPost: async (formData) => {
     try {
-      // --- BẮT ĐẦU: Mã để log nội dung FormData ---
-      console.log("--- Bắt đầu duyệt FormData ---");
-
-      // Dùng for...of với formData.entries() để lấy cả key và value
-      for (const [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      console.log("--- Kết thúc duyệt FormData ---");
-      // Khi gửi FormData, Axios sẽ tự động đặt 'Content-Type': 'multipart/form-data'
-      // và xử lý boundary.
       const res = await axiosClient.post("admin/posts", formData, {
+        headers: {
+          "Content-Type": undefined,
+        },
+      });
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+  getOne: async (id) => {
+    try {
+      const res = await axiosClient.get(`admin/posts/${id}`);
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+  updatePost: async (id, formData) => {
+    try {
+      const res = await axiosClient.put(`admin/posts/${id}`, formData, {
         headers: {
           "Content-Type": undefined,
         },

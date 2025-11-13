@@ -12,6 +12,14 @@ const tagService = {
       throw error;
     }
   },
+  getTagsDelete: async (option) => {
+    try {
+      const tags = await tagModel.getTagsDelete(option);
+      return tags;
+    } catch (error) {
+      throw error;
+    }
+  },
   //   lấy 1
   getOneTag: async (id) => {
     try {
@@ -100,6 +108,11 @@ const tagService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Xoá vĩnh viễn
+  permanentDeleteTag: async (id) => {
+    return await tagModel.permanentDeleteTag(id);
   },
 };
 export default tagService;

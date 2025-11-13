@@ -1,5 +1,6 @@
 import { API_BACKEND } from '../../config/server.config.js';
 import asyncWrapper from '../../middlewares/error.handler.js';
+import { handleDeleteImage } from '../../routers/upload/upload.js';
 import postService from '../../services/admin/posts.service.js';
 import { slugify } from '../../utils/function.js';
 import { utils } from '../../utils/index.js';
@@ -77,6 +78,19 @@ const postController = {
       req.body;
     const { id } = req.params;
     const slug = slugify(title);
+    const file = req.file;
+    const user = req.user;
+    const { id: userId } = user;
+    const postOne = await postService.getPostById(id);
+    const { featured_image: img } = postOne ?? {};
+    let featured_image = img;
+    if (file) {
+      featured_image = `${API_BACKEND}/uploads/posts/${file.filename}`;
+      if (img) {
+        await handleDeleteImage(img);
+      }
+    }
+
     const data = {
       title,
       slug,
@@ -85,6 +99,8 @@ const postController = {
       category_id,
       status: status ?? 0,
       tags,
+      featured_image,
+      updated_by: userId,
     };
     const post = await postService.updatePost(id, data);
 
@@ -130,7 +146,7 @@ const postController = {
       ...valid,
       filters: { status, category_id, title },
     });
-    utils.success(res, 'Lấy Danh sách bài viết xóa thành công', post.data);
+    utils.success(res, 'Lấy Danh sách bài viết xóa thành công', post);
   }),
   // xóa vĩnh viễn
   permanentDeletePost: asyncWrapper(async (req, res) => {
