@@ -35,7 +35,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useDebounce, useDebouncedSearch } from "@/hooks/useDebounce";
 import Link from "next/link";
 import { PlusCircle, Trash2 } from "lucide-react";
 

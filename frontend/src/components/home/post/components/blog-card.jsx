@@ -17,7 +17,10 @@ export function BlogCard({ post }) {
       <Link href={`/post/${post.slug}`}>
         <div className="relative aspect-video overflow-hidden">
           <Image
-            src={post.featured_image || "/placeholder.svg"}
+            src={
+              post.featured_image ||
+              "https://picsum.photos/seed/su-kien-khai-giang-nam-hoc-moi-2025/800/600"
+            }
             alt={post.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -27,7 +30,7 @@ export function BlogCard({ post }) {
               variant="secondary"
               className="bg-background/90 backdrop-blur-sm text-xs"
             >
-              {post.category.name}
+              {post.category_name}
             </Badge>
           </div>
         </div>
@@ -43,7 +46,7 @@ export function BlogCard({ post }) {
 
       <CardContent className="px-4 pb-3">
         <p className="text-xs text-muted-foreground line-clamp-2 text-pretty">
-          {post.excerpt}
+          {post.meta_description}
         </p>
       </CardContent>
 
@@ -51,7 +54,7 @@ export function BlogCard({ post }) {
         <div className="flex w-full items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <User className="h-3 w-3" />
-            <span className="text-xs">{post.created_by.fullname}</span>
+            <span className="text-xs">{post.author_name || "admin"}</span>
           </div>
           <div className="flex items-center gap-1">
             <Eye className="h-3 w-3" />
@@ -71,11 +74,11 @@ export function BlogCard({ post }) {
             <div className="flex gap-1">
               {post.tags.slice(0, 2).map((tag) => (
                 <Badge
-                  key={tag}
+                  key={tag.slug}
                   variant="outline"
                   className="text-[10px] px-1.5 py-0"
                 >
-                  {tag}
+                  {tag.name}
                 </Badge>
               ))}
             </div>

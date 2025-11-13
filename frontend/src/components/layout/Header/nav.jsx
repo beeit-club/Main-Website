@@ -213,7 +213,7 @@ export default function Nav() {
             {/* Mục 3: Link đơn "Hỏi đáp" */}
             <NavigationMenuItem>
               <NavigationMenuLink
-                href="/hoi-dap"
+                href="/questions"
                 className={`${classNameStyle()} `}
               >
                 Hỏi đáp

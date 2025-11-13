@@ -8,37 +8,7 @@ import { CategorySidebar } from "./components/category-sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import mockPosts from "../../../mock/listPost";
 
-export default function Home() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const categories = useMemo(() => {
-    const categoryMap = new Map();
-
-    mockPosts.forEach((post) => {
-      const existing = categoryMap.get(post.category.id);
-      if (existing) {
-        existing.count++;
-      } else {
-        categoryMap.set(post.category.id, {
-          id: post.category.id,
-          name: post.category.name,
-          count: 1,
-        });
-      }
-    });
-
-    return Array.from(categoryMap.values());
-  }, []);
-
-  const filteredPosts = useMemo(() => {
-    if (selectedCategory === null) {
-      return mockPosts;
-    }
-    return mockPosts.filter((post) => post.category.id === selectedCategory);
-  }, [selectedCategory]);
-
-  const featuredPost = filteredPosts[0];
-  const recentPosts = filteredPosts.slice(1, 7);
-
+export default function Home({ latestEvent, latestPosts, mostViewedPosts }) {
   return (
     <main className="min-h-screen ">
       <div className="container mx-auto px-4 py-6 ">
@@ -52,22 +22,16 @@ export default function Home() {
         </div>
 
         <div className="space-y-6">
-          {featuredPost && (
+          {latestEvent && (
             <div>
               <h2 className="mb-3 text-lg font-semibold">Bài viết nổi bật</h2>
-              <BlogFeatured post={featuredPost} />
+              <BlogFeatured post={latestEvent} />
             </div>
           )}
 
           <Tabs defaultValue="grid" className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">
-                {selectedCategory === null
-                  ? "Bài viết gần đây"
-                  : `${
-                      categories.find((c) => c.id === selectedCategory)?.name
-                    }`}
-              </h2>
+              <h2 className="text-lg font-semibold">"Bài viết gần đây"</h2>
               <TabsList>
                 <TabsTrigger value="grid" className="text-xs">
                   Lưới
@@ -81,19 +45,15 @@ export default function Home() {
             <div className="lg:flex lg:gap-4 lg:justify-between">
               <div>
                 <TabsContent value="grid" className="space-y-4">
-                  <BlogGrid posts={recentPosts} />
+                  <BlogGrid posts={latestPosts} />
                 </TabsContent>
 
                 <TabsContent value="list" className="space-y-4">
-                  <BlogList posts={filteredPosts} />
+                  <BlogList posts={latestPosts} />
                 </TabsContent>
               </div>
               <aside className="hidden lg:block  w-full max-w-xs ">
-                <CategorySidebar
-                  categories={categories}
-                  selectedCategory={selectedCategory}
-                  onSelectCategory={setSelectedCategory}
-                />
+                <CategorySidebar posts={mostViewedPosts} />
               </aside>
             </div>
           </Tabs>

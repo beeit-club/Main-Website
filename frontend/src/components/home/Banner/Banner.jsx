@@ -10,8 +10,9 @@ import {
   Globe,
   Lightbulb,
 } from "lucide-react";
+import Link from "next/link";
 
-const Banner = () => {
+const Banner = ({ latestEvent }) => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [gridSize, setGridSize] = useState({ cols: 0, rows: 0 });
   const [typedText, setTypedText] = useState("");
@@ -191,13 +192,48 @@ const Banner = () => {
           <span className="animate-pulse">|</span>
         </p>
 
+        {/* Upcoming Event Section */}
+        {latestEvent && (
+          <div className="mb-8 text-center p-4 rounded-lg bg-foreground/5 border border-foreground/10 shadow-lg animate-fade-in">
+            <p className="text-sm sm:text-base md:text-lg text-primary uppercase tracking-widest font-bold">
+              Sự kiện sắp tới
+            </p>
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mt-2 text-foreground">
+              {latestEvent.title}
+            </h3>
+            <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-3 text-foreground/80">
+              <span>
+                {new Date(latestEvent.start_time).toLocaleDateString("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })}
+              </span>
+              <span className="hidden sm:inline">|</span>
+              <span>{latestEvent.location}</span>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-wrap justify-center gap-6">
-          <button className="px-8 py-3 rounded-full font-bold uppercase tracking-wide bg-foreground text-background shadow-lg transform transition hover:-translate-y-1">
-            Tham gia ngay
-          </button>
-          <button className="px-8 py-3 rounded-full font-bold uppercase tracking-wide border-2 border-foreground text-foreground bg-transparent hover:bg-foreground/10 transition">
+          {latestEvent ? (
+            <Link
+              href={`/events/${latestEvent.slug}`}
+              className="px-8 py-3 rounded-full font-bold uppercase tracking-wide bg-primary text-primary-foreground shadow-lg transform transition hover:-translate-y-1"
+            >
+              Xem chi tiết sự kiện
+            </Link>
+          ) : (
+            <button className="px-8 py-3 rounded-full font-bold uppercase tracking-wide bg-foreground text-background shadow-lg transform transition hover:-translate-y-1">
+              Tham gia ngay
+            </button>
+          )}
+          <Link
+            href="/post"
+            className="px-8 py-3 rounded-full font-bold uppercase tracking-wide border-2 border-foreground text-foreground bg-transparent hover:bg-foreground/10 transition"
+          >
             Khám phá blog
-          </button>
+          </Link>
         </div>
       </div>
     </div>

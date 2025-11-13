@@ -3,6 +3,14 @@ import postModel from '../../models/admin/post.model.js';
 import HomeModel from '../../models/client/home.model.js';
 
 const HomeService = {
+  home: async () => {
+    try {
+      const home = await HomeModel.home();
+      return home;
+    } catch (error) {
+      throw error;
+    }
+  },
   // lấy toàn bộ
   getAllCategory: async (option) => {
     try {
@@ -43,6 +51,32 @@ const HomeService = {
       }
       const post = await HomeModel.getPostDetaill(slug);
       return post;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getAllQuestions: async (option) => {
+    try {
+      const questions = await HomeModel.getAllQuestions(option);
+      return questions;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getQuestionDetail: async (slug) => {
+    try {
+      const question = await HomeModel.getQuestionBySlug(slug);
+      if (!question) {
+        throw new ServiceError(
+          'Câu hỏi không tồn tại',
+          'QUESTION_NOT_FOUND',
+          'Câu hỏi không tồn tại hoặc chưa được duyệt',
+          404,
+        );
+      }
+      // (Nếu cần có thể tăng view_count ở đây)
+      return question;
     } catch (error) {
       throw error;
     }
