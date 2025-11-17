@@ -1,3 +1,5 @@
+import axiosClient from "./api";
+
 const ONE_DAY_IN_SECONDS = 86400;
 const ONE_HOUR_IN_SECONDS = 3600; // Revalidate mỗi giờ
 const baseUrl = process.env.NEXT_PUBLIC_API_BACKEND;
@@ -84,4 +86,88 @@ export const getQuestionDetail = async (slug) => {
 
   // res.json() sẽ trả về { status: 'success', message: '...', data: { ... } }
   return res.json();
+};
+
+/**
+ * Tạo câu hỏi mới (Client-side, dùng axiosClient để gửi JWT token)
+ * @param {Object} data - Dữ liệu câu hỏi { title, content, meta_description }
+ */
+export const createQuestion = async (data) => {
+  try {
+    console.log("📡 API Call: POST /client/questions", data);
+    const response = await axiosClient.post("/client/questions", data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("✅ API Response:", response.data);
+    return response.data; // { status: 'success', message: '...', data: { id: ... } }
+  } catch (error) {
+    console.error("❌ API Error creating question:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: error.config,
+    });
+    
+    // Throw error object để component có thể xử lý
+    // Đảm bảo error object luôn có property message
+    if (error.response?.data) {
+      // Nếu có response từ server
+      const serverError = error.response.data;
+      const errorObj = {
+        ...serverError,
+        message: serverError.message || serverError.error || "Không thể tạo câu hỏi",
+      };
+      throw errorObj;
+    } else {
+      // Nếu không có response (network error, etc.)
+      throw {
+        message: error.message || "Không thể tạo câu hỏi. Vui lòng kiểm tra kết nối mạng.",
+        error: "NETWORK_ERROR",
+      };
+    }
+  }
+};
+
+/**
+ * Tạo câu trả lời mới (Client-side, dùng axiosClient để gửi JWT token)
+ * @param {Object} data - Dữ liệu câu trả lời { question_id, content }
+ */
+export const createAnswer = async (data) => {
+  try {
+    console.log("📡 API Call: POST /client/answers", data);
+    const response = await axiosClient.post("/client/answers", data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("✅ API Response:", response.data);
+    return response.data; // { status: 'success', message: '...', data: { id: ... } }
+  } catch (error) {
+    console.error("❌ API Error creating answer:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: error.config,
+    });
+    
+    // Throw error object để component có thể xử lý
+    // Đảm bảo error object luôn có property message
+    if (error.response?.data) {
+      // Nếu có response từ server
+      const serverError = error.response.data;
+      const errorObj = {
+        ...serverError,
+        message: serverError.message || serverError.error || "Không thể tạo câu trả lời",
+      };
+      throw errorObj;
+    } else {
+      // Nếu không có response (network error, etc.)
+      throw {
+        message: error.message || "Không thể tạo câu trả lời. Vui lòng kiểm tra kết nối mạng.",
+        error: "NETWORK_ERROR",
+      };
+    }
+  }
 };

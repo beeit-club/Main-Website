@@ -118,8 +118,13 @@ LIMIT 1`; // 2. Câu SQL lấy 10 bài viết mới nhất (đã xuất bản) /
   static async getPostDetaill(slug) {
     return super.getPostBySlug(slug);
   }
-  static async getAllPost() {
-    return super.getAllPosts();
+  static async getAllPost(options = {}) {
+    // Client chỉ xem published posts (status = 1)
+    if (!options.filters) {
+      options.filters = {};
+    }
+    options.filters.status = 1; // Force published only
+    return super.getAllPosts(options);
   }
   /**
    * Lấy tất cả câu hỏi (đã duyệt) để hiển thị public
@@ -189,13 +194,13 @@ LIMIT 1`; // 2. Câu SQL lấy 10 bài viết mới nhất (đã xuất bản) /
         return false; // Không tìm thấy câu hỏi
       }
 
-      // 2. Lấy danh sách câu trả lời (chỉ lấy level 1, parent_id IS NULL)
-      // (Nếu bạn muốn hiển thị nested comment, query sẽ phức tạp hơn)
+      // 2. Lấy tất cả câu trả lời (bao gồm cả nested comments)
       const answersSql = `
         SELECT
           a.id,
           a.content,
           a.is_accepted,
+          a.parent_id,
           a.created_at,
           u.id AS author_id,
           u.fullname AS author_name,

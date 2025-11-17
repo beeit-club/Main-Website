@@ -30,7 +30,9 @@ export default async function QuestionsPage({ searchParams }) {
     <div className="container max-w-4xl mx-auto py-8 md:py-12">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl md:text-4xl font-bold">Tất cả câu hỏi</h1>
-        <Button>Đặt câu hỏi mới</Button>
+        <Button asChild>
+          <a href="/questions/ask">Đặt câu hỏi mới</a>
+        </Button>
       </div>
 
       <div className="flex flex-col space-y-4">

@@ -6,6 +6,6 @@ export const questionSchema = yup.object().shape({
     .string()
     .max(160, "Mô tả meta không quá 160 ký tự")
     .optional(),
-  status: yup.string().required("Vui lòng chọn trạng thái"),
+  // 'status' không cần validate ở frontend vì backend tự set = 1
   // 'content' sẽ được validate riêng vì nó từ TinyMCE
 });

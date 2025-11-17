@@ -8,7 +8,10 @@ Router.get('/category', HomeControler.getCategories);
 Router.get('/tags', HomeControler.getTags);
 Router.get('/posts/:slug', HomeControler.postDetaill);
 Router.get('/posts', HomeControler.getAllPost);
-// Thêm 2 routes mới cho Questions
+// Routes cho Questions
 Router.get('/questions', HomeControler.getAllQuestions);
 Router.get('/questions/:slug', HomeControler.getQuestionDetail);
+Router.post('/questions', HomeControler.createQuestion); // Client tạo câu hỏi mới
+// Routes cho Answers
+Router.post('/answers', HomeControler.createAnswer); // Client trả lời câu hỏi
 export default Router;

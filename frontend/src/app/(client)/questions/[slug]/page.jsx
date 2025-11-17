@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getQuestionDetail } from "@/services/home";
-import { AnswerCard } from "@/components/home/questions/AnswerCard";
 import { QuestionDetail } from "@/components/home/questions/QuestionDetail";
+import { QuestionDetailPageClient } from "@/components/home/questions/QuestionDetailPageClient";
 
 export const revalidate = 60; // Revalidate mỗi 60s
 
@@ -39,24 +39,8 @@ export default async function QuestionDetailPage({ params }) {
       {/* Đường gạch ngang */}
       <hr className="my-8" />
 
-      {/* Phần câu trả lời */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-4">{answers.length} Trả lời</h2>
-        {/* (Bạn có thể thêm 1 component Editor để trả lời ở đây) */}
-      </div>
-
-      {/* Danh sách các câu trả lời */}
-      <div className="flex flex-col">
-        {answers.length > 0 ? (
-          answers.map((answer) => (
-            <AnswerCard key={answer.id} answer={answer} />
-          ))
-        ) : (
-          <p className="text-muted-foreground text-center py-6">
-            Hãy là người đầu tiên trả lời câu hỏi này!
-          </p>
-        )}
-      </div>
+      {/* Client component để xử lý form trả lời và revalidate */}
+      <QuestionDetailPageClient question={question} initialAnswers={answers} />
     </div>
   );
 }
