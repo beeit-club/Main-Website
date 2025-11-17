@@ -33,7 +33,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useDebounce, useDebouncedSearch } from "@/hooks/useDebounce";
 import { PlusCircle } from "lucide-react";
 
 // === COMPONENT CHÍNH ===

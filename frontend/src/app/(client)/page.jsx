@@ -1,12 +1,32 @@
-import Post from "@/components/home/post/post";
-import BannerComponent from "../../components/home/Banner/Banner";
+import Banner from "@/components/home/Banner/Banner";
+import Home from "@/components/home/post/post";
+import { getHome } from "@/services/home";
+import { notFound } from "next/navigation";
 
-export default function page() {
+export default async function Page() {
+  let apiResponse;
+  try {
+    apiResponse = await getHome();
+  } catch (error) {
+    console.error(error);
+    // In a real app, you might want a nicer error boundary
+    throw new Error("Không thể tải dữ liệu trang chủ. Vui lòng thử lại sau.");
+  }
+
+  if (!apiResponse || !apiResponse.data || !apiResponse.data.home) {
+    notFound();
+  }
+
+  const { latestEvent, latestPosts, mostViewedPosts } = apiResponse.data.home;
   return (
     <main className="">
-      <BannerComponent />
+      <Banner />
       <div className="max-w-7xl mx-auto">
-        <Post />
+        <Home
+          latestEvent={latestEvent}
+          latestPosts={latestPosts}
+          mostViewedPosts={mostViewedPosts}
+        />
       </div>
     </main>
   );

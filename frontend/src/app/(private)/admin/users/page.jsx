@@ -1,8 +1,5 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
-// useRouter: Giúp chúng ta thay đổi URL (ghi vào URL).
-// usePathname: Cho biết URL hiện tại (ví dụ: /admin/users).
-// useSearchParams: Cho biết các query params hiện tại (ví dụ: ?page=2&search=test).
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 import { columns } from "@/components/admin/components/users/columns";
@@ -15,18 +12,11 @@ import { PaginationControls } from "@/components/common/Pagination";
 export default function ListUsers() {
   const [rolesList, setRolesList] = useState([]);
 
-  const searchParams = useSearchParams(); // Hook để ĐỌC các param từ URL
-  const router = useRouter(); // Hook để GHI các param vào URL
-  const pathname = usePathname(); // Lấy đường dẫn hiện tại (ví dụ: "/admin/users")
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  // === KHỞI TẠO STATE TỪ URL ===
-  // Đây là thay đổi quan trọng nhất.
-  // Thay vì dùng giá trị mặc định cứng (ví dụ: useState("active")),
-  // chúng ta đọc giá trị từ URL khi component tải lần đầu.
-
-  // 2. State điều khiển UI (Tabs)
   const [viewMode, setViewMode] = useState(
-    // Đọc 'status' từ URL, nếu không có thì mặc định là 'active'
     searchParams.get("status") || "active"
   );
   const [isLoading, setIsLoading] = useState(true);
