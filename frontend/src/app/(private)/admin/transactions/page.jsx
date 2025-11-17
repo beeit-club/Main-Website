@@ -35,7 +35,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { formatCurrency } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
-import { useDebounce } from "@/hooks/useDebounce"; // <-- Bạn cần hook này
+import { useDebounce, useDebouncedSearch } from "@/hooks/useDebounce"; // <-- Bạn cần hook này
 import { DataTable } from "@/components/admin/components/transactions/data-table";
 
 // Component hiển thị số dư
@@ -83,7 +83,6 @@ function BalanceDisplay({ balanceData }) {
 export default function ListTransactions() {
   // Data state
   const [data, setData] = useState([]);
-  console.log("🚀 ~ ListTransactions ~ data:", data);
   const [balanceData, setBalanceData] = useState(null);
   const [openAdd, setOpenAdd] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

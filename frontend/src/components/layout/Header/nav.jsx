@@ -1,7 +1,12 @@
 import * as React from "react";
 
+// Import Zustand store
+import {
+  useCategoriesStore,
+  buildCategoryTree,
+} from "@/stores/categoriesStore";
+
 // Import các component cần thiết từ shadcn/ui
-// ... (imports giữ nguyên)
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -19,7 +24,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-// THÊM: Import Sheet, Button, và Icons
+// Import Sheet, Button, và Icons
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -32,106 +37,45 @@ import {
 import { Menu, ChevronDown } from "lucide-react";
 
 // Import tiện ích `cn` để gộp class
-// ... (import cn giữ nguyên)
 import { cn } from "@/lib/utils";
 
-// --- DỮ LIỆU ---
-// ... (Dữ liệu baiVietData và taiLieuData giữ nguyên) ...
-const baiVietData = [
-  {
-    id: 1,
-    name: "Tin Tức Công Nghệ",
-    slug: "tin-tuc-cong-nghe",
-    parent_id: null,
-  },
-  {
-    id: 2,
-    name: "Đánh Giá Sản Phẩm",
-    slug: "danh-gia-san-pham-5494",
-    parent_id: null,
-  },
-  {
-    id: 3,
-    name: "Thủ Thuật Máy Tính",
-    slug: "thu-thuat-may-tinh-8354",
-    parent_id: null,
-  },
-  {
-    id: 5,
-    name: "Game & Giải Trí",
-    slug: "game-giai-tri-1158",
-    parent_id: null,
-  },
-  {
-    id: 6,
-    name: "Tin Tức Doanh Nghiệp",
-    slug: "tin-tuc-doanh-nghiep-8483",
-    parent_id: null,
-  },
-  {
-    id: 7,
-    name: "Hướng Dẫn Sử Dụng",
-    slug: "huong-dan-su-dung-756",
-    parent_id: null,
-  },
-  {
-    id: 8,
-    name: "Khuyến Mãi & Sự Kiện",
-    slug: "khuyen-mai-su-kien-8019",
-    parent_id: null,
-  },
-  { id: 17, name: "demo", slug: "demo", parent_id: null },
-  { id: 18, name: "dddddd111111", slug: "dddddd111111", parent_id: 8 },
-  { id: 19, name: "dcmaaaaaaaaaaa", slug: "dcmaaaaaaaaaaa", parent_id: 5 },
-];
-
-// Dữ liệu Tài liệu (mock data)
-const taiLieuData = [
-  { id: 100, name: "Lập trình Web", slug: "lap-trinh-web", parent_id: null },
-  {
-    id: 101,
-    name: "Thiết kế Giao diện",
-    slug: "thiet-ke-giao-dien",
-    parent_id: null,
-  },
-  {
-    id: 102,
-    name: "Quản trị Cơ sở dữ liệu",
-    slug: "quan-tri-csdl",
-    parent_id: null,
-  },
-  { id: 103, name: "ReactJS", slug: "reactjs", parent_id: 100 },
-  { id: 104, name: "NodeJS", slug: "nodejs", parent_id: 100 },
-  { id: 105, name: "Figma", slug: "figma", parent_id: 101 },
-  { id: 106, name: "SQL Server", slug: "sql-server", parent_id: 102 },
-  { id: 107, name: "MongoDB", slug: "mongodb", parent_id: 102 },
-  { id: 108, name: "VueJS", slug: "vuejs", parent_id: 100 },
-];
-
-// ... HÀM buildTree ...
-function buildTree(items, parentId = null) {
-  const tree = [];
-
-  const children = items.filter((item) => item.parent_id === parentId);
-
-  for (const item of children) {
-    const grandchildren = buildTree(items, item.id);
-    tree.push({
-      ...item,
-      children: grandchildren,
-    });
-  }
-
-  return tree;
-}
-
-// ... HÀM classNameStyle ...
+// HÀM classNameStyle
 const classNameStyle = () => `${navigationMenuTriggerStyle()} text-[16px]`;
 
 // --- COMPONENT CHÍNH ---
 export default function Nav() {
-  const baiVietTree = React.useMemo(() => buildTree(baiVietData), []);
-  const taiLieuTree = React.useMemo(() => buildTree(taiLieuData), []);
+  // Lấy categories từ Zustand store
+  const { categories, isLoading } = useCategoriesStore();
+  // Build tree structure từ flat array
+  const baiVietTree = React.useMemo(
+    () => buildCategoryTree(categories),
+    [categories]
+  );
+
+  // Mock data cho Tài liệu (giữ tạm vì chưa có API)
+  const taiLieuData = [
+    { id: 100, name: "Lập trình Web", slug: "lap-trinh-web", parent_id: null },
+    {
+      id: 101,
+      name: "Thiết kế Giao diện",
+      slug: "thiet-ke-giao-dien",
+      parent_id: null,
+    },
+    {
+      id: 102,
+      name: "Quản trị Cơ sở dữ liệu",
+      slug: "quan-tri-csdl",
+      parent_id: null,
+    },
+    { id: 103, name: "ReactJS", slug: "reactjs", parent_id: 100 },
+    { id: 104, name: "NodeJS", slug: "nodejs", parent_id: 100 },
+    { id: 105, name: "Figma", slug: "figma", parent_id: 101 },
+    { id: 106, name: "SQL Server", slug: "sql-server", parent_id: 102 },
+    { id: 107, name: "MongoDB", slug: "mongodb", parent_id: 102 },
+    { id: 108, name: "VueJS", slug: "vuejs", parent_id: 100 },
+  ];
+
+  const taiLieuTree = React.useMemo(() => buildCategoryTree(taiLieuData), []);
 
   return (
     // Sử dụng div bọc ngoài để chứa cả 2 phiên bản
@@ -148,64 +92,74 @@ export default function Nav() {
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid w-[400px] gap-3 p-4 lg:w-[500px] lg:grid-cols-2 ">
-                  {baiVietTree.map((item) => (
-                    <React.Fragment key={item.id}>
-                      {item.children.length === 0 && (
-                        <ListItem
-                          title={item.name}
-                          href={`/bai-viet/${item.slug}`}
-                        ></ListItem>
-                      )}
-                      {item.children.length > 0 && (
-                        <li className="row-span-1">
-                          {" "}
-                          <Collapsible>
-                            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                              <div className="text-sm font-medium leading-none">
-                                {item.name}
-                              </div>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="h-4 w-4 transition-transform data-[state=open]:rotate-180"
-                              >
-                                <path d="m6 9 6 6 6-6" />
-                              </svg>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent>
-                              <ul className="mt-2 space-y-1 pl-4">
-                                <li>
-                                  <a
-                                    href={`/bai-viet/${item.slug}`}
-                                    className="text-sm font-medium text-foreground hover:underline"
-                                  >
-                                    Tất cả trong "{item.name}"
-                                  </a>
-                                </li>
-                                {item.children.map((child) => (
-                                  <li key={child.id}>
+                  {isLoading ? (
+                    <li className="col-span-2 text-center text-sm text-muted-foreground py-4">
+                      Đang tải...
+                    </li>
+                  ) : baiVietTree.length === 0 ? (
+                    <li className="col-span-2 text-center text-sm text-muted-foreground py-4">
+                      Chưa có danh mục
+                    </li>
+                  ) : (
+                    baiVietTree.map((item) => (
+                      <React.Fragment key={item.id}>
+                        {item.children.length === 0 && (
+                          <ListItem
+                            title={item.name}
+                            href={`/post?category=${item.slug}`}
+                          ></ListItem>
+                        )}
+                        {item.children.length > 0 && (
+                          <li className="row-span-1">
+                            {" "}
+                            <Collapsible>
+                              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                                <div className="text-sm font-medium leading-none">
+                                  {item.name}
+                                </div>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="h-4 w-4 transition-transform data-[state=open]:rotate-180"
+                                >
+                                  <path d="m6 9 6 6 6-6" />
+                                </svg>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                <ul className="mt-2 space-y-1 pl-4">
+                                  <li>
                                     <a
-                                      href={`/bai-viet/${child.slug}`}
-                                      className="text-sm text-muted-foreground hover:text-foreground"
+                                      href={`/post?category=${item.slug}`}
+                                      className="text-sm font-medium text-foreground hover:underline"
                                     >
-                                      {child.name}
+                                      Tất cả trong "{item.name}"
                                     </a>
                                   </li>
-                                ))}
-                              </ul>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        </li>
-                      )}
-                    </React.Fragment>
-                  ))}
+                                  {item.children.map((child) => (
+                                    <li key={child.id}>
+                                      <a
+                                        href={`/post?category=${child.slug}`}
+                                        className="text-sm text-muted-foreground hover:text-foreground"
+                                      >
+                                        {child.name}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          </li>
+                        )}
+                      </React.Fragment>
+                    ))
+                  )}
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
@@ -213,7 +167,7 @@ export default function Nav() {
             {/* Mục 3: Link đơn "Hỏi đáp" */}
             <NavigationMenuItem>
               <NavigationMenuLink
-                href="/hoi-dap"
+                href="/questions"
                 className={`${classNameStyle()} `}
               >
                 Hỏi đáp
@@ -328,21 +282,29 @@ export default function Nav() {
             </SheetHeader>
             <div className="flex flex-col space-y-3 py-4">
               {/* Render các link đơn */}
-              <MobileNavLink href="/hoi-dap">Hỏi đáp</MobileNavLink>
-              <MobileNavLink href="/su-kien">Sự kiện</MobileNavLink>
-              <MobileNavLink href="/thanh-vien">Thành viên</MobileNavLink>
+              <MobileNavLink href="/questions">Hỏi đáp</MobileNavLink>
+              <MobileNavLink href="/events">Sự kiện</MobileNavLink>
+              <MobileNavLink href="/members">Thành viên</MobileNavLink>
 
               {/* Render các nhóm (dùng component lồng nhau) */}
-              <MobileNavGroup
-                title="Bài viết"
-                items={baiVietTree}
-                slugPrefix="/bai-viet"
-              />
-              <MobileNavGroup
-                title="Tài liệu"
-                items={taiLieuTree}
-                slugPrefix="/tai-lieu"
-              />
+              {isLoading ? (
+                <div className="text-center text-sm text-muted-foreground py-4">
+                  Đang tải danh mục...
+                </div>
+              ) : (
+                <>
+                  <MobileNavGroup
+                    title="Bài viết"
+                    items={baiVietTree}
+                    slugPrefix="/post"
+                  />
+                  <MobileNavGroup
+                    title="Tài liệu"
+                    items={taiLieuTree}
+                    slugPrefix="/documents"
+                  />
+                </>
+              )}
             </div>
           </SheetContent>
         </Sheet>
@@ -405,7 +367,7 @@ function MobileNavGroup({ title, items, slugPrefix }) {
             <li key={item.id}>
               {/* Nếu item này KHÔNG có con, render link đơn */}
               {item.children.length === 0 && (
-                <MobileNavLink href={`${slugPrefix}/${item.slug}`}>
+                <MobileNavLink href={`${slugPrefix}?category=${item.slug}`}>
                   {item.name}
                 </MobileNavLink>
               )}
@@ -415,7 +377,7 @@ function MobileNavGroup({ title, items, slugPrefix }) {
                 <MobileNavGroup
                   title={item.name}
                   items={item.children}
-                  slugPrefix={`${slugPrefix}/${item.slug}`}
+                  slugPrefix={slugPrefix}
                 />
               )}
             </li>

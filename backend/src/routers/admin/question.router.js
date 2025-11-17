@@ -12,6 +12,4 @@ Router.get('/:id', questionController.getQuestionById);
 Router.put('/:id', questionController.updateQuestion);
 Router.delete('/:id', questionController.deleteQuestion);
 
-// === TOÀN BỘ CODE LIÊN QUAN ĐẾN ANSWER ĐÃ BỊ XÓA ===
-
 export default Router;

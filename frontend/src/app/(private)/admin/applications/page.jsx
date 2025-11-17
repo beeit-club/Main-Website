@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { columns } from "@/components/admin/components/applications/columns";
 // Giả sử bạn dùng DataTable chung
-import { DataTable } from "@/components/admin/components/users/data-table";
+import { DataTable } from "@/components/admin/components/applications/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { applicationServices } from "@/services/admin/applications";
 import { toast } from "sonner";

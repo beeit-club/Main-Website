@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { columns } from "@/components/admin/components/interviews/columns";
 // Giả sử bạn dùng DataTable chung
-import { DataTable } from "@/components/admin/components/users/data-table";
+import { DataTable } from "@/components/admin/components/interviews/data-table";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

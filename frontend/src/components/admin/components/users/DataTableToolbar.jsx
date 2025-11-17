@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { X } from "lucide-react";
-import { useDebouncedSearch } from "@/lib/utils";
+import { useDebouncedSearch } from "@/hooks/useDebounce";
 export function DataTableToolbar({ table, rolesList = [] }) {
   //  phần có id ở file columns giúp cho lấy giá trị ở dưới
   const statusColumn = table.getColumn("active");

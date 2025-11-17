@@ -49,16 +49,17 @@ WHERE
       let params = [];
 
       if (options?.filters?.title) {
-        sql += ` AND title LIKE ?`;
+        sql += ` AND p.title LIKE ?`;
         params.push(`%${options.filters.title}%`);
       }
       if (options?.filters?.status) {
-        sql += ` AND status = ?`;
+        sql += ` AND p.status = ?`;
         params.push(`${options.filters.status}`);
       }
-      if (options?.filters?.category_id) {
-        sql += ` AND category_id = ?`;
-        params.push(`${options.filters.category_id}`);
+      // Filter by category slug instead of ID
+      if (options?.filters?.category) {
+        sql += ` AND pc.slug = ?`;
+        params.push(`${options.filters.category}`);
       }
       const post = await selectWithPagination(sql, params, options);
       return post;
