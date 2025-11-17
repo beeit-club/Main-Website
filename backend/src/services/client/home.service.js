@@ -154,5 +154,15 @@ const HomeService = {
       throw error;
     }
   },
+
+  // Lấy danh sách thành viên CLB
+  getAllMembers: async (options) => {
+    try {
+      const members = await HomeModel.getAllMembers(options);
+      return members;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 export default HomeService;

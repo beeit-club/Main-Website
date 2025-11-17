@@ -20,18 +20,25 @@ function useLogin(user, logout) {
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Avatar>
-          <AvatarImage src={`${user?.avatar ?? ""}`} />
-          <AvatarFallback>{`${user?.name ?? ""}`}</AvatarFallback>
+          <AvatarImage src={user?.avatar_url || user?.avatar || ""} />
+          <AvatarFallback>
+            {user?.fullname?.[0]?.toUpperCase() || user?.name?.[0]?.toUpperCase() || "U"}
+          </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className={`absolute -right-2 top-4 w-60`}>
-        <DropdownMenuLabel>{`${user?.name ?? ""}`}</DropdownMenuLabel>
+        <DropdownMenuLabel>{`${user?.name ?? user?.fullname ?? ""}`}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Profile</DropdownMenuItem>
-        <DropdownMenuItem>Billing</DropdownMenuItem>
-        <DropdownMenuItem>Team</DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/profile">
+            <User className="mr-2 h-4 w-4" />
+            Trang cá nhân
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={logout}>
-          <LogOut /> Đăng Xuất
+          <LogOut className="mr-2 h-4 w-4" />
+          Đăng Xuất
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

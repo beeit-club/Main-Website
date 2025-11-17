@@ -221,5 +221,54 @@ LIMIT 1`; // 2. Câu SQL lấy 10 bài viết mới nhất (đã xuất bản) /
       throw error;
     }
   }
+
+  /**
+   * Lấy danh sách thành viên CLB (role_id = 4) với thông tin từ member_profiles
+   */
+  static async getAllMembers(options = {}) {
+    try {
+      let sql = `
+        SELECT 
+          u.id,
+          u.fullname,
+          u.email,
+          u.phone,
+          u.avatar_url,
+          u.bio,
+          u.created_at,
+          mp.student_id,
+          mp.course,
+          mp.academic_year,
+          mp.join_date
+        FROM users u
+        INNER JOIN member_profiles mp ON u.id = mp.user_id
+        WHERE u.deleted_at IS NULL 
+          AND mp.deleted_at IS NULL
+          AND u.role_id = 4
+          AND u.is_active = 1
+      `;
+      let params = [];
+
+      // Filter theo search (tên, email, MSSV)
+      if (options?.filters?.search) {
+        sql += ` AND (u.fullname LIKE ? OR u.email LIKE ? OR mp.student_id LIKE ?)`;
+        const searchTerm = `%${options.filters.search}%`;
+        params.push(searchTerm, searchTerm, searchTerm);
+      }
+
+      // Sắp xếp mặc định: ngày tham gia mới nhất
+      // Thêm ORDER BY trực tiếp vào SQL vì selectWithPagination không xử lý alias tốt
+      if (!options.orderBy) {
+        sql += ` ORDER BY mp.join_date DESC`;
+        // Xóa orderBy để selectWithPagination không thêm ORDER BY nữa
+        options.orderBy = null;
+      }
+
+      const members = await selectWithPagination(sql, params, options);
+      return members;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 export default HomeModel;

@@ -256,7 +256,7 @@ export default function Nav() {
             {/* Mục 6: Link đơn "Thành viên" */}
             <NavigationMenuItem>
               <NavigationMenuLink
-                href="/thanh-vien"
+                href="/members"
                 className={`${classNameStyle()} `}
               >
                 Thành viên

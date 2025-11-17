@@ -154,10 +154,20 @@ const authController = {
   getProfile: asyncWrapper(async (req, res) => {
     const { id } = req.user;
     const user = await AuthService.getProfile(id);
-
-    const { password_hash, ...userProfile } = user;
     return utils.success(res, message.Auth.PROFILE_SUCCESS, {
-      user: userProfile,
+      user: user,
+    });
+  }),
+
+  // Cập nhật profile hiện tại
+  updateProfile: asyncWrapper(async (req, res) => {
+    await AuthSchema.updateProfile.validate(req.body, { abortEarly: false });
+    const { id } = req.user;
+    const updatedUser = await AuthService.updateProfile(id, req.body);
+
+    // Query không có password_hash nên không cần destructure
+    return utils.success(res, message.Auth.UPDATE_PROFILE_SUCCESS, {
+      user: updatedUser,
     });
   }),
 };
