@@ -17,6 +17,9 @@ Router.put('/:id', tagController.updateTag);
 // Xóa tag (soft delete)
 Router.delete('/:id', tagController.deleteTag);
 
+// // Xóa vĩnh viễn bài viết
+Router.delete('/:id/permanent', tagController.permanentDeleteTag);
+
 // Khôi phục tag
 Router.patch('/:id/restore', tagController.restoreTag);
 

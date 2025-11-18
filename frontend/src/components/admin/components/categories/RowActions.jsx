@@ -42,17 +42,26 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/datetime";
 import {
   MoreHorizontal,
-  CalendarDays,
   Pencil,
   Eye,
   Trash,
-  Hash,
   User,
-  FolderTree, // <-- Icon cho cha-con
+  ToggleLeft,
+  ToggleRight,
+  RefreshCcw,
+  Trash2,
+  Mail,
+  Phone,
+  Briefcase,
+  BookUser,
+  CalendarDays,
+  Folder,
+  Hash,
+  FolderTree,
 } from "lucide-react";
 import { categorySchema } from "@/validation/postSchema";
 
-export function RowActions({ row }) {
+export function RowActions({ row, viewMode = "active" }) {
   // States cho 3 dialog
   const [openDelete, setOpenDelete] = useState(false);
   const [openView, setOpenView] = useState(false);
@@ -61,7 +70,13 @@ export function RowActions({ row }) {
   const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
   const [categoryDataForView, setCategoryDataForView] = useState(null);
   const [categoryList, setCategoryList] = useState([]); // <-- State cho dropdown
+  const [tagDataForView, setTagDataForView] = useState(null);
+  const [isRestoreSubmitting, setIsRestoreSubmitting] = useState(false);
+  const [isPermDeleteSubmitting, setIsPermDeleteSubmitting] = useState(false);
+  const [openPermanentDelete, setOpenPermanentDelete] = useState(false);
 
+  // --- Hàm reload trang ---
+  const reloadPage = () => window.location.reload();
   const categoryId = row.original.id;
   const categorySlug = row.original.slug;
   const categoryName = row.original.name;
@@ -71,6 +86,21 @@ export function RowActions({ row }) {
     resolver: yupResolver(categorySchema),
   });
   const { isSubmitting: isEditSubmitting } = form.formState;
+
+  async function onView() {
+    try {
+      const res = await postServices.getOne(row.original.slug);
+      if (res?.data.status == "success") {
+        setPost(res?.data.data);
+        setOpenView(true);
+      } else {
+        toast.error("Lấy chi tiết bài viết thất bại");
+      }
+    } catch (error) {
+      console.error("Failed to fetch post:", error);
+      toast.error("Có lỗi xảy ra khi lấy dữ liệu.");
+    }
+  }
 
   // --- Xử lý XÓA ---
   async function onConfirmDelete() {
@@ -150,6 +180,43 @@ export function RowActions({ row }) {
     }
   }
 
+  // --- Xử lý XÓA VĨNH VIỄN (Trash View) ---
+  async function onConfirmPermanentDelete() {
+    setIsPermDeleteSubmitting(true);
+    try {
+      const res = await categoryServices.deleteCategoryPermanent(categoryId);
+      if (res.status == 200) {
+        toast.success("Xóa danh mục vĩnh viễn thành công");
+        setOpenPermanentDelete(false);
+        reloadPage();
+      } else {
+        toast.error(res.message || "Xóa vĩnh viễn thất bại");
+      }
+    } catch (error) {
+      toast.error("Có lỗi xảy ra.");
+    } finally {
+      setIsPermDeleteSubmitting(false);
+    }
+  }
+
+  // --- Xử lý KHÔI PHỤC (Trash View) ---
+  async function onRestore() {
+    setIsRestoreSubmitting(true);
+    try {
+      const res = await categoryServices.restoreCategory(categoryId);
+      if (res.status == 200) {
+        toast.success("Khôi phục category thành công");
+        reloadPage();
+      } else {
+        toast.error(res.message || "Khôi phục thất bại");
+      }
+    } catch (error) {
+      toast.error("Có lỗi xảy ra.");
+    } finally {
+      setIsRestoreSubmitting(false);
+    }
+  }
+
   // 2. Submit form Sửa
   async function onConfirmEdit(formData) {
     try {
@@ -188,21 +255,45 @@ export function RowActions({ row }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onEditClick}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={onViewClick}>
-            <Eye className="mr-2 h-4 w-4" />
-            View
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setOpenDelete(true)}
-            className="text-red-600"
-          >
-            <Trash className="mr-2 h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
+          {viewMode == "active" &&
+            <>
+            <DropdownMenuItem onClick={onEditClick}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onViewClick}>
+              <Eye className="mr-2 h-4 w-4" />
+              View
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setOpenDelete(true)}
+              className="text-red-600"
+            >
+              <Trash className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+            </>
+          }
+          {/* == Các hành động cho View "Trash" == */}
+          {viewMode == "trash" && (
+            <>
+              <DropdownMenuItem
+                onClick={onRestore}
+                disabled={isRestoreSubmitting}
+                className="text-green-600"
+              >
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Khôi phục
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setOpenPermanentDelete(true)}
+                className="text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Xóa vĩnh viễn
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -357,7 +448,6 @@ export function RowActions({ row }) {
                   </FormItem>
                 )}
               />
-
               <DialogFooter>
                 <Button
                   variant="ghost"
@@ -373,6 +463,38 @@ export function RowActions({ row }) {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* --- Dialog Xóa VĨNH VIỄN (Trash) --- */}
+      <Dialog open={openPermanentDelete} onOpenChange={setOpenPermanentDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận XÓA VĨNH VIỄN</DialogTitle>
+            <DialogDescription>
+              Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            Bạn có chắc muốn xóa vĩnh viễn danh mục "<strong>{categoryName}</strong>"?
+            Toàn bộ dữ liệu liên quan có thể bị mất.
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setOpenPermanentDelete(false)}
+              disabled={isPermDeleteSubmitting}
+            >
+              Huỷ
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={onConfirmPermanentDelete}
+              disabled={isPermDeleteSubmitting}
+            >
+              {isPermDeleteSubmitting ? "Đang xóa..." : "Xóa vĩnh viễn"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

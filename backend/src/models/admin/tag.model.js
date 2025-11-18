@@ -1,6 +1,7 @@
 import {
   findOne,
   insert,
+  remove,
   selectWithPagination,
   update,
 } from '../../utils/database.js';
@@ -143,5 +144,15 @@ WHERE t.id = ?  `;
       throw error;
     }
   }
+
+   // xóa vĩnh viễn
+    static async permanentDeleteTag(id) {
+      try {
+        const result = await remove('tags', { id: id });
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    }
 }
 export default tagModel;

@@ -22,14 +22,44 @@ import { Badge } from "@/components/ui/badge"; // <-- Thêm Badge để hiển t
 import { postServices } from "@/services/admin/post";
 import { toast } from "sonner";
 import { format } from "date-fns"; // <-- (Optional) Thêm để format ngày tháng
-import { MoreHorizontal, User, Folder, CalendarDays, Eye } from "lucide-react";
+import {
+  MoreHorizontal,
+  Pencil,
+  Eye,
+  Trash,
+  User,
+  ToggleLeft,
+  ToggleRight,
+  RefreshCcw,
+  Trash2,
+  Mail,
+  Phone,
+  Briefcase,
+  BookUser,
+  CalendarDays,
+  Folder,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/datetime";
-export function RowActions({ row }) {
+
+export function RowActions({ row, viewMode = "active" }) {
   const [openDelete, setOpenDelete] = useState(false);
   const [openView, setOpenView] = useState(false); // <-- 1. State mới cho dialog xem chi tiết
+  const [openPermanentDelete, setOpenPermanentDelete] = useState(false);
   const [post, setPost] = useState({});
   const router = useRouter();
+
+  // States loading
+  const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
+  const [isToggleSubmitting, setIsToggleSubmitting] = useState(false);
+  const [isRestoreSubmitting, setIsRestoreSubmitting] = useState(false);
+  const [isPermDeleteSubmitting, setIsPermDeleteSubmitting] = useState(false);
+
+  // --- Hàm reload trang ---
+  const reloadPage = () => window.location.reload();
+  const postId = row.original.id;
+  const postTitle = row.original.title;
+
   function onSaveEdit() {
     router.push(`/admin/posts/${row.original.slug}/edit`);
   }
@@ -42,6 +72,7 @@ export function RowActions({ row }) {
       toast.error("xóa mềm không thành công");
     }
     setOpenDelete(false);
+    reloadPage();
   }
 
   async function onView() {
@@ -59,6 +90,43 @@ export function RowActions({ row }) {
     }
   }
 
+  // --- Xử lý XÓA VĨNH VIỄN (Trash View) ---
+  async function onConfirmPermanentDelete() {
+    setIsPermDeleteSubmitting(true);
+    try {
+      const res = await postServices.deletePostPermanent(postId);
+      if (res.status == 200) {
+        toast.success("Xóa post vĩnh viễn thành công");
+        setOpenPermanentDelete(false);
+        reloadPage();
+      } else {
+        toast.error(res.message || "Xóa vĩnh viễn thất bại");
+      }
+    } catch (error) {
+      toast.error("Có lỗi xảy ra.");
+    } finally {
+      setIsPermDeleteSubmitting(false);
+    }
+  }
+
+  // --- Xử lý KHÔI PHỤC (Trash View) ---
+  async function onRestore() {
+    setIsRestoreSubmitting(true);
+    try {
+      const res = await postServices.restorePost(postId);
+      if (res.status == 200) {
+        toast.success("Khôi phục user thành công");
+        reloadPage();
+      } else {
+        toast.error(res.message || "Khôi phục thất bại");
+      }
+    } catch (error) {
+      toast.error("Có lỗi xảy ra.");
+    } finally {
+      setIsRestoreSubmitting(false);
+    }
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -68,12 +136,33 @@ export function RowActions({ row }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onSaveEdit()}>Edit</DropdownMenuItem>
-          {/* <-- 3. Cập nhật onClick */}
-          <DropdownMenuItem onClick={onView}>View</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-            Delete
-          </DropdownMenuItem>
+          {viewMode == "active" && <>
+            <DropdownMenuItem onClick={() => onSaveEdit()}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={onView}>View</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+              Delete
+            </DropdownMenuItem></>
+          }
+          {/* == Các hành động cho View "Trash" == */}
+          {viewMode == "trash" && (
+            <>
+              <DropdownMenuItem
+                onClick={onRestore}
+                disabled={isRestoreSubmitting}
+                className="text-green-600"
+              >
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Khôi phục
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setOpenPermanentDelete(true)}
+                className="text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Xóa vĩnh viễn
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -92,6 +181,38 @@ export function RowActions({ row }) {
             </Button>
             <Button variant="destructive" onClick={onConfirmDelete}>
               Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* --- Dialog Xóa VĨNH VIỄN (Trash) --- */}
+      <Dialog open={openPermanentDelete} onOpenChange={setOpenPermanentDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận XÓA VĨNH VIỄN</DialogTitle>
+            <DialogDescription>
+              Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            Bạn có chắc muốn xóa vĩnh viễn post với title " <strong>{postTitle}</strong> "?
+            Toàn bộ dữ liệu liên quan có thể bị mất.
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setOpenPermanentDelete(false)}
+              disabled={isPermDeleteSubmitting}
+            >
+              Huỷ
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={onConfirmPermanentDelete}
+              disabled={isPermDeleteSubmitting}
+            >
+              {isPermDeleteSubmitting ? "Đang xóa..." : "Xóa vĩnh viễn"}
             </Button>
           </DialogFooter>
         </DialogContent>

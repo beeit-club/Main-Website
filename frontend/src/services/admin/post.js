@@ -2,9 +2,9 @@ import axios from "axios";
 import axiosClient from "../api";
 
 export const postServices = {
-  getAllPost: async () => {
+  getAllPost: async (params) => {
     try {
-      const res = await axiosClient.get("admin/posts");
+      const res = await axiosClient.get("admin/posts", {params});
       return res;
     } catch (error) {
       throw error?.response?.data || error;
@@ -13,6 +13,14 @@ export const postServices = {
   getAllcategory: async () => {
     try {
       const res = await axiosClient.get("client/category");
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+  getDeletedPosts: async (params) => {
+    try {
+      const res = await axiosClient.get("admin/posts/trash/list", {params});
       return res;
     } catch (error) {
       throw error?.response?.data || error;
@@ -30,6 +38,23 @@ export const postServices = {
   delete: async (id) => {
     try {
       const res = await axiosClient.delete(`/admin/posts/${id}`);
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+  // xóa vĩnh viễn bài viết
+  deletePostPermanent: async (id) => {
+    try {
+      const res = await axiosClient.delete(`/admin/posts/${id}/permanent`);
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+  restorePost: async (id) => {
+    try {
+      const res = await axiosClient.patch(`/admin/posts/${id}/restore`);
       return res;
     } catch (error) {
       throw error?.response?.data || error;
