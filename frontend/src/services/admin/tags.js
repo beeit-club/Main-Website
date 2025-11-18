@@ -8,7 +8,7 @@ export const tagServices = {
    */
   getAllTags: async (params) => {
     try {
-      const res = await axiosClient.get("admin/tags",{params});
+      const res = await axiosClient.get("admin/tags", { params });
       return res;
     } catch (error) {
       throw error?.response?.data || error;
@@ -17,7 +17,7 @@ export const tagServices = {
 
   getDeletedTags: async (params) => {
     try {
-      const res = await axiosClient.get("admin/tags/trash/list",{params});
+      const res = await axiosClient.get("admin/tags/trash/list", { params });
       return res;
     } catch (error) {
       throw error?.response?.data || error;
@@ -72,8 +72,6 @@ export const tagServices = {
 
   // xóa vĩnh viễn bài viết
   deleteTagPermanent: async (id) => {
-    console.log("id",id);
-
     try {
       const res = await axiosClient.delete(`/admin/tags/${id}/permanent`);
       return res;

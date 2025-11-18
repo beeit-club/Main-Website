@@ -30,7 +30,6 @@ export function DataTableToolbar({ table, categoryList, title, setTitle }) {
     return () => clearTimeout(delay);
   }, [title]);
 
-
   return (
     <div className="flex items-center justify-between py-4 gap-4">
       <div className="flex items-center gap-2">

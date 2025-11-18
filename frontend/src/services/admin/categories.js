@@ -6,9 +6,18 @@ export const categoryServices = {
    * Lấy danh sách tất cả danh mục
    * Tương ứng với: GET /admin/categories
    */
-  getAllCategories: async () => {
+  getAllCategories: async (params) => {
     try {
-      const res = await axiosClient.get("admin/categories");
+      const res = await axiosClient.get("admin/categories", { params });
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  getAllDeletedCategories: async (params) => {
+    try {
+      const res = await axiosClient.get("admin/categories/trash/list", { params });
       return res;
     } catch (error) {
       throw error?.response?.data || error;
@@ -72,6 +81,25 @@ export const categoryServices = {
     try {
       const res = await axiosClient.delete(`admin/categories/${id}`);
       return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  // xóa vĩnh viễn bài viết
+  deleteCategoryPermanent: async (id) => {
+    try {
+      const res = await axiosClient.delete(`/admin/categories/${id}/permanent`);
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  restoreCategory: async (id) => {
+    try {
+      const res = await axiosClient.patch(`admin/categories/${id}/restore`);
+      return res.data;
     } catch (error) {
       throw error?.response?.data || error;
     }

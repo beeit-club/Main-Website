@@ -1,6 +1,7 @@
 import {
   findOne,
   insert,
+  remove,
   selectWithPagination,
   update,
 } from '../../utils/database.js';
@@ -93,6 +94,16 @@ class categoryModel {
     try {
       const sql = `UPDATE post_categories set deleted_at = null where id = ?`;
       const result = await findOne(sql, [id]);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // xóa vĩnh viễn
+  static async permanentDeleteCategory(id) {
+    try {
+      const result = await remove('post_categories', { id: id });
       return result;
     } catch (error) {
       throw error;
