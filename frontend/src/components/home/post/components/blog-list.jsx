@@ -16,7 +16,7 @@ export function BlogList({ posts }) {
         >
           <CardContent className="p-0">
             <div className="flex flex-col gap-3 md:flex-row">
-              <Link href={`/blog/${post.slug}`} className="relative md:w-64">
+              <Link href={`/post/${post.slug}`} className="relative md:w-64">
                 <div className="relative aspect-video md:aspect-square overflow-hidden">
                   <Image
                     src={
@@ -40,7 +40,7 @@ export function BlogList({ posts }) {
 
               <div className="flex flex-1 flex-col justify-between p-4">
                 <div className="space-y-2">
-                  <Link href={`/blog/${post.slug}`}>
+                  <Link href={`/post/${post.slug}`}>
                     <h3 className="text-lg font-semibold leading-snug text-balance transition-colors hover:text-primary line-clamp-2">
                       {post.title}
                     </h3>
@@ -50,17 +50,21 @@ export function BlogList({ posts }) {
                     {post.meta_description}
                   </p>
 
-                  <div className="flex flex-wrap gap-1">
-                    {post.tags.map((tag) => (
-                      <Badge
-                        key={tag.slug}
-                        variant="outline"
-                        className="text-[10px] px-1.5 py-0"
-                      >
-                        {tag.name}
-                      </Badge>
-                    ))}
-                  </div>
+                  {post.tags &&
+                    Array.isArray(post.tags) &&
+                    post.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {post.tags.map((tag) => (
+                          <Badge
+                            key={tag.slug}
+                            variant="outline"
+                            className="text-[10px] px-1.5 py-0"
+                          >
+                            {tag.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">

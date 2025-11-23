@@ -195,5 +195,33 @@ const HomeControler = {
     const document = await HomeService.getDocumentBySlug(slug);
     utils.success(res, 'Lấy chi tiết tài liệu thành công', { document });
   }),
+
+  // === SEARCH (PUBLIC) ===
+  // [PUBLIC] Tìm kiếm posts và questions
+  search: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { q } = req.query;
+
+    if (!q || q.trim() === '') {
+      return utils.success(res, 'Tìm kiếm thành công', {
+        data: [],
+        pagination: {
+          page: 1,
+          limit: valid.limit || 10,
+          total: 0,
+          totalPages: 0,
+        },
+      });
+    }
+
+    const results = await HomeService.searchPostsAndQuestions({
+      ...valid,
+      q: q.trim(),
+    });
+    utils.success(res, 'Tìm kiếm thành công', results);
+  }),
 };
 export default HomeControler;

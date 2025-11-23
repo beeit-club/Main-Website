@@ -1,5 +1,8 @@
+"use client";
+
 import * as React from "react";
-import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, FileText, MessageSquare } from "lucide-react";
 
 // Import các component Command từ shadcn/ui
 import {
@@ -17,6 +20,8 @@ import { Button } from "@/components/ui/button";
 
 export default function SearchCommand() {
   const [open, setOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const router = useRouter();
 
   // Thêm hiệu ứng để lắng nghe phím tắt (Ctrl+K hoặc Cmd+K)
   React.useEffect(() => {
@@ -29,6 +34,20 @@ export default function SearchCommand() {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
+
+  const handleSearch = (query) => {
+    if (query && query.trim()) {
+      setOpen(false);
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      e.preventDefault();
+      handleSearch(searchQuery);
+    }
+  };
 
   return (
     <div>
@@ -58,59 +77,61 @@ export default function SearchCommand() {
 
       {/* Đây là hộp thoại Command, nó sẽ bật lên */}
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Gõ lệnh hoặc tìm kiếm..." />
+        <CommandInput
+          placeholder="Tìm kiếm bài viết và câu hỏi..."
+          value={searchQuery}
+          onValueChange={setSearchQuery}
+          onKeyDown={handleKeyDown}
+        />
         <CommandList>
-          <CommandEmpty>Không tìm thấy kết quả.</CommandEmpty>
+          <CommandEmpty>
+            {searchQuery.trim() ? (
+              <div className="py-6 text-center text-sm">
+                <p className="mb-2">Nhấn Enter để tìm kiếm</p>
+                <p className="text-muted-foreground">
+                  Tìm kiếm trong bài viết và câu hỏi
+                </p>
+              </div>
+            ) : (
+              "Nhập từ khóa để tìm kiếm..."
+            )}
+          </CommandEmpty>
 
-          {/* Thêm các nhóm lệnh mẫu */}
-          <CommandGroup heading="Gợi ý">
+          {/* Quick Actions */}
+          {searchQuery.trim() && (
+            <>
+              <CommandGroup heading="Tìm kiếm">
+                <CommandItem
+                  onSelect={() => handleSearch(searchQuery)}
+                  className="cursor-pointer"
+                >
+                  <Search className="mr-2 h-4 w-4" />
+                  <span>Tìm kiếm "{searchQuery}"</span>
+                </CommandItem>
+              </CommandGroup>
+              <CommandSeparator />
+            </>
+          )}
+
+          {/* Quick Navigation */}
+          <CommandGroup heading="Điều hướng nhanh">
             <CommandItem
               onSelect={() => {
                 setOpen(false);
-                // Thêm hành động, ví dụ: window.location.href = "/trang-chu"
+                router.push("/post");
               }}
             >
-              <Search className="mr-2 h-4 w-4" />
-              <span>Trang chủ</span>
-            </CommandItem>
-            <CommandItem
-              onSelect={() => {
-                setOpen(false);
-                // Thêm hành động
-              }}
-            >
-              <Search className="mr-2 h-4 w-4" />
+              <FileText className="mr-2 h-4 w-4" />
               <span>Bài viết</span>
             </CommandItem>
             <CommandItem
               onSelect={() => {
                 setOpen(false);
-                // Thêm hành động
+                router.push("/questions");
               }}
             >
-              <Search className="mr-2 h-4 w-4" />
-              <span>Hỏi đáp</span>
-            </CommandItem>
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Cài đặt">
-            <CommandItem
-              onSelect={() => {
-                setOpen(false);
-                // Thêm hành động
-              }}
-            >
-              <Search className="mr-2 h-4 w-4" />
-              <span>Hồ sơ</span>
-            </CommandItem>
-            <CommandItem
-              onSelect={() => {
-                setOpen(false);
-                // Thêm hành động
-              }}
-            >
-              <Search className="mr-2 h-4 w-4" />
-              <span>Đăng xuất</span>
+              <MessageSquare className="mr-2 h-4 w-4" />
+              <span>Câu hỏi</span>
             </CommandItem>
           </CommandGroup>
         </CommandList>

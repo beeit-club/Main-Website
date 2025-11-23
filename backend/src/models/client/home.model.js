@@ -223,6 +223,113 @@ LIMIT 1`; // 2. Câu SQL lấy 10 bài viết mới nhất (đã xuất bản) /
   }
 
   /**
+   * Tìm kiếm posts và questions theo từ khóa
+   */
+  static async searchPostsAndQuestions(options = {}) {
+    try {
+      const { q, page = 1, limit = 10 } = options;
+      const searchTerm = q ? `%${q}%` : '%';
+
+      // Query cho posts
+      const postsSql = `
+        SELECT
+          p.id,
+          p.title,
+          p.slug,
+          p.featured_image,
+          p.meta_description,
+          p.view_count,
+          p.published_at,
+          p.created_at,
+          'post' AS type,
+          pc.name AS category_name,
+          pc.slug AS category_slug,
+          u.fullname AS author_name,
+          (
+            SELECT
+              JSON_ARRAYAGG(
+                JSON_OBJECT('id', t.id, 'name', t.name, 'slug', t.slug)
+              )
+            FROM
+              post_tags AS pt
+            JOIN
+              tags AS t ON pt.tag_id = t.id
+            WHERE
+              pt.post_id = p.id
+          ) AS tags
+        FROM
+          posts AS p
+        LEFT JOIN
+          post_categories AS pc ON p.category_id = pc.id
+        LEFT JOIN
+          users AS u ON p.created_by = u.id
+        WHERE
+          p.deleted_at IS NULL 
+          AND p.status = 1
+          AND (p.title LIKE ? OR p.content LIKE ? OR p.meta_description LIKE ?)
+      `;
+
+      // Query cho questions
+      const questionsSql = `
+        SELECT
+          q.id,
+          q.title,
+          q.slug,
+          q.view_count,
+          q.created_at,
+          'question' AS type,
+          u.fullname AS author_name,
+          u.avatar_url AS author_avatar,
+          COUNT(a.id) AS answer_count
+        FROM
+          questions AS q
+        LEFT JOIN
+          users AS u ON q.created_by = u.id
+        LEFT JOIN
+          answers AS a ON q.id = a.question_id AND a.deleted_at IS NULL
+        WHERE
+          q.deleted_at IS NULL 
+          AND q.status = 1
+          AND (q.title LIKE ? OR q.content LIKE ?)
+        GROUP BY q.id
+      `;
+
+      // Thực thi cả 2 query song song
+      const [postsResult, questionsResult] = await Promise.all([
+        pool.query(postsSql, [searchTerm, searchTerm, searchTerm]),
+        pool.query(questionsSql, [searchTerm, searchTerm]),
+      ]);
+
+      const posts = postsResult[0] || [];
+      const questions = questionsResult[0] || [];
+
+      // Kết hợp và sắp xếp theo thời gian (mới nhất trước)
+      const allResults = [
+        ...posts.map((p) => ({ ...p, published_at: p.published_at || p.created_at })),
+        ...questions.map((q) => ({ ...q, published_at: q.created_at })),
+      ].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+
+      // Phân trang thủ công
+      const total = allResults.length;
+      const totalPages = Math.ceil(total / limit);
+      const offset = (page - 1) * limit;
+      const paginatedResults = allResults.slice(offset, offset + limit);
+
+      return {
+        data: paginatedResults,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          totalPages,
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
    * Lấy danh sách thành viên CLB (role_id = 4) với thông tin từ member_profiles
    */
   static async getAllMembers(options = {}) {

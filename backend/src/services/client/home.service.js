@@ -255,5 +255,15 @@ const HomeService = {
       throw error;
     }
   },
+
+  // === SEARCH (PUBLIC) ===
+  searchPostsAndQuestions: async (options) => {
+    try {
+      const results = await HomeModel.searchPostsAndQuestions(options);
+      return results;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 export default HomeService;

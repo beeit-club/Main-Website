@@ -37,7 +37,7 @@ export function BlogCard({ post }) {
       </Link>
 
       <CardHeader className="space-y-2 p-4 pb-3">
-        <Link href={`/blog/${post.slug}`}>
+        <Link href={`/post/${post.slug}`}>
           <h3 className="text-base font-semibold leading-snug text-balance transition-colors hover:text-primary line-clamp-2">
             {post.title}
           </h3>
@@ -70,7 +70,7 @@ export function BlogCard({ post }) {
             </time>
           </div>
 
-          {post.tags.length > 0 && (
+          {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (
             <div className="flex gap-1">
               {post.tags.slice(0, 2).map((tag) => (
                 <Badge

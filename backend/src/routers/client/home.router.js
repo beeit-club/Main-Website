@@ -24,4 +24,6 @@ Router.get('/events/:slug', HomeControler.getEventBySlug); // Client xem chi ti�
 // Routes cho Documents (PUBLIC - không cần đăng nhập)
 Router.get('/documents', HomeControler.getAllDocuments); // Client xem danh sách tài liệu
 Router.get('/documents/:slug', HomeControler.getDocumentBySlug); // Client xem chi tiết tài liệu theo slug
+// Routes cho Search (PUBLIC - không cần đăng nhập)
+Router.get('/search', HomeControler.search); // Client tìm kiếm posts và questions
 export default Router;
