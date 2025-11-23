@@ -171,3 +171,43 @@ export const createAnswer = async (data) => {
     }
   }
 };
+
+/**
+ * Vote câu trả lời (Client-side, dùng axiosClient để gửi JWT token)
+ * @param {string|number} answerId - ID của câu trả lời
+ * @param {string} voteType - 'upvote' hoặc 'downvote'
+ */
+export const voteAnswer = async (answerId, voteType) => {
+  try {
+    console.log("📡 API Call: POST /admin/answers/" + answerId + "/vote", { vote_type: voteType });
+    const response = await axiosClient.post(`/admin/answers/${answerId}/vote`, {
+      vote_type: voteType,
+    }, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("✅ API Response:", response.data);
+    return response.data; // { status: 'success', data: { id, vote_score } }
+  } catch (error) {
+    console.error("❌ API Error voting answer:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    });
+    
+    if (error.response?.data) {
+      const serverError = error.response.data;
+      const errorObj = {
+        ...serverError,
+        message: serverError.message || serverError.error || "Không thể vote câu trả lời",
+      };
+      throw errorObj;
+    } else {
+      throw {
+        message: error.message || "Không thể vote câu trả lời. Vui lòng kiểm tra kết nối mạng.",
+        error: "NETWORK_ERROR",
+      };
+    }
+  }
+};

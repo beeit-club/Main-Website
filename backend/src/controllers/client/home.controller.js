@@ -144,5 +144,56 @@ const HomeControler = {
     });
     utils.success(res, 'Lấy danh sách thành viên thành công', members);
   }),
+
+  // === EVENTS (PUBLIC) ===
+  // [PUBLIC] Lấy danh sách events (chỉ published và public)
+  getAllEvents: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { upcoming, past, status } = req.query;
+
+    const events = await HomeService.getAllEvents({
+      ...valid,
+      upcoming: upcoming === 'true',
+      past: past === 'true',
+      status: status || 1, // Mặc định chỉ lấy published
+    });
+    utils.success(res, 'Lấy danh sách sự kiện thành công', events);
+  }),
+
+  // [PUBLIC] Lấy chi tiết event theo slug
+  getEventBySlug: asyncWrapper(async (req, res) => {
+    const { slug } = req.params;
+    const event = await HomeService.getEventBySlug(slug);
+    utils.success(res, 'Lấy chi tiết sự kiện thành công', { event });
+  }),
+
+  // === DOCUMENTS (PUBLIC) ===
+  // [PUBLIC] Lấy danh sách documents (chỉ published và public)
+  getAllDocuments: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { category_id, search, title } = req.query;
+
+    const documents = await HomeService.getAllDocuments({
+      ...valid,
+      filters: {
+        category_id,
+        title: search || title, // Search by title
+      },
+    });
+    utils.success(res, 'Lấy danh sách tài liệu thành công', documents);
+  }),
+
+  // [PUBLIC] Lấy chi tiết document theo slug
+  getDocumentBySlug: asyncWrapper(async (req, res) => {
+    const { slug } = req.params;
+    const document = await HomeService.getDocumentBySlug(slug);
+    utils.success(res, 'Lấy chi tiết tài liệu thành công', { document });
+  }),
 };
 export default HomeControler;

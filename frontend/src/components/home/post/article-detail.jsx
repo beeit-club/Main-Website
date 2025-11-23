@@ -1,8 +1,10 @@
+"use client";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Eye, Calendar, Folder } from "lucide-react";
 import { formatDate } from "@/lib/datetime";
+import { CommentSection } from "./CommentSection";
 
 export function ArticleDetail({ article }) {
   if (!article) return null;
@@ -93,6 +95,9 @@ export function ArticleDetail({ article }) {
           {article.meta_description}
         </p>
       </div>
+
+      {/* Comments Section */}
+      {article?.id && <CommentSection postId={article.id} />}
     </article>
   );
 }
