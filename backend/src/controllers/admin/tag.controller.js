@@ -98,5 +98,12 @@ const tagController = {
     await tagService.restoreTag(id);
     utils.success(res, 'Khôi phục thẻ thành công');
   }),
+  // xóa vĩnh viễn
+  permanentDeleteTag: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
+    const { id } = req.params;
+    await tagService.permanentDeleteTag(id);
+    utils.success(res, 'Xóa vĩnh viễn thẻ thành công');
+  }),
 };
 export default tagController;

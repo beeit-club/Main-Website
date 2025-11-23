@@ -109,5 +109,10 @@ const tagService = {
       throw error;
     }
   },
+
+  // Xoá vĩnh viễn
+  permanentDeleteTag: async (id) => {
+    return await tagModel.permanentDeleteTag(id);
+  },
 };
 export default tagService;

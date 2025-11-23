@@ -110,5 +110,12 @@ const categoryControler = {
       id: category.insertId,
     });
   }),
+  // xóa vĩnh viễn
+  permanentDeleteCategory: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
+    const { id } = req.params;
+    await categoryService.permanentDeleteCategory(id);
+    utils.success(res, 'Xóa vĩnh viễn danh mục thành công');
+  }),
 };
 export default categoryControler;

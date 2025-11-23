@@ -17,6 +17,9 @@ Router.put('/:id', categoryControler.updateCategory);
 // // Xóa category (soft delete)
 Router.delete('/:id', categoryControler.deleteCategory);
 
+// // Xóa vĩnh viễn bài viết
+Router.delete('/:id/permanent', categoryControler.permanentDeleteCategory);
+
 // // Khôi phục category
 Router.patch('/:id/restore', categoryControler.restoreCategory);
 

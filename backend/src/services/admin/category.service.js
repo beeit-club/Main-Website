@@ -87,5 +87,13 @@ const categoryService = {
       throw error;
     }
   },
+  permanentDeleteCategory: async (id) => {
+    try {
+      const category = await categoryModel.permanentDeleteCategory(id);
+      return category;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 export default categoryService;

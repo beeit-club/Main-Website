@@ -6,9 +6,18 @@ export const tagServices = {
    * Lấy danh sách tất cả tags
    * Tương ứng với: GET /admin/tags
    */
-  getAllTags: async () => {
+  getAllTags: async (params) => {
     try {
-      const res = await axiosClient.get("admin/tags");
+      const res = await axiosClient.get("admin/tags", { params });
+      return res;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  getDeletedTags: async (params) => {
+    try {
+      const res = await axiosClient.get("admin/tags/trash/list", { params });
       return res;
     } catch (error) {
       throw error?.response?.data || error;
@@ -56,6 +65,16 @@ export const tagServices = {
       // Gửi data dưới dạng JSON
       const res = await axiosClient.put(`admin/tags/${idOrSlug}`, data);
       return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  // xóa vĩnh viễn bài viết
+  deleteTagPermanent: async (id) => {
+    try {
+      const res = await axiosClient.delete(`/admin/tags/${id}/permanent`);
+      return res;
     } catch (error) {
       throw error?.response?.data || error;
     }
