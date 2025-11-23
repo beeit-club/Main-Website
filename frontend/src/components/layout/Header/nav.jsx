@@ -186,7 +186,7 @@ export default function Nav() {
                       {item.children.length === 0 && (
                         <ListItem
                           title={item.name}
-                          href={`/tai-lieu/${item.slug}`}
+                          href={`/documents/${item.slug}`}
                         ></ListItem>
                       )}
                       {item.children.length > 0 && (
@@ -246,7 +246,7 @@ export default function Nav() {
             {/* Mục 5: Link đơn "Sự kiện" */}
             <NavigationMenuItem>
               <NavigationMenuLink
-                href="/su-kien"
+                href="/events"
                 className={`${classNameStyle()} `}
               >
                 Sự kiện
@@ -256,7 +256,7 @@ export default function Nav() {
             {/* Mục 6: Link đơn "Thành viên" */}
             <NavigationMenuItem>
               <NavigationMenuLink
-                href="/thanh-vien"
+                href="/members"
                 className={`${classNameStyle()} `}
               >
                 Thành viên

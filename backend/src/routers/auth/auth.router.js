@@ -18,5 +18,9 @@ Router.post('/resend-verification', authController.resendVerification);
 Router.post('/sendotp', authController.sendotp);
 // đăng nhập bằng gg
 Router.post('/google', authController.google);
+// Lấy thông tin profile hiện tại
+Router.get('/profile', middleware.verifyToken, authController.getProfile);
+// Cập nhật profile hiện tại
+Router.put('/profile', middleware.verifyToken, authController.updateProfile);
 
 export default Router;

@@ -3,6 +3,8 @@ import postModel from '../../models/admin/post.model.js';
 import HomeModel from '../../models/client/home.model.js';
 import questionModel from '../../models/admin/question.model.js';
 import answerModel from '../../models/admin/answer.model.js';
+import eventModel from '../../models/admin/event.model.js';
+import { documentModel } from '../../models/admin/index.js';
 
 /**
  * Build tree structure từ flat array của answers
@@ -150,6 +152,105 @@ const HomeService = {
       }
       const result = await answerModel.createAnswer(data);
       return result;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy danh sách thành viên CLB
+  getAllMembers: async (options) => {
+    try {
+      const members = await HomeModel.getAllMembers(options);
+      return members;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // === EVENTS (PUBLIC) ===
+  getAllEvents: async (options) => {
+    try {
+      // Chỉ lấy events published (status = 1) và public
+      const events = await eventModel.getAllEvents({
+        ...options,
+        status: options.status || 1, // Chỉ lấy published events
+        is_public: '1', // Chỉ lấy public events (pass as string để model xử lý)
+      });
+      return events;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getEventBySlug: async (slug) => {
+    try {
+      // Lấy event by slug, chỉ lấy published và public
+      const eventId = await eventModel.getEventBySlug(slug);
+      if (!eventId || !eventId.id) {
+        throw new ServiceError(
+          'Sự kiện không tồn tại',
+          'EVENT_NOT_FOUND',
+          'Sự kiện không tồn tại hoặc chưa được công khai',
+          404,
+        );
+      }
+      // Kiểm tra event có published và public không
+      const fullEvent = await eventModel.getEventById(eventId.id, true);
+      if (!fullEvent || fullEvent.status !== 1 || fullEvent.is_public !== 1) {
+        throw new ServiceError(
+          'Sự kiện không tồn tại',
+          'EVENT_NOT_FOUND',
+          'Sự kiện không tồn tại hoặc chưa được công khai',
+          404,
+        );
+      }
+      return fullEvent;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // === DOCUMENTS (PUBLIC) ===
+  getAllDocuments: async (options) => {
+    try {
+      // Chỉ lấy documents published (status = 1) và public (access_level = 'public')
+      const documents = await documentModel.getAllDocuments({
+        ...options,
+        filters: {
+          ...(options.filters || {}),
+          status: 1, // Chỉ lấy published documents
+          access_level: 'public', // Chỉ lấy public documents
+        },
+      });
+      return documents;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getDocumentBySlug: async (slug) => {
+    try {
+      // Lấy document by slug, chỉ lấy published và public
+      const documentId = await documentModel.checkIsDocument(slug);
+      if (!documentId || !documentId.id) {
+        throw new ServiceError(
+          'Tài liệu không tồn tại',
+          'DOCUMENT_NOT_FOUND',
+          'Tài liệu không tồn tại hoặc chưa được công khai',
+          404,
+        );
+      }
+      // Kiểm tra document có published và public không
+      const fullDocument = await documentModel.getOneDocument(documentId.id);
+      if (!fullDocument || fullDocument.status !== 1 || fullDocument.access_level !== 'public') {
+        throw new ServiceError(
+          'Tài liệu không tồn tại',
+          'DOCUMENT_NOT_FOUND',
+          'Tài liệu không tồn tại hoặc chưa được công khai',
+          404,
+        );
+      }
+      return fullDocument;
     } catch (error) {
       throw error;
     }

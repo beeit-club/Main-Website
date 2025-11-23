@@ -104,14 +104,22 @@ export async function selectWithPagination(baseSql, params = [], options = {}) {
   // --- Câu lệnh SELECT chính ---
   let dataSql = baseSql.trim();
 
-  // Nếu có orderBy
-  if (orderBy && typeof orderBy === 'object') {
+  // Kiểm tra xem SQL đã có ORDER BY chưa
+  const hasOrderBy = /ORDER\s+BY/i.test(dataSql);
+
+  // Nếu có orderBy và SQL chưa có ORDER BY
+  if (orderBy && typeof orderBy === 'object' && !hasOrderBy) {
     const { field, direction = 'ASC' } = orderBy;
     if (!field || typeof field !== 'string') {
       throw new Error('orderBy.field phải là chuỗi hợp lệ');
     }
     const dir = direction.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-    dataSql += ` ORDER BY \`${field}\` ${dir}`;
+    // Nếu field có dấu chấm (alias.table.column), không wrap trong backticks
+    if (field.includes('.')) {
+      dataSql += ` ORDER BY ${field} ${dir}`;
+    } else {
+      dataSql += ` ORDER BY \`${field}\` ${dir}`;
+    }
   }
 
   dataSql += ` LIMIT ${perPage} OFFSET ${offset}`;

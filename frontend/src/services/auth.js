@@ -54,4 +54,22 @@ export const authServices = {
       throw err?.response?.data || err;
     }
   },
+
+  getProfile: async () => {
+    try {
+      const res = await axiosClient.get("/auth/profile");
+      return res.data;
+    } catch (err) {
+      throw err?.response?.data || err;
+    }
+  },
+
+  updateProfile: async (data) => {
+    try {
+      const res = await axiosClient.put("/auth/profile", data);
+      return res.data;
+    } catch (err) {
+      throw err?.response?.data || err;
+    }
+  },
 };

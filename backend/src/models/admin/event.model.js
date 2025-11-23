@@ -21,9 +21,11 @@ class eventModel {
       sql += ` AND status = ?`;
       params.push(options.status);
     }
-    if (options.is_public) {
+    if (options.is_public !== undefined) {
       sql += ` AND is_public = ?`;
-      params.push(options.is_public === 'true' ? 1 : 0);
+      // Xử lý cả string và number
+      const isPublicValue = options.is_public === 'true' || options.is_public === '1' || options.is_public === 1 ? 1 : 0;
+      params.push(isPublicValue);
     }
     if (options.start_date) {
       sql += ` AND DATE(start_time) >= ?`;

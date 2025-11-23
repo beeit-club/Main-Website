@@ -12,7 +12,7 @@ export function BlogFeatured({ post }) {
       <CardContent className="p-0">
         <div className="flex flex-col">
           {/* Featured Image */}
-          <Link href={`/post/${post.slug}`} className="relative">
+          <Link href={`/events/${post.slug}`} className="relative">
             <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
               <Image
                 src={

@@ -5,11 +5,14 @@ import { utils } from '../../utils/index.js';
 import { PaginationSchema } from '../../validation/common/common.schema.js';
 import QuestionSchema from '../../validation/admin/question.validation.js';
 import AnswerSchema from '../../validation/admin/answer.validation.js';
+import ApplicationSchema from '../../validation/admin/application.validation.js';
 import { slugify } from '../../utils/function.js';
 import {
   QUESTION_CREATE_SUCCESS,
   ANSWER_CREATE_SUCCESS,
 } from '../../common/message/qa.message.js';
+import { APPLICATION_SUBMIT_SUCCESS } from '../../common/message/application.message.js';
+import { applicationService } from '../../services/admin/index.js';
 
 const HomeControler = {
   Home: asyncWrapper(async (req, res) => {
@@ -107,6 +110,90 @@ const HomeControler = {
       filters: { status: 1, category, title }, // Client chỉ xem published posts
     });
     utils.success(res, 'Lấy danh sách bài viết thành công', post);
+  }),
+
+  // [PUBLIC] Nộp đơn đăng ký thành viên CLB
+  createApplication: asyncWrapper(async (req, res) => {
+    await ApplicationSchema.create.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+
+    // Mặc định status là 0 (Chờ xử lý)
+    const applicationData = { ...req.body, status: 0 };
+
+    const application = await applicationService.createApplication(
+      applicationData,
+    );
+    utils.success(res, APPLICATION_SUBMIT_SUCCESS, {
+      id: application.insertId,
+    });
+  }),
+
+  // [PUBLIC] Lấy danh sách thành viên CLB
+  getAllMembers: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { search } = req.query;
+
+    const members = await HomeService.getAllMembers({
+      ...valid,
+      filters: { search },
+    });
+    utils.success(res, 'Lấy danh sách thành viên thành công', members);
+  }),
+
+  // === EVENTS (PUBLIC) ===
+  // [PUBLIC] Lấy danh sách events (chỉ published và public)
+  getAllEvents: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { upcoming, past, status } = req.query;
+
+    const events = await HomeService.getAllEvents({
+      ...valid,
+      upcoming: upcoming === 'true',
+      past: past === 'true',
+      status: status || 1, // Mặc định chỉ lấy published
+    });
+    utils.success(res, 'Lấy danh sách sự kiện thành công', events);
+  }),
+
+  // [PUBLIC] Lấy chi tiết event theo slug
+  getEventBySlug: asyncWrapper(async (req, res) => {
+    const { slug } = req.params;
+    const event = await HomeService.getEventBySlug(slug);
+    utils.success(res, 'Lấy chi tiết sự kiện thành công', { event });
+  }),
+
+  // === DOCUMENTS (PUBLIC) ===
+  // [PUBLIC] Lấy danh sách documents (chỉ published và public)
+  getAllDocuments: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { category_id, search, title } = req.query;
+
+    const documents = await HomeService.getAllDocuments({
+      ...valid,
+      filters: {
+        category_id,
+        title: search || title, // Search by title
+      },
+    });
+    utils.success(res, 'Lấy danh sách tài liệu thành công', documents);
+  }),
+
+  // [PUBLIC] Lấy chi tiết document theo slug
+  getDocumentBySlug: asyncWrapper(async (req, res) => {
+    const { slug } = req.params;
+    const document = await HomeService.getDocumentBySlug(slug);
+    utils.success(res, 'Lấy chi tiết tài liệu thành công', { document });
   }),
 };
 export default HomeControler;

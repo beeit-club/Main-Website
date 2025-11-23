@@ -4,6 +4,7 @@ export const LOGIN_SUCCESS = 'Đăng nhập thành công';
 export const LOGOUT_SUCCESS = 'Đăng xuất thành công';
 export const REFRESH_TOKEN_SUCCESS = 'Cấp lại token thành công';
 export const PROFILE_SUCCESS = 'Lấy thông tin người dùng thành công';
+export const UPDATE_PROFILE_SUCCESS = 'Cập nhật thông tin cá nhân thành công';
 export const GET_PERMISSIONS = 'Lấy danh sách quyền thành công';
 export const SEND_EMAIL_SUCCESS = 'Vui lòng kiểm tra email để lấy mã';
 

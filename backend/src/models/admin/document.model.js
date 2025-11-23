@@ -13,7 +13,23 @@ import { dateTime } from '../../utils/datetime.js';
 class documentModel {
   // Lấy toàn bộ
   static async getAllDocuments(options = {}) {
-    let sql = `SELECT id, title, slug, category_id, access_level, status, created_at FROM documents WHERE deleted_at IS NULL`;
+    let sql = `SELECT 
+      d.id, 
+      d.title, 
+      d.slug, 
+      d.description, 
+      d.file_url, 
+      d.preview_url, 
+      d.category_id, 
+      d.access_level, 
+      d.status, 
+      d.download_count, 
+      d.created_at,
+      dc.name AS category_name,
+      dc.slug AS category_slug
+    FROM documents d
+    LEFT JOIN document_categories dc ON d.category_id = dc.id
+    WHERE d.deleted_at IS NULL`;
     let params = [];
 
     const filters = options?.filters || {};
@@ -24,6 +40,16 @@ class documentModel {
     if (filters.category_id) {
       sql += ` AND category_id = ?`;
       params.push(filters.category_id);
+    }
+    // Filter status nếu có
+    if (filters.status !== undefined) {
+      sql += ` AND status = ?`;
+      params.push(filters.status);
+    }
+    // Filter access_level nếu có
+    if (filters.access_level) {
+      sql += ` AND access_level = ?`;
+      params.push(filters.access_level);
     }
 
     return await selectWithPagination(sql, params, options);

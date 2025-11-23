@@ -269,7 +269,7 @@ const AuthService = {
   // Logic lấy thông tin profile
   getProfile: async (user_id) => {
     const userData = await AuthModel.getUserById(user_id);
-    if (userData.length === 0) {
+    if (!userData) {
       throw new ServiceError(
         message.Auth.USER_NOT_FOUND,
         code.Auth.USER_NOT_FOUND,
@@ -277,7 +277,29 @@ const AuthService = {
         404,
       );
     }
-    return userData[0];
+    return userData;
+  },
+
+  // Logic cập nhật profile (client tự update)
+  updateProfile: async (user_id, updateData) => {
+    // Kiểm tra user tồn tại
+    const userData = await AuthModel.getUserById(user_id);
+    if (!userData) {
+      throw new ServiceError(
+        message.Auth.USER_NOT_FOUND,
+        code.Auth.USER_NOT_FOUND,
+        'Không tìm thấy người dùng',
+        404,
+      );
+    }
+
+    // Cập nhật thông tin
+    // Lưu ý: Bảng users không có cột updated_by, chỉ có updated_at (tự động cập nhật)
+    const result = await AuthModel.updateUser(user_id, updateData);
+
+    // Lấy lại thông tin user sau khi update
+    const updatedUser = await AuthModel.getUserById(user_id);
+    return updatedUser;
   },
 };
 
