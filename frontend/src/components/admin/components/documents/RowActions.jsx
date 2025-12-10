@@ -84,6 +84,9 @@ export function RowActions({ row }) {
     setIsDeleteSubmitting(true);
     try {
       await documentServices.deleteDocument(document.id);
+      // Revalidate cache sau khi xóa document
+      const { revalidateDocuments } = await import("@/utils/revalidateCache");
+      await revalidateDocuments();
       toast.success("Đã chuyển tài liệu vào thùng rác.");
       setOpenDelete(false);
       window.location.reload(); // Tải lại trang
@@ -113,6 +116,9 @@ export function RowActions({ row }) {
     try {
       const res = await documentServices.updateDocument(document.id, formData);
       if (res.status === "success") {
+        // Revalidate cache sau khi update document
+        const { revalidateDocuments } = await import("@/utils/revalidateCache");
+        await revalidateDocuments();
         toast.success("Cập nhật tài liệu thành công!");
         setOpenEdit(false);
         window.location.reload();

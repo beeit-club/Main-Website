@@ -1,6 +1,7 @@
 import { ArticleDetail } from "@/components/home/post/article-detail";
 import { fetchArticleDetail } from "@/services/post";
 import { notFound } from "next/navigation";
+import { getFullUrl, getOgImageUrl } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -17,25 +18,40 @@ export async function generateMetadata({ params }) {
 
     // Giả sử dữ liệu nằm trong article.data
     const post = article.data;
-    const url = `https://yourdomain.com/blog/${slug}`;
+    const url = getFullUrl(`/post/${slug}`);
+    const ogImage = post.featured_image 
+      ? getOgImageUrl(post.featured_image, "/og-image-default.png")
+      : getOgImageUrl("/og-image-default.png");
+    
     return {
       title: post.title,
-      description: post.meta_description,
+      description: post.meta_description || "Bài viết từ Bee IT Club",
       alternates: {
         canonical: url,
       },
       openGraph: {
         title: post.title,
-        description: post.meta_description,
+        description: post.meta_description || "Bài viết từ Bee IT Club",
         url,
         type: "article",
-        images: [post.featured_image],
+        siteName: "Bee IT Club",
+        publishedTime: post.published_at,
+        modifiedTime: post.updated_at,
+        authors: [post.author_name || "Bee IT Club"],
+        images: [
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: post.title,
+          },
+        ],
       },
       twitter: {
         card: "summary_large_image",
         title: post.title,
-        description: post.meta_description,
-        images: [post.featured_image],
+        description: post.meta_description || "Bài viết từ Bee IT Club",
+        images: [ogImage],
       },
     };
   } catch (error) {

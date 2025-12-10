@@ -293,7 +293,12 @@ class AuthModel {
       };
       const result = await insert('users', insertData);
       console.log('🚀 ~ AuthModel ~ findOrCreate ~ result:', result);
-      return await findOne('SELECT * FROM users WHERE id = ?', [result]);
+      // result là ResultSetHeader object, cần dùng result.insertId
+      const insertId = result.insertId;
+      if (!insertId) {
+        throw new Error('Failed to get insertId from insert result');
+      }
+      return await findOne('SELECT * FROM users WHERE id = ?', [insertId]);
     } catch (error) {
       throw error;
     }

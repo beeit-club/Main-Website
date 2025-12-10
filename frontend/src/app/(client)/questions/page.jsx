@@ -1,11 +1,46 @@
 import { Button } from "@/components/ui/button";
 import { QuestionCard } from "@/components/home/questions/QuestionCard";
 import { getAllQuestions } from "@/services/home";
-// (Bạn có thể tạo component Pagination dựa trên shadcn/ui sau)
-// import { Pagination } from '@/components/ui/pagination';
+import { EmptyState } from "@/components/common/EmptyState";
+import { PostPagination } from "@/components/home/post/components/post-pagination";
+import { HelpCircle } from "lucide-react";
+import Link from "next/link";
+import { getFullUrl, getOgImageUrl } from "@/lib/seo";
 
 // Bắt buộc revalidate để lấy dữ liệu mới
 export const revalidate = 60; // Revalidate mỗi 60s
+
+export const metadata = {
+  title: "Câu hỏi & Thảo luận",
+  description:
+    "Khám phá các câu hỏi và thảo luận từ cộng đồng Bee IT. Đặt câu hỏi, chia sẻ kiến thức và học hỏi từ các thành viên.",
+  alternates: {
+    canonical: getFullUrl("/questions"),
+  },
+  openGraph: {
+    title: "Câu hỏi & Thảo luận | Bee IT Club",
+    description:
+      "Khám phá các câu hỏi và thảo luận từ cộng đồng Bee IT. Đặt câu hỏi, chia sẻ kiến thức và học hỏi từ các thành viên.",
+    url: getFullUrl("/questions"),
+    type: "website",
+    siteName: "Bee IT Club",
+    images: [
+      {
+        url: getOgImageUrl("/og-image-questions.png"),
+        width: 1200,
+        height: 630,
+        alt: "Câu hỏi & Thảo luận - Bee IT Club",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Câu hỏi & Thảo luận | Bee IT Club",
+    description:
+      "Khám phá các câu hỏi và thảo luận từ cộng đồng Bee IT.",
+    images: [getOgImageUrl("/og-image-questions.png")],
+  },
+};
 
 async function getQuestions(searchParams) {
   try {
@@ -41,17 +76,25 @@ export default async function QuestionsPage({ searchParams }) {
             <QuestionCard key={question.id} question={question} />
           ))
         ) : (
-          <p className="text-muted-foreground text-center py-10">
-            Chưa có câu hỏi nào.
-          </p>
+          <EmptyState
+            icon={<HelpCircle className="h-12 w-12 mx-auto mb-3 opacity-50 text-muted-foreground" />}
+            title="Chưa có câu hỏi nào"
+            description="Hãy đặt câu hỏi đầu tiên để bắt đầu thảo luận!"
+            action={
+              <Button asChild>
+                <Link href="/questions/ask">Đặt câu hỏi mới</Link>
+              </Button>
+            }
+          />
         )}
       </div>
 
-      {/* TODO: Thêm component Pagination ở đây */}
-      {/* <Pagination
-        currentPage={pagination.page}
-        totalPages={pagination.totalPages}
-      /> */}
+      {/* Pagination */}
+      {questions.length > 0 && pagination.totalPages > 1 && (
+        <div className="mt-8">
+          <PostPagination pagination={pagination} baseUrl="/questions" />
+        </div>
+      )}
     </div>
   );
 }

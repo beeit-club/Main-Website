@@ -2,8 +2,62 @@ import { notFound } from "next/navigation";
 import { getQuestionDetail } from "@/services/home";
 import { QuestionDetail } from "@/components/home/questions/QuestionDetail";
 import { QuestionDetailPageClient } from "@/components/home/questions/QuestionDetailPageClient";
+import { getFullUrl, getOgImageUrl, cleanHtmlForMeta } from "@/lib/seo";
 
 export const revalidate = 60; // Revalidate mỗi 60s
+
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  
+  try {
+    const res = await getQuestionDetail(slug);
+    
+    if (res.status !== "success" || !res.data) {
+      return {
+        title: "Không tìm thấy câu hỏi",
+      };
+    }
+
+    const question = res.data;
+    const url = getFullUrl(`/questions/${slug}`);
+    const description = cleanHtmlForMeta(question.content || question.meta_description || "");
+
+    return {
+      title: question.title,
+      description: description || "Câu hỏi từ cộng đồng Bee IT Club",
+      alternates: {
+        canonical: url,
+      },
+      openGraph: {
+        title: question.title,
+        description: description || "Câu hỏi từ cộng đồng Bee IT Club",
+        url,
+        type: "article",
+        siteName: "Bee IT Club",
+        images: [
+          {
+            url: getOgImageUrl("/og-image-questions.png"),
+            width: 1200,
+            height: 630,
+            alt: question.title,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: question.title,
+        description: description || "Câu hỏi từ cộng đồng Bee IT Club",
+        images: [getOgImageUrl("/og-image-questions.png")],
+      },
+    };
+  } catch (error) {
+    console.error("Failed to generate metadata for question:", error);
+    return {
+      title: "Lỗi",
+      description: "Đã xảy ra lỗi khi tải thông tin câu hỏi.",
+    };
+  }
+}
 
 async function getQuestion(slug) {
   try {

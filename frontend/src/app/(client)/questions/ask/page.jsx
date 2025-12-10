@@ -87,10 +87,9 @@ export default function AskQuestionPage() {
       
       // Revalidate cache để cập nhật danh sách câu hỏi
       try {
-        await fetch("/api/revalidate?tag=questionsList", {
-          method: "POST",
-        });
-        console.log("✅ Cache revalidated for questionsList");
+        const { revalidateQuestions } = await import("@/utils/revalidateCache");
+        await revalidateQuestions();
+        console.log("✅ Cache revalidated for questions-list");
       } catch (revalidateError) {
         console.error("⚠️ Failed to revalidate cache:", revalidateError);
         // Không block flow nếu revalidate fail

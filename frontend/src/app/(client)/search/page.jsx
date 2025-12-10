@@ -8,13 +8,36 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, MessageSquare } from "lucide-react";
 import { SearchInput } from "@/components/search/SearchInput";
+import { getFullUrl, getOgImageUrl } from "@/lib/seo";
 
-// Revalidate every hour
-export const revalidate = 3600;
+// Revalidate every 5 minutes (search results change frequently)
+export const revalidate = 300;
 
 export const metadata = {
-  title: "Tìm kiếm | Bee IT Club",
+  title: "Tìm kiếm",
   description: "Tìm kiếm bài viết và câu hỏi trong cộng đồng Bee IT",
+  alternates: {
+    canonical: getFullUrl("/search"),
+  },
+  openGraph: {
+    title: "Tìm kiếm | Bee IT Club",
+    description: "Tìm kiếm bài viết và câu hỏi trong cộng đồng Bee IT",
+    url: getFullUrl("/search"),
+    type: "website",
+    siteName: "Bee IT Club",
+    images: [
+      {
+        url: getOgImageUrl("/og-image-search.png"),
+        width: 1200,
+        height: 630,
+        alt: "Tìm kiếm - Bee IT Club",
+      },
+    ],
+  },
+  robots: {
+    index: false, // Search pages thường không index
+    follow: true,
+  },
 };
 
 // Loading skeleton component

@@ -7,17 +7,37 @@ import { PostPagination } from "@/components/home/post/components/post-paginatio
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { getFullUrl, getOgImageUrl } from "@/lib/seo";
 
 // Revalidate every hour
 export const revalidate = 3600;
 
 export const metadata = {
-  title: "Thư viện Tài liệu | Bee IT Club",
+  title: "Thư viện Tài liệu",
   description: "Khám phá các tài liệu học tập, tài liệu tham khảo từ câu lạc bộ Bee IT",
+  alternates: {
+    canonical: getFullUrl("/documents"),
+  },
   openGraph: {
     title: "Thư viện Tài liệu | Bee IT Club",
-    description: "Khám phá các tài liệu học tập và tài liệu tham khảo",
+    description: "Khám phá các tài liệu học tập, tài liệu tham khảo từ câu lạc bộ Bee IT",
+    url: getFullUrl("/documents"),
     type: "website",
+    siteName: "Bee IT Club",
+    images: [
+      {
+        url: getOgImageUrl("/og-image-documents.png"),
+        width: 1200,
+        height: 630,
+        alt: "Thư viện Tài liệu - Bee IT Club",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Thư viện Tài liệu | Bee IT Club",
+    description: "Khám phá các tài liệu học tập và tài liệu tham khảo",
+    images: [getOgImageUrl("/og-image-documents.png")],
   },
 };
 

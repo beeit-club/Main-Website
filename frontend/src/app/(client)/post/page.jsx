@@ -8,19 +8,40 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LayoutGrid, List } from "lucide-react";
+import { getFullUrl, getOgImageUrl } from "@/lib/seo";
 
 // Revalidate every hour
 export const revalidate = 3600;
 
 export const metadata = {
-  title: "Danh sách Bài viết | Bee IT Club",
+  title: "Danh sách Bài viết",
   description:
     "Khám phá các bài viết, hướng dẫn và chia sẻ kiến thức về công nghệ từ cộng đồng Bee IT",
+  alternates: {
+    canonical: getFullUrl("/post"),
+  },
   openGraph: {
     title: "Danh sách Bài viết | Bee IT Club",
     description:
-      "Khám phá các bài viết, hướng dẫn và chia sẻ kiến thức về công nghệ",
+      "Khám phá các bài viết, hướng dẫn và chia sẻ kiến thức về công nghệ từ cộng đồng Bee IT",
+    url: getFullUrl("/post"),
     type: "website",
+    siteName: "Bee IT Club",
+    images: [
+      {
+        url: getOgImageUrl("/og-image-posts.png"),
+        width: 1200,
+        height: 630,
+        alt: "Danh sách Bài viết - Bee IT Club",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Danh sách Bài viết | Bee IT Club",
+    description:
+      "Khám phá các bài viết, hướng dẫn và chia sẻ kiến thức về công nghệ",
+    images: [getOgImageUrl("/og-image-posts.png")],
   },
 };
 

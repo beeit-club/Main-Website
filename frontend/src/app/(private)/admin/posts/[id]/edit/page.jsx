@@ -40,6 +40,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
+import { revalidatePosts, revalidateHome } from "@/utils/revalidateCache";
 // Giả sử bạn có component Toast
 // import { useToast } from "@/components/ui/use-toast";
 
@@ -144,7 +145,13 @@ function EditPost() {
 
     try {
       setIsSubmitting(true);
-      await postServices.updatePost(idPost.current, formData);
+      const response = await postServices.updatePost(idPost.current, formData);
+      // Revalidate cache sau khi update post
+      const postSlug = response?.data?.slug || response?.data?.data?.slug || id;
+      await Promise.all([
+        revalidatePosts(postSlug),
+        revalidateHome(),
+      ]);
       toast.success("Cập nhật bài viết thành công!");
       router.push("/admin/posts");
       setImagePreview(null);

@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/datetime";
+import { revalidatePosts, revalidateHome } from "@/utils/revalidateCache";
 
 export function RowActions({ row, viewMode = "active" }) {
   const [openDelete, setOpenDelete] = useState(false);
@@ -67,6 +68,11 @@ export function RowActions({ row, viewMode = "active" }) {
   async function onConfirmDelete() {
     const res = await postServices.delete(row.original.id);
     if (res?.data.status == "success") {
+      // Revalidate cache sau khi xóa post
+      await Promise.all([
+        revalidatePosts(row.original.slug),
+        revalidateHome(),
+      ]);
       toast.success("xóa mềm thành công");
     } else {
       toast.error("xóa mềm không thành công");
@@ -96,6 +102,11 @@ export function RowActions({ row, viewMode = "active" }) {
     try {
       const res = await postServices.deletePostPermanent(postId);
       if (res.status == 200) {
+        // Revalidate cache sau khi xóa vĩnh viễn
+        await Promise.all([
+          revalidatePosts(row.original.slug),
+          revalidateHome(),
+        ]);
         toast.success("Xóa post vĩnh viễn thành công");
         setOpenPermanentDelete(false);
         reloadPage();
@@ -115,6 +126,11 @@ export function RowActions({ row, viewMode = "active" }) {
     try {
       const res = await postServices.restorePost(postId);
       if (res.status == 200) {
+        // Revalidate cache sau khi khôi phục
+        await Promise.all([
+          revalidatePosts(row.original.slug),
+          revalidateHome(),
+        ]);
         toast.success("Khôi phục user thành công");
         reloadPage();
       } else {

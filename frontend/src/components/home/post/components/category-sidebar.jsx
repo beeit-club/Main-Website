@@ -9,6 +9,11 @@ import Image from "next/image";
 import { formatDate } from "@/lib/datetime";
 
 export function CategorySidebar({ posts }) {
+  // Kiểm tra empty array
+  if (!posts || posts.length === 0) {
+    return null; // Để parent component xử lý empty state
+  }
+
   return (
     <div className="space-y-4">
       <Card>

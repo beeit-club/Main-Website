@@ -121,6 +121,9 @@ export default function ListDocuments() {
     try {
       const res = await documentServices.createDocument(formData);
       if (res.status === "success") {
+        // Revalidate cache sau khi tạo document
+        const { revalidateDocuments } = await import("@/utils/revalidateCache");
+        await revalidateDocuments();
         toast.success("Thêm tài liệu mới thành công!");
         setOpenAdd(false);
         form.reset();

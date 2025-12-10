@@ -41,7 +41,7 @@ export const getAllQuestions = async (params) => {
     method: "GET",
     next: {
       revalidate: ONE_HOUR_IN_SECONDS, // Danh sách revalidate mỗi giờ
-      tags: ["questionsList"], // Tag để revalidate thủ công
+      tags: ["questions-list"], // Tag để revalidate thủ công (kebab-case)
     },
   });
 

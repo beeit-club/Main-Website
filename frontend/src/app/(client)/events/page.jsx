@@ -5,17 +5,37 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PostPagination } from "@/components/home/post/components/post-pagination";
+import { getFullUrl, getOgImageUrl } from "@/lib/seo";
 
 // Revalidate every hour
 export const revalidate = 3600;
 
 export const metadata = {
-  title: "Danh sách Sự kiện | Bee IT Club",
+  title: "Danh sách Sự kiện",
   description: "Khám phá các sự kiện, workshop và hoạt động từ câu lạc bộ Bee IT",
+  alternates: {
+    canonical: getFullUrl("/events"),
+  },
   openGraph: {
     title: "Danh sách Sự kiện | Bee IT Club",
-    description: "Khám phá các sự kiện, workshop và hoạt động từ câu lạc bộ",
+    description: "Khám phá các sự kiện, workshop và hoạt động từ câu lạc bộ Bee IT",
+    url: getFullUrl("/events"),
     type: "website",
+    siteName: "Bee IT Club",
+    images: [
+      {
+        url: getOgImageUrl("/og-image-events.png"),
+        width: 1200,
+        height: 630,
+        alt: "Danh sách Sự kiện - Bee IT Club",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Danh sách Sự kiện | Bee IT Club",
+    description: "Khám phá các sự kiện, workshop và hoạt động từ câu lạc bộ",
+    images: [getOgImageUrl("/og-image-events.png")],
   },
 };
 
