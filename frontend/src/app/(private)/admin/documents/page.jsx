@@ -63,8 +63,17 @@ export default function ListDocuments() {
   async function loadCategories() {
     try {
       const res = await documentCategoryServices.getAll();
-      setCategories(res?.data?.data?.categories.data || []);
+      // Response structure: { status, message, data: { documentCategories: { data: [...], pagination: {...} } } }
+      // res từ axiosClient = { data: { status, message, data: { documentCategories: {...} } } }
+      // res.data = { status, message, data: { documentCategories: {...} } }
+      // res.data.data = { documentCategories: { data: [...], pagination: {...} } }
+      // res.data.data.documentCategories = { data: [...], pagination: {...} }
+      // res.data.data.documentCategories.data = [...]
+      const categories = res?.data?.data?.documentCategories?.data || res?.data?.data?.data || [];
+      console.log("📋 Categories loaded:", categories.length);
+      setCategories(categories);
     } catch (error) {
+      console.error("❌ Error loading categories:", error);
       toast.error("Tải danh mục thất bại.");
     }
   }

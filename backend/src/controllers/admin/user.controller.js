@@ -3,6 +3,7 @@ import asyncWrapper from '../../middlewares/error.handler.js';
 import userService from '../../services/admin/user.service.js';
 import { utils } from '../../utils/index.js';
 import Schema from '../../validation/admin/user.validation.js';
+import { sanitizeText } from '../../utils/sanitize.js';
 import {
   PaginationSchema,
   params,
@@ -75,12 +76,13 @@ const userController = {
       is_active,
       email_verified_at,
     } = req.body;
+    // Sanitize text fields để tránh XSS
     const data = {
-      ...(fullname && { fullname }),
+      ...(fullname && { fullname: sanitizeText(fullname) }),
       ...(email && { email }),
       ...(phone && { phone }),
       ...(avatar_url && { avatar_url }),
-      ...(bio && { bio }),
+      ...(bio && { bio: sanitizeText(bio) }),
       ...(role_id && { role_id }),
       ...(is_active && { is_active }),
       ...(email_verified_at && { email_verified_at }),

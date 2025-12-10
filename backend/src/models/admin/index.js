@@ -8,6 +8,11 @@ import questionModel from './question.model.js';
 import tagModel from './tag.model.js';
 import applicationModel from './application.model.js';
 import InterviewModel from './interview.model.js';
+import EmailTemplateModel from './emailTemplate.model.js';
+import EmailLogModel from './emailLog.model.js';
+import EmailBatchJobModel from './emailBatchJob.model.js';
+import EmailBatchRecipientModel from './emailBatchRecipient.model.js';
+
 export {
   InterviewModel,
   questionModel,
@@ -18,4 +23,8 @@ export {
   categoryModel,
   tagModel,
   applicationModel,
+  EmailTemplateModel,
+  EmailLogModel,
+  EmailBatchJobModel,
+  EmailBatchRecipientModel,
 };

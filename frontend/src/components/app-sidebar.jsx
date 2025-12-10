@@ -13,6 +13,7 @@ import {
   IconHelp,
   IconInnerShadowTop,
   IconListDetails,
+  IconMail,
   IconReport,
   IconSearch,
   IconSettings,
@@ -94,6 +95,21 @@ const data = {
     {
       title: "Document Categories",
       url: "/admin/document-categories",
+      icon: IconUsers,
+    },
+    {
+      title: "Email Templates",
+      url: "/admin/email-templates",
+      icon: IconMail,
+    },
+    {
+      title: "Roles & Permissions",
+      url: "/admin/roles-permissions",
+      icon: IconSettings,
+    },
+    {
+      title: "Gán Quyền",
+      url: "/admin/assign-permissions",
       icon: IconUsers,
     },
   ],

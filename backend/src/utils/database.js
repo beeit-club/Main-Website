@@ -113,9 +113,23 @@ export async function selectWithPagination(baseSql, params = [], options = {}) {
     if (!field || typeof field !== 'string') {
       throw new Error('orderBy.field phải là chuỗi hợp lệ');
     }
+    
+    // Whitelist để tránh SQL Injection - chỉ cho phép alphanumeric, underscore, dot
+    const isValidField = /^[a-zA-Z0-9_.]+$/.test(field);
+    if (!isValidField) {
+      throw new Error('orderBy.field chứa ký tự không hợp lệ');
+    }
+    
     const dir = direction.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-    // Nếu field có dấu chấm (alias.table.column), không wrap trong backticks
+    // Nếu field có dấu chấm (alias.table.column), validate từng phần
     if (field.includes('.')) {
+      const parts = field.split('.');
+      // Validate từng phần
+      for (const part of parts) {
+        if (!/^[a-zA-Z0-9_]+$/.test(part)) {
+          throw new Error('orderBy.field chứa ký tự không hợp lệ');
+        }
+      }
       dataSql += ` ORDER BY ${field} ${dir}`;
     } else {
       dataSql += ` ORDER BY \`${field}\` ${dir}`;

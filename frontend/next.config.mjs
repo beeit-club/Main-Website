@@ -23,6 +23,11 @@ const nextConfig = {
         port: "8080", // Tách port ra đây
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "scontent.fhan14-4.fna.fbcdn.net",
+        pathname: "/**",
+      },
     ],
   },
 };

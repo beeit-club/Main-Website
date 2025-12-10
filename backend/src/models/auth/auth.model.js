@@ -28,7 +28,7 @@ class AuthModel {
         fullname,
         email,
         avatar_url,
-        role_id: 1,
+        role_id: 5,
       };
       const result = await insert('users', data);
       return result;

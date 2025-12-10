@@ -8,6 +8,8 @@ import questionService from './question.service.js';
 import tagService from './tag.service.js';
 import applicationService from './application.service.js';
 import interviewService from './interview.service.js';
+import emailTemplateService from './emailTemplate.service.js';
+import bulkEmailService from './bulkEmail.service.js';
 export {
   interviewService,
   questionService,
@@ -19,4 +21,6 @@ export {
   categoryService,
   documentCategoryService,
   applicationService,
+  emailTemplateService,
+  bulkEmailService,
 };

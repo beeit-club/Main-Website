@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,19 +24,31 @@ export function EventCard({ event }) {
 
   const startDate = new Date(start_time);
   const endDate = new Date(end_time);
-  const now = new Date();
-  const isUpcoming = startDate > now;
-  const isPast = endDate < now;
-  const isOngoing = startDate <= now && endDate >= now;
+  
+  // Di chuyển logic so sánh date vào useEffect để tránh hydration error
+  const [eventStatus, setEventStatus] = useState({
+    isUpcoming: false,
+    isPast: false,
+    isOngoing: false,
+  });
+
+  useEffect(() => {
+    const now = new Date();
+    setEventStatus({
+      isUpcoming: startDate > now,
+      isPast: endDate < now,
+      isOngoing: startDate <= now && endDate >= now,
+    });
+  }, [start_time, end_time, startDate, endDate]);
 
   // Status badge
   const getStatusBadge = () => {
     if (status === 0) return <Badge variant="secondary">Bản nháp</Badge>;
     if (status === 2) return <Badge variant="destructive">Đã hủy</Badge>;
     if (status === 3) return <Badge variant="outline">Đã kết thúc</Badge>;
-    if (isPast) return <Badge variant="outline">Đã kết thúc</Badge>;
-    if (isOngoing) return <Badge className="bg-green-600">Đang diễn ra</Badge>;
-    if (isUpcoming) return <Badge className="bg-blue-600">Sắp diễn ra</Badge>;
+    if (eventStatus.isPast) return <Badge variant="outline">Đã kết thúc</Badge>;
+    if (eventStatus.isOngoing) return <Badge className="bg-green-600">Đang diễn ra</Badge>;
+    if (eventStatus.isUpcoming) return <Badge className="bg-blue-600">Sắp diễn ra</Badge>;
     return <Badge variant="secondary">Đã lên lịch</Badge>;
   };
 

@@ -4,8 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Check, MessageSquare, ChevronUp, ChevronDown } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
+import { ClientTimeAgo } from "@/components/common/ClientTimeAgo";
 import { AnswerReplyForm } from "./AnswerReplyForm";
 import { voteAnswer } from "@/services/home";
 import { useAuthStore } from "@/stores/authStore";
@@ -21,11 +20,6 @@ export function AnswerCard({ answer, questionId, onReplySuccess, depth = 0 }) {
   const [currentVoteScore, setCurrentVoteScore] = useState(vote_score || 0);
   const [userVote, setUserVote] = useState(null); // 'upvote', 'downvote', null
   const [isVoting, setIsVoting] = useState(false);
-
-  const timeAgo = formatDistanceToNow(new Date(created_at), {
-    addSuffix: true,
-    locale: vi,
-  });
 
   const maxDepth = 3; // Giới hạn độ sâu để tránh UI quá phức tạp
   const isNested = depth > 0;
@@ -115,11 +109,8 @@ export function AnswerCard({ answer, questionId, onReplySuccess, depth = 0 }) {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <span className="font-semibold text-foreground">{author_name}</span>
-              <span
-                className="text-xs text-muted-foreground"
-                title={new Date(created_at).toLocaleString()}
-              >
-                • {timeAgo}
+              <span className="text-xs text-muted-foreground">
+                • <ClientTimeAgo date={created_at} />
               </span>
             </div>
             {is_accepted ? (

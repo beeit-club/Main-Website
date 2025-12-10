@@ -60,7 +60,8 @@ export default function ListDocumentCategories() {
   async function loadAllCategories() {
     try {
       const res = await documentCategoryServices.getAll({ limit: 1000 }); // Lấy tất cả
-      const categories = res?.data.data.data || [];
+      // Response structure: { status, message, data: { documentCategories: { data: [...], pagination: {...} } } }
+      const categories = res?.data?.data?.documentCategories?.data || res?.data?.data?.data || [];
       setCategoryList(categories);
 
       // Tạo Map để tra cứu tên
@@ -70,6 +71,7 @@ export default function ListDocumentCategories() {
       });
       setCategoryMap(map);
     } catch (error) {
+      console.error("❌ Error loading categories:", error);
       toast.error("Tải danh sách danh mục (đầy đủ) thất bại.");
     }
   }
@@ -85,10 +87,13 @@ export default function ListDocumentCategories() {
       };
 
       const res = await documentCategoryServices.getAll(options);
-      const categories = res?.data.data.data || [];
-      setData(categories || []);
-      setPageCount(res?.data.data.pagination.totalPages || 0);
+      // Response structure: { status, message, data: { documentCategories: { data: [...], pagination: {...} } } }
+      const documentCategories = res?.data?.data?.documentCategories || {};
+      const categories = documentCategories?.data || res?.data?.data?.data || [];
+      setData(categories);
+      setPageCount(documentCategories?.pagination?.totalPages || res?.data?.data?.pagination?.totalPages || 0);
     } catch (error) {
+      console.error("❌ Error loading data:", error);
       toast.error("Tải danh sách tài liệu thất bại.");
     } finally {
       setIsLoading(false);

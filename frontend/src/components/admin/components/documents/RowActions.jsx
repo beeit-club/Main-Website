@@ -72,8 +72,11 @@ export function RowActions({ row }) {
     if (categories.length === 0) {
       try {
         const res = await documentCategoryServices.getAll();
-        setCategories(res?.data?.data?.categories || []);
+        // Response structure: { status, message, data: { documentCategories: { data: [...], pagination: {...} } } }
+        const categoriesList = res?.data?.data?.documentCategories?.data || res?.data?.data?.data || [];
+        setCategories(categoriesList);
       } catch (error) {
+        console.error("❌ Error loading categories:", error);
         toast.error("Tải danh mục thất bại.");
       }
     }

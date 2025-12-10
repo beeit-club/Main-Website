@@ -11,6 +11,8 @@ import {
   Lightbulb,
 } from "lucide-react";
 import Link from "next/link";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 const Banner = ({ latestEvent }) => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -203,11 +205,7 @@ const Banner = ({ latestEvent }) => {
             </h3>
             <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-3 text-foreground/80">
               <span>
-                {new Date(latestEvent.start_time).toLocaleDateString("vi-VN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })}
+                {format(new Date(latestEvent.start_time), "dd/MM/yyyy", { locale: vi })}
               </span>
               <span className="hidden sm:inline">|</span>
               <span>{latestEvent.location}</span>

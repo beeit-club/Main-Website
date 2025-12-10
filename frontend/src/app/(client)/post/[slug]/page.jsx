@@ -20,8 +20,8 @@ export async function generateMetadata({ params }) {
     const post = article.data;
     const url = getFullUrl(`/post/${slug}`);
     const ogImage = post.featured_image 
-      ? getOgImageUrl(post.featured_image, "/og-image-default.png")
-      : getOgImageUrl("/og-image-default.png");
+      ? getOgImageUrl(post.featured_image, "/logo.jpg")
+      : getOgImageUrl("/logo.jpg");
     
     return {
       title: post.title,

@@ -44,8 +44,16 @@ export const metadata = {
 
 async function getQuestions(searchParams) {
   try {
+    // Xử lý searchParams an toàn - có thể là undefined hoặc object
+    const safeSearchParams = searchParams || {};
+    
+    // Parse page, đảm bảo là number
+    const page = safeSearchParams.page 
+      ? parseInt(Array.isArray(safeSearchParams.page) ? safeSearchParams.page[0] : safeSearchParams.page, 10) || 1
+      : 1;
+
     const params = {
-      page: searchParams.page || 1,
+      page,
       limit: 10,
     };
     const res = await getAllQuestions(params);

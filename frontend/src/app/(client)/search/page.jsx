@@ -59,14 +59,30 @@ function SearchSkeleton() {
 
 async function getSearchResults(searchParams) {
   try {
-    const { q, page = 1, limit = 20 } = searchParams;
+    // Xử lý searchParams an toàn - có thể là undefined hoặc object
+    const safeSearchParams = searchParams || {};
+    
+    const q = Array.isArray(safeSearchParams.q) 
+      ? safeSearchParams.q[0] 
+      : safeSearchParams.q;
+    
+    const pageValue = safeSearchParams.page 
+      ? (Array.isArray(safeSearchParams.page) ? safeSearchParams.page[0] : safeSearchParams.page)
+      : "1";
+    
+    const limitValue = safeSearchParams.limit 
+      ? (Array.isArray(safeSearchParams.limit) ? safeSearchParams.limit[0] : safeSearchParams.limit)
+      : "20";
 
-    if (!q || q.trim() === "") {
+    const page = parseInt(pageValue, 10) || 1;
+    const limit = parseInt(limitValue, 10) || 20;
+
+    if (!q || (typeof q === 'string' && q.trim() === "")) {
       return {
         data: [],
         pagination: {
           page: 1,
-          limit: parseInt(limit),
+          limit,
           total: 0,
           totalPages: 0,
         },
@@ -74,9 +90,9 @@ async function getSearchResults(searchParams) {
     }
 
     const params = {
-      q: q.trim(),
-      page: parseInt(page),
-      limit: parseInt(limit),
+      q: typeof q === 'string' ? q.trim() : String(q),
+      page,
+      limit,
     };
 
     const response = await searchPostsAndQuestions(params);
@@ -96,7 +112,10 @@ async function getSearchResults(searchParams) {
 
 export default async function SearchPage({ searchParams }) {
   const { data: results, pagination } = await getSearchResults(searchParams);
-  const searchQuery = searchParams.q || "";
+  const safeSearchParams = searchParams || {};
+  const searchQuery = Array.isArray(safeSearchParams.q) 
+    ? safeSearchParams.q[0] || "" 
+    : safeSearchParams.q || "";
 
   // Phân loại kết quả
   const posts = results.filter((item) => item.type === "post");

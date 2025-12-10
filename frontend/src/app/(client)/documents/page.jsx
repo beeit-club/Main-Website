@@ -67,13 +67,33 @@ function DocumentsSkeleton() {
 
 async function getData(searchParams) {
   try {
+    // Xử lý searchParams an toàn - có thể là undefined hoặc object
+    const safeSearchParams = searchParams || {};
+    
+    // Parse page và limit, đảm bảo là number
+    const page = safeSearchParams.page 
+      ? parseInt(Array.isArray(safeSearchParams.page) ? safeSearchParams.page[0] : safeSearchParams.page, 10) || 1
+      : 1;
+    
+    const limit = safeSearchParams.limit
+      ? parseInt(Array.isArray(safeSearchParams.limit) ? safeSearchParams.limit[0] : safeSearchParams.limit, 10) || 12
+      : 12;
+
     const params = {
-      page: searchParams.page || 1,
-      limit: searchParams.limit || 12,
+      page,
+      limit,
       // Filter: chỉ lấy public documents hoặc member_only (nếu user đã login)
       // Backend sẽ xử lý access control
-      ...(searchParams.category_id && { category_id: searchParams.category_id }),
-      ...(searchParams.search && { search: searchParams.search }),
+      ...(safeSearchParams.category_id && { 
+        category_id: Array.isArray(safeSearchParams.category_id) 
+          ? safeSearchParams.category_id[0] 
+          : safeSearchParams.category_id 
+      }),
+      ...(safeSearchParams.search && { 
+        search: Array.isArray(safeSearchParams.search) 
+          ? safeSearchParams.search[0] 
+          : safeSearchParams.search 
+      }),
     };
 
     const documentsResponse = await fetchAllDocuments(params);

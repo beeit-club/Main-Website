@@ -3,6 +3,8 @@
 import { code, message } from '../../common/message/index.js';
 import ServiceError from '../../error/service.error.js';
 import { documentModel } from '../../models/admin/index.js';
+import { emailService } from '../email/emailService.js';
+import { AuthModel } from '../../models/auth/index.js';
 
 const documentService = {
   // Lấy toàn bộ
@@ -75,9 +77,34 @@ const documentService = {
 
   // Gán người dùng
   assignUsersToDocument: async (documentId, userIds) => {
-    await documentService.getOneDocument(documentId); // Check if document exists
+    const document = await documentService.getOneDocument(documentId); // Check if document exists
     // Bạn có thể thêm logic check xem userIds có tồn tại trong bảng users không ở đây
-    return await documentModel.assignUsers(documentId, userIds);
+    const result = await documentModel.assignUsers(documentId, userIds);
+
+    // Gửi email thông báo cho từng user được cấp quyền
+    if (Array.isArray(userIds) && userIds.length > 0) {
+      try {
+        for (const userId of userIds) {
+          const user = await AuthModel.getUserById(userId);
+          if (user) {
+            // Lấy category nếu có
+            const category = document.category_name
+              ? { name: document.category_name }
+              : null;
+            await emailService.sendDocumentAccessGranted(
+              user,
+              document,
+              category,
+            );
+          }
+        }
+      } catch (emailError) {
+        console.error('Lỗi khi gửi email thông báo cấp quyền:', emailError);
+        // Không throw error để không ảnh hưởng đến việc gán quyền
+      }
+    }
+
+    return result;
   },
 
   // Xóa người dùng

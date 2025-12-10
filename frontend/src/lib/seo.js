@@ -34,7 +34,7 @@ export function getCanonicalUrl(path) {
 /**
  * Generate OpenGraph image URL
  */
-export function getOgImageUrl(imagePath, defaultImage = "/og-image-default.png") {
+export function getOgImageUrl(imagePath, defaultImage = "/logo.jpg") {
   if (!imagePath) {
     return getFullUrl(defaultImage);
   }
@@ -87,6 +87,16 @@ export function getDefaultMetadata() {
     authors: [{ name: "Bee IT Club" }],
     creator: "Bee IT Club",
     publisher: "Bee IT Club",
+    icons: {
+      icon: [
+        { url: "/logo.jpg", sizes: "any" },
+        { url: "/logo.jpg", type: "image/jpeg" },
+      ],
+      apple: [
+        { url: "/logo.jpg", sizes: "180x180", type: "image/jpeg" },
+      ],
+      shortcut: "/logo.jpg",
+    },
     openGraph: {
       type: "website",
       locale: "vi_VN",
@@ -94,7 +104,7 @@ export function getDefaultMetadata() {
       siteName: "Bee IT Club",
       images: [
         {
-          url: getOgImageUrl("/og-image-default.png"),
+          url: getOgImageUrl("/logo.jpg"),
           width: 1200,
           height: 630,
           alt: "Bee IT Club",

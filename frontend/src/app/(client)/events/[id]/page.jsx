@@ -20,8 +20,8 @@ export async function generateMetadata({ params }) {
     const url = getFullUrl(`/events/${slug}`);
     const description = cleanHtmlForMeta(event.content || event.description || "");
     const ogImage = event.featured_image 
-      ? getOgImageUrl(event.featured_image, "/og-image-default.png")
-      : getOgImageUrl("/og-image-default.png");
+      ? getOgImageUrl(event.featured_image, "/logo.jpg")
+      : getOgImageUrl("/logo.jpg");
     
     return {
       title: event.title,

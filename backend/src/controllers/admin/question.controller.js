@@ -3,6 +3,7 @@ import questionService from '../../services/admin/question.service.js';
 import { slugify } from '../../utils/function.js';
 import { utils } from '../../utils/index.js';
 import QuestionSchema from '../../validation/admin/question.validation.js';
+import { sanitizeHtml, sanitizeText } from '../../utils/sanitize.js';
 import {
   PaginationSchema,
   params,
@@ -39,10 +40,19 @@ const questionController = {
 
   createQuestion: asyncWrapper(async (req, res) => {
     await QuestionSchema.create.validate(req.body, { abortEarly: false });
-    const { title } = req.body;
+    const { title, content } = req.body;
     const slug = slugify(title);
 
-    const questionData = { ...req.body, slug };
+    // Sanitize HTML content để tránh XSS
+    const sanitizedContent = sanitizeHtml(content);
+    const sanitizedTitle = sanitizeText(title);
+
+    const questionData = { 
+      ...req.body, 
+      title: sanitizedTitle,
+      content: sanitizedContent,
+      slug 
+    };
     const newQuestion = await questionService.createQuestion(questionData);
     utils.success(res, QUESTION_CREATE_SUCCESS, { id: newQuestion.insertId });
   }),

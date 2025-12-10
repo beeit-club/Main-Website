@@ -7,6 +7,9 @@ import eventController from './event.controller.js';
 import postController from './post.controller.js';
 import questionController from './question.controller.js';
 import tagController from './tag.controller.js';
+import emailTemplateController from './emailTemplate.controller.js';
+import bulkEmailController from './bulkEmail.controller.js';
+import emailLogController from './emailLog.controller.js';
 export {
   answerController,
   questionController,
@@ -16,4 +19,7 @@ export {
   postController,
   categoryControler,
   documentCategoryController,
+  emailTemplateController,
+  bulkEmailController,
+  emailLogController,
 };

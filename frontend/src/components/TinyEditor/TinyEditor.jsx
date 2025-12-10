@@ -14,10 +14,17 @@ const EditorDynamic = dynamic(
   }
 );
 
-// Component TinyEditor nhận 2 props:
+// Component TinyEditor nhận các props:
 // 1. editorRef: Để component cha (EditPost) có thể lấy nội dung
 // 2. initialValue: Để gán nội dung ban đầu (rỗng cho trang "Thêm", có dữ liệu cho trang "Sửa")
-export default function TinyEditor({ editorRef, initialValue }) {
+// 3. heightMin: Chiều cao tối thiểu của editor (mặc định: 700)
+// 4. hideMenubar: Ẩn thanh menu (mặc định: true)
+export default function TinyEditor({
+  editorRef,
+  initialValue,
+  heightMin = 700,
+  hideMenubar = true,
+}) {
   return (
     <>
       <EditorDynamic
@@ -37,8 +44,8 @@ export default function TinyEditor({ editorRef, initialValue }) {
         initialValue={initialValue || ""}
         // `init`: Đây là đối tượng chứa toàn bộ cấu hình của TinyMCE
         init={{
-          height: 700, // Chiều cao của editor
-          menubar: false, // Ẩn thanh menu (File, Edit, View...)
+          height: heightMin, // Chiều cao của editor
+          menubar: !hideMenubar, // Ẩn/hiện thanh menu (File, Edit, View...)
 
           // `plugins`: Danh sách các tính năng bạn muốn thêm vào editor
           plugins: [

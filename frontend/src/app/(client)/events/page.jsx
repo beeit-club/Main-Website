@@ -1,10 +1,5 @@
-import { Suspense } from "react";
 import { fetchAllEvents } from "@/services/event";
-import { EventCard } from "@/components/home/events/EventCard";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PostPagination } from "@/components/home/post/components/post-pagination";
+import { EventsTabs } from "@/components/home/events/EventsTabs";
 import { getFullUrl, getOgImageUrl } from "@/lib/seo";
 
 // Revalidate every hour
@@ -39,32 +34,42 @@ export const metadata = {
   },
 };
 
-// Loading skeleton component
-function EventsSkeleton() {
-  return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {[...Array(6)].map((_, i) => (
-        <Card key={i} className="overflow-hidden">
-          <Skeleton className="aspect-video w-full" />
-          <CardContent className="p-4 space-y-2">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-2/3" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
 
 async function getData(searchParams) {
   try {
+    // Xử lý searchParams an toàn - có thể là undefined hoặc object
+    // searchParams đã được resolve ở component chính
+    const safeSearchParams = searchParams || {};
+    
+    // Parse page và limit, đảm bảo là number với optional chaining
+    const pageValue = safeSearchParams?.page;
+    const page = pageValue 
+      ? parseInt(Array.isArray(pageValue) ? pageValue[0] : pageValue, 10) || 1
+      : 1;
+    
+    const limitValue = safeSearchParams?.limit;
+    const limit = limitValue
+      ? parseInt(Array.isArray(limitValue) ? limitValue[0] : limitValue, 10) || 12
+      : 12;
+
+    const upcomingValue = safeSearchParams?.upcoming
+      ? (Array.isArray(safeSearchParams.upcoming) 
+          ? safeSearchParams.upcoming[0] 
+          : safeSearchParams.upcoming)
+      : undefined;
+    
+    const pastValue = safeSearchParams?.past
+      ? (Array.isArray(safeSearchParams.past) 
+          ? safeSearchParams.past[0] 
+          : safeSearchParams.past)
+      : undefined;
+
     const params = {
-      page: searchParams.page || 1,
-      limit: searchParams.limit || 12,
+      page,
+      limit,
       status: 1, // Chỉ lấy published events
-      ...(searchParams.upcoming === "true" && { upcoming: true }),
-      ...(searchParams.past === "true" && { past: true }),
+      ...(upcomingValue === "true" && { upcoming: true }),
+      ...(pastValue === "true" && { past: true }),
     };
 
     const eventsResponse = await fetchAllEvents(params);
@@ -84,7 +89,12 @@ async function getData(searchParams) {
 }
 
 export default async function EventsPage({ searchParams }) {
-  const { events, pagination } = await getData(searchParams);
+  // Xử lý searchParams có thể là Promise trong Next.js 16
+  const resolvedSearchParams = searchParams instanceof Promise 
+    ? await searchParams 
+    : searchParams;
+  
+  const { events, pagination } = await getData(resolvedSearchParams);
 
   // Filter events by status
   const upcomingEvents = events.filter((event) => {
@@ -118,103 +128,13 @@ export default async function EventsPage({ searchParams }) {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="all" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all">Tất cả</TabsTrigger>
-            <TabsTrigger value="upcoming">Sắp diễn ra</TabsTrigger>
-            <TabsTrigger value="ongoing">Đang diễn ra</TabsTrigger>
-            <TabsTrigger value="past">Đã kết thúc</TabsTrigger>
-          </TabsList>
-
-          {/* All Events */}
-          <TabsContent value="all" className="mt-0">
-            <Suspense fallback={<EventsSkeleton />}>
-              {events.length > 0 ? (
-                <>
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-                    {events.map((event) => (
-                      <EventCard key={event.id} event={event} />
-                    ))}
-                  </div>
-                  {pagination.totalPages > 1 && (
-                    <PostPagination pagination={pagination} baseUrl="/events" />
-                  )}
-                </>
-              ) : (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground">
-                      Chưa có sự kiện nào trong hệ thống.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </Suspense>
-          </TabsContent>
-
-          {/* Upcoming Events */}
-          <TabsContent value="upcoming" className="mt-0">
-            <Suspense fallback={<EventsSkeleton />}>
-              {upcomingEvents.length > 0 ? (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {upcomingEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground">
-                      Chưa có sự kiện sắp diễn ra.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </Suspense>
-          </TabsContent>
-
-          {/* Ongoing Events */}
-          <TabsContent value="ongoing" className="mt-0">
-            <Suspense fallback={<EventsSkeleton />}>
-              {ongoingEvents.length > 0 ? (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {ongoingEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground">
-                      Hiện tại không có sự kiện nào đang diễn ra.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </Suspense>
-          </TabsContent>
-
-          {/* Past Events */}
-          <TabsContent value="past" className="mt-0">
-            <Suspense fallback={<EventsSkeleton />}>
-              {pastEvents.length > 0 ? (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {pastEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground">
-                      Chưa có sự kiện nào đã kết thúc.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </Suspense>
-          </TabsContent>
-        </Tabs>
+        <EventsTabs
+          events={events}
+          upcomingEvents={upcomingEvents}
+          ongoingEvents={ongoingEvents}
+          pastEvents={pastEvents}
+          pagination={pagination}
+        />
       </div>
     </main>
   );

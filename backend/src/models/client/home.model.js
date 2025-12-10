@@ -98,6 +98,28 @@ LIMIT 1`; // 2. Câu SQL lấy 10 bài viết mới nhất (đã xuất bản) /
       throw error;
     }
   }
+  static async getAllDocumentCategory(options = {}) {
+    try {
+      let sql = `SELECT id,name,slug,parent_id FROM document_categories WHERE deleted_at IS NULL`;
+      let params = [];
+
+      if (options?.filters?.name) {
+        sql += ` AND name LIKE ?`;
+        params.push(`%${options.filters.name}%`);
+      }
+      options.limit = 10000;
+      options.page = 1;
+      const documentCategory = await selectWithPagination(sql, params, options);
+      console.log(
+        '🚀 ~ HomeModel ~ getAllDocumentCategory ~ documentCategory:',
+        documentCategory,
+      );
+      return documentCategory;
+    } catch (error) {
+      console.error('Error in getAllDocumentCategory:', error);
+      throw error;
+    }
+  }
   static async getAllTag(options = {}) {
     try {
       let sql = `SELECT id, name, slug, meta_description FROM tags WHERE deleted_at IS NULL`;
@@ -305,7 +327,10 @@ LIMIT 1`; // 2. Câu SQL lấy 10 bài viết mới nhất (đã xuất bản) /
 
       // Kết hợp và sắp xếp theo thời gian (mới nhất trước)
       const allResults = [
-        ...posts.map((p) => ({ ...p, published_at: p.published_at || p.created_at })),
+        ...posts.map((p) => ({
+          ...p,
+          published_at: p.published_at || p.created_at,
+        })),
         ...questions.map((q) => ({ ...q, published_at: q.created_at })),
       ].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
 

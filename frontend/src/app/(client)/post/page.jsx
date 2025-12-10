@@ -65,13 +65,31 @@ function PostsSkeleton() {
 
 async function getData(searchParams) {
   try {
+    // Xử lý searchParams an toàn - có thể là undefined hoặc object
+    const safeSearchParams = searchParams || {};
+    
+    // Parse page và limit, đảm bảo là number
+    const page = safeSearchParams.page 
+      ? parseInt(Array.isArray(safeSearchParams.page) ? safeSearchParams.page[0] : safeSearchParams.page, 10) || 1
+      : 1;
+    
+    const limit = safeSearchParams.limit
+      ? parseInt(Array.isArray(safeSearchParams.limit) ? safeSearchParams.limit[0] : safeSearchParams.limit, 10) || 12
+      : 12;
+
     const params = {
-      page: searchParams.page || 1,
-      limit: searchParams.limit || 12,
-      ...(searchParams.category && {
-        category: searchParams.category,
+      page,
+      limit,
+      ...(safeSearchParams.category && {
+        category: Array.isArray(safeSearchParams.category) 
+          ? safeSearchParams.category[0] 
+          : safeSearchParams.category,
       }),
-      ...(searchParams.title && { title: searchParams.title }),
+      ...(safeSearchParams.title && { 
+        title: Array.isArray(safeSearchParams.title) 
+          ? safeSearchParams.title[0] 
+          : safeSearchParams.title 
+      }),
     };
 
     // Chỉ fetch posts, categories đã có trong Zustand store

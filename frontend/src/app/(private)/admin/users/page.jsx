@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 import { columns } from "@/components/admin/components/users/columns";
@@ -69,15 +69,27 @@ export default function ListUsers() {
   // State chứa dữ liệu trả về từ API
   const [data, setData] = useState([]);
 
+  // Ref để track params đã gọi API lần cuối, tránh gọi API trùng lặp
+  const lastApiParamsRef = useRef("");
+  // Ref để track URL params đã được update, tránh update URL không cần thiết
+  const lastUrlParamsRef = useRef("");
+
   // Hàm này không thay đổi
   async function getRolesForFilter() {
     try {
       const res = await usersServices.getAllRoles();
-      setRolesList(res?.data.roles.data || []);
+      setRolesList(res?.data.data || []);
     } catch (error) {
       toast.error("Lỗi khi tải danh sách vai trò");
     }
   }
+
+  // Effect riêng để load roles (chỉ chạy 1 lần)
+  useEffect(() => {
+    if (rolesList.length === 0) {
+      getRolesForFilter();
+    }
+  }, [rolesList.length]);
 
   // Bất cứ khi nào 1 state (pagination, sorting,...) thay đổi,
   // effect này sẽ chạy lại để:
@@ -85,10 +97,6 @@ export default function ListUsers() {
   // 2. Cập nhật URL trình duyệt
   // 3. Gọi API với các params đó
   useEffect(() => {
-    if (rolesList.length === 0) {
-      getRolesForFilter();
-    }
-
     async function fetchData() {
       // Tạo một đối tượng URLSearchParams mới dựa trên state của React
       const params = new URLSearchParams();
@@ -118,40 +126,44 @@ export default function ListUsers() {
         }
       });
 
+      const paramsString = params.toString();
+      const currentParamsString = searchParams.toString();
+
       // ---. CẬP NHẬT URL (Đồng bộ state lên URL) ---
-      // SỬA 3: Đây là phần GHI state vào URL
-      // Chúng ta dùng router.replace để thay đổi URL mà không reload trang.
-      // 'replace' sẽ thay thế lịch sử trình duyệt, 'push' sẽ tạo mới (người dùng
-      // có thể nhấn back). 'replace' thường tốt hơn cho bộ lọc.
-      // 'scroll: false' để ngăn trang cuộn lên đầu mỗi khi lọc.
-      //
-      // Chỉ cập nhật URL nếu params mới khác params cũ (để tránh chạy lại vô tận)
-      if (params.toString() !== searchParams.toString()) {
-        router.replace(`${pathname}?${params.toString()}`, {
+      // Chỉ cập nhật URL nếu params mới khác params hiện tại VÀ khác params đã update lần cuối
+      // Điều này tránh vòng lặp re-render khi searchParams thay đổi
+      if (paramsString !== currentParamsString && paramsString !== lastUrlParamsRef.current) {
+        lastUrlParamsRef.current = paramsString;
+        router.replace(`${pathname}?${paramsString}`, {
           scroll: false,
         });
       }
 
       // ---  GỌI API (Sử dụng params đã tạo) ---
-      setIsLoading(true);
-      try {
-        const service =
-          viewMode === "active"
-            ? usersServices.getAllUser
-            : usersServices.getDeletedUsers;
+      // Chỉ gọi API nếu params thực sự thay đổi (so với lần gọi API trước)
+      // Điều này tránh gọi API trùng lặp khi component re-render
+      if (paramsString !== lastApiParamsRef.current) {
+        lastApiParamsRef.current = paramsString;
+        setIsLoading(true);
+        try {
+          const service =
+            viewMode === "active"
+              ? usersServices.getAllUser
+              : usersServices.getDeletedUsers;
 
-        // Gọi API với đối tượng 'params' đã được xây dựng ở trên
-        const res = await service(params);
-        setData(res?.data.data || []);
+          // Gọi API với đối tượng 'params' đã được xây dựng ở trên
+          const res = await service(params);
+          setData(res?.data.data || []);
 
-        setMeta({
-          totalPages: res?.data.pagination?.totalPages || 0,
-          total: res?.data.pagination?.total || 0,
-        });
-      } catch (error) {
-        toast.error(`Lấy danh sách users (${viewMode}) thất bại`);
-      } finally {
-        setIsLoading(false);
+          setMeta({
+            totalPages: res?.data.pagination?.totalPages || 0,
+            total: res?.data.pagination?.total || 0,
+          });
+        } catch (error) {
+          toast.error(`Lấy danh sách users (${viewMode}) thất bại`);
+        } finally {
+          setIsLoading(false);
+        }
       }
     }
 
@@ -166,8 +178,7 @@ export default function ListUsers() {
     viewMode,
     pathname,
     router,
-    searchParams, // Quan trọng: để so sánh ở bước B
-    rolesList.length, // Để trigger getRolesForFilter
+    // ĐÃ LOẠI BỎ searchParams để tránh vòng lặp re-render
   ]);
 
   // === HÀM XỬ LÝ & RENDER ===

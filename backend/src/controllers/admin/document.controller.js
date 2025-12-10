@@ -5,6 +5,7 @@ import { documentService } from '../../services/admin/index.js';
 import { slugify } from '../../utils/function.js';
 import { utils } from '../../utils/index.js';
 import DocumentSchema from '../../validation/admin/document.validation.js';
+import { sanitizeText } from '../../utils/sanitize.js';
 import {
   PaginationSchema,
   params,
@@ -49,10 +50,18 @@ const documentController = {
   // Thêm tài liệu
   createDocument: asyncWrapper(async (req, res) => {
     await DocumentSchema.create.validate(req.body, { abortEarly: false });
-    const { title, ...rest } = req.body;
+    const { title, description, ...rest } = req.body;
+    // Sanitize text để tránh XSS
+    const sanitizedTitle = sanitizeText(title);
+    const sanitizedDescription = description ? sanitizeText(description) : undefined;
     const slug = slugify(title);
 
-    const docData = { title, slug, ...rest };
+    const docData = { 
+      title: sanitizedTitle, 
+      slug, 
+      ...(sanitizedDescription && { description: sanitizedDescription }),
+      ...rest 
+    };
     const document = await documentService.createDocument(docData);
 
     utils.success(res, message.Doc.DOCUMENT_CREATE_SUCCESS, {
@@ -68,12 +77,16 @@ const documentController = {
     await DocumentSchema.update.validate(req.body, { abortEarly: false });
 
     const { id } = req.params;
-    const { title, ...rest } = req.body;
+    const { title, description, ...rest } = req.body;
 
     const docData = { ...rest };
     if (title) {
-      docData.title = title;
+      // Sanitize text để tránh XSS
+      docData.title = sanitizeText(title);
       docData.slug = slugify(title);
+    }
+    if (description !== undefined) {
+      docData.description = description ? sanitizeText(description) : null;
     }
 
     await documentService.updateDocument(id, docData);

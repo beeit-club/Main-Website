@@ -5,6 +5,7 @@ import {
   createTransactionSchema,
   updateTransactionSchema,
 } from '../../validation/admin/transaction.validation.js';
+import { sanitizeText } from '../../utils/sanitize.js';
 import {
   PaginationSchema,
   params,
@@ -43,6 +44,8 @@ const transactionController = {
     await createTransactionSchema.validate(req.body, { abortEarly: false });
     const { amount, type, description, attachment_url } = req.body;
     const created_by = req.user.id;
+    // Sanitize text để tránh XSS
+    const sanitizedDescription = description ? sanitizeText(description) : null;
     if (type === 2) {
       const currBalance = await transactionService.getBalance();
       if (currBalance.balance < amount) {
@@ -57,7 +60,7 @@ const transactionController = {
     const transactionData = {
       amount,
       type,
-      description,
+      description: sanitizedDescription,
       attachment_url,
       created_by,
     };
@@ -74,6 +77,8 @@ const transactionController = {
     await params.id.validate(req.params, { abortEarly: false });
     const { id } = req.params;
     const { amount, type, description, attachment_url } = req.body;
+    // Sanitize text để tránh XSS
+    const sanitizedDescription = description ? sanitizeText(description) : undefined;
 
     if (type === 2) {
       let currBalance = await transactionService.getBalance();
@@ -101,7 +106,7 @@ const transactionController = {
     const transactionData = {
       ...(amount && { amount }),
       ...(type && { type }),
-      ...(description && { description }),
+      ...(sanitizedDescription !== undefined && { description: sanitizedDescription }),
       ...(attachment_url && { attachment_url }),
       updated_by,
     };

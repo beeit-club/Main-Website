@@ -111,7 +111,7 @@ export function CommentForm({ postId, onSuccess }) {
             <p className="text-sm text-muted-foreground">
               Viết bình luận của bạn (tối thiểu 5 ký tự).
             </p>
-            <TinyEditor editorRef={editorRef} initialValue="" />
+            <TinyEditor editorRef={editorRef} initialValue="" heightMin={200} hideMenubar={true} />
           </div>
 
           <div className="flex justify-end gap-3">

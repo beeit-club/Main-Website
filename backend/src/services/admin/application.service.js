@@ -1,7 +1,7 @@
 import { code, message } from '../../common/message/index.js';
 import ServiceError from '../../error/service.error.js';
 import { applicationModel, InterviewModel } from '../../models/admin/index.js';
-// import { sendInterviewInviteEmail, sendCongratsEmail, sendRejectEmail } from '../../utils/mailer.js'; // (Giả sử bạn có file này)
+import { emailService } from '../email/emailService.js';
 
 // Tái sử dụng hàm kiểm tra đơn
 async function checkApplication(id, expectedStatus) {
@@ -53,7 +53,17 @@ const applicationService = {
         );
       }
       // status: 0 (Chờ xử lý)
-      return await applicationModel.createApplication(applicationData);
+      const result = await applicationModel.createApplication(applicationData);
+
+      // Gửi email xác nhận nộp đơn
+      try {
+        await emailService.sendApplicationReceived(applicationData);
+      } catch (emailError) {
+        console.error('Lỗi khi gửi email xác nhận nộp đơn:', emailError);
+        // Không throw error để không ảnh hưởng đến việc tạo đơn
+      }
+
+      return result;
     } catch (error) {
       throw error;
     }
@@ -106,9 +116,13 @@ const applicationService = {
     // Cập nhật đơn
     await applicationModel.updateApplication(id, { status: 2, schedule_id });
 
-    // Gửi email mời phỏng vấn (Bạn cần tự cài đặt hàm gửi mail)
-    // await sendInterviewInviteEmail(application.email, application.fullname, schedule);
-    console.log(`Đã gửi email mời phỏng vấn cho ${application.email}`);
+    // Gửi email thông báo lịch phỏng vấn
+    try {
+      await emailService.sendInterviewScheduled(application, schedule);
+    } catch (emailError) {
+      console.error('Lỗi khi gửi email thông báo lịch phỏng vấn:', emailError);
+      // Không throw error để không ảnh hưởng đến việc đặt lịch
+    }
 
     return { application, schedule };
   },
@@ -147,9 +161,18 @@ const applicationService = {
         interview_notes,
       });
 
-      // 4. Gửi email chúc mừng
-      // await sendCongratsEmail(application.email, application.fullname);
-      console.log(`Đã gửi email chúc mừng cho ${application.email}`);
+      // 4. Lấy lại application với interview_notes đã cập nhật
+      const updatedApplication = await applicationModel.getOneApplication(id);
+
+      // 5. Gửi email chúc mừng và welcome email
+      try {
+        await emailService.sendApplicationApproved(updatedApplication);
+        // Gửi welcome email cho user mới
+        await emailService.sendWelcomeEmail(newUser);
+      } catch (emailError) {
+        console.error('Lỗi khi gửi email chúc mừng/welcome:', emailError);
+        // Không throw error để không ảnh hưởng đến việc phê duyệt
+      }
 
       return { newUserId };
     } catch (error) {
@@ -177,9 +200,16 @@ const applicationService = {
         interview_notes,
       });
 
+      // Lấy lại application với interview_notes đã cập nhật
+      const updatedApplication = await applicationModel.getOneApplication(id);
+
       // Gửi email từ chối
-      // await sendRejectEmail(application.email, application.fullname, interview_notes);
-      console.log(`Đã gửi email từ chối cho ${application.email}`);
+      try {
+        await emailService.sendApplicationRejected(updatedApplication);
+      } catch (emailError) {
+        console.error('Lỗi khi gửi email từ chối:', emailError);
+        // Không throw error để không ảnh hưởng đến việc từ chối
+      }
 
       return { id };
     } catch (error) {

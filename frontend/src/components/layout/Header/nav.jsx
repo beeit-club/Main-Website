@@ -1,43 +1,87 @@
 import * as React from "react";
+import dynamic from "next/dynamic";
 
 // Import Zustand store
 import {
   useCategoriesStore,
   buildCategoryTree,
 } from "@/stores/categoriesStore";
-
-// Import các component cần thiết từ shadcn/ui
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
+  useDocumentCategoriesStore,
+  buildDocumentCategoryTree,
+} from "@/stores/documentCategoriesStore";
 
-// Import Collapsible components
+// Import Collapsible components (không cần dynamic vì không dùng Radix ID)
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-// Import Sheet, Button, và Icons
+// Import Button và Icons
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Menu, ChevronDown } from "lucide-react";
 
 // Import tiện ích `cn` để gộp class
 import { cn } from "@/lib/utils";
+
+// Dynamic import NavigationMenu để tránh hydration error (Radix UI tạo ID ngẫu nhiên)
+const NavigationMenu = dynamic(
+  () =>
+    import("@/components/ui/navigation-menu").then((mod) => ({
+      default: mod.NavigationMenu,
+    })),
+  { ssr: false }
+);
+const NavigationMenuContent = dynamic(
+  () =>
+    import("@/components/ui/navigation-menu").then((mod) => mod.NavigationMenuContent),
+  { ssr: false }
+);
+const NavigationMenuItem = dynamic(
+  () =>
+    import("@/components/ui/navigation-menu").then((mod) => mod.NavigationMenuItem),
+  { ssr: false }
+);
+const NavigationMenuLink = dynamic(
+  () =>
+    import("@/components/ui/navigation-menu").then((mod) => mod.NavigationMenuLink),
+  { ssr: false }
+);
+const NavigationMenuList = dynamic(
+  () =>
+    import("@/components/ui/navigation-menu").then((mod) => mod.NavigationMenuList),
+  { ssr: false }
+);
+const NavigationMenuTrigger = dynamic(
+  () =>
+    import("@/components/ui/navigation-menu").then((mod) => mod.NavigationMenuTrigger),
+  { ssr: false }
+);
+
+// Import navigationMenuTriggerStyle trực tiếp (không phải component nên không cần dynamic)
+import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
+
+// Dynamic import Sheet để tránh hydration error
+const Sheet = dynamic(
+  () => import("@/components/ui/sheet").then((mod) => mod.Sheet),
+  { ssr: false }
+);
+const SheetClose = dynamic(
+  () => import("@/components/ui/sheet").then((mod) => mod.SheetClose),
+  { ssr: false }
+);
+const SheetContent = dynamic(
+  () => import("@/components/ui/sheet").then((mod) => mod.SheetContent),
+  { ssr: false }
+);
+// SheetHeader và SheetTitle cần được import trực tiếp để đảm bảo accessibility (Radix UI requirement)
+// Không dùng dynamic import vì Radix UI cần chúng ngay từ đầu để tạo proper ARIA attributes
+import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
+const SheetTrigger = dynamic(
+  () => import("@/components/ui/sheet").then((mod) => mod.SheetTrigger),
+  { ssr: false }
+);
 
 // HÀM classNameStyle
 const classNameStyle = () => `${navigationMenuTriggerStyle()} text-[16px]`;
@@ -52,30 +96,16 @@ export default function Nav() {
     [categories]
   );
 
-  // Mock data cho Tài liệu (giữ tạm vì chưa có API)
-  const taiLieuData = [
-    { id: 100, name: "Lập trình Web", slug: "lap-trinh-web", parent_id: null },
-    {
-      id: 101,
-      name: "Thiết kế Giao diện",
-      slug: "thiet-ke-giao-dien",
-      parent_id: null,
-    },
-    {
-      id: 102,
-      name: "Quản trị Cơ sở dữ liệu",
-      slug: "quan-tri-csdl",
-      parent_id: null,
-    },
-    { id: 103, name: "ReactJS", slug: "reactjs", parent_id: 100 },
-    { id: 104, name: "NodeJS", slug: "nodejs", parent_id: 100 },
-    { id: 105, name: "Figma", slug: "figma", parent_id: 101 },
-    { id: 106, name: "SQL Server", slug: "sql-server", parent_id: 102 },
-    { id: 107, name: "MongoDB", slug: "mongodb", parent_id: 102 },
-    { id: 108, name: "VueJS", slug: "vuejs", parent_id: 100 },
-  ];
-
-  const taiLieuTree = React.useMemo(() => buildCategoryTree(taiLieuData), []);
+  // Lấy documentCategories từ Zustand store
+  const {
+    documentCategories,
+    isLoading: isDocumentCategoriesLoading,
+  } = useDocumentCategoriesStore();
+  // Build tree structure từ flat array
+  const taiLieuTree = React.useMemo(
+    () => buildDocumentCategoryTree(documentCategories),
+    [documentCategories]
+  );
 
   return (
     // Sử dụng div bọc ngoài để chứa cả 2 phiên bản
@@ -181,7 +211,16 @@ export default function Nav() {
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid w-[400px] gap-3 p-4 lg:w-[500px] lg:grid-cols-2">
-                  {taiLieuTree.map((item) => (
+                  {isDocumentCategoriesLoading ? (
+                    <li className="col-span-2 text-center text-sm text-muted-foreground py-4">
+                      Đang tải...
+                    </li>
+                  ) : taiLieuTree.length === 0 ? (
+                    <li className="col-span-2 text-center text-sm text-muted-foreground py-4">
+                      Chưa có danh mục
+                    </li>
+                  ) : (
+                    taiLieuTree.map((item) => (
                     <React.Fragment key={item.id}>
                       {item.children.length === 0 && (
                         <ListItem
@@ -216,7 +255,7 @@ export default function Nav() {
                               <ul className="mt-2 space-y-1 pl-4">
                                 <li>
                                   <a
-                                    href={`/tai-lieu/${item.slug}`}
+                                    href={`/documents/${item.slug}`}
                                     className="text-sm font-medium text-foreground hover:underline"
                                   >
                                     Tất cả trong "{item.name}"
@@ -225,7 +264,7 @@ export default function Nav() {
                                 {item.children.map((child) => (
                                   <li key={child.id}>
                                     <a
-                                      href={`/tai-lieu/${child.slug}`}
+                                      href={`/documents/${child.slug}`}
                                       className="text-sm text-muted-foreground hover:text-foreground"
                                     >
                                       {child.name}
@@ -238,7 +277,8 @@ export default function Nav() {
                         </li>
                       )}
                     </React.Fragment>
-                  ))}
+                    ))
+                  )}
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
@@ -260,6 +300,16 @@ export default function Nav() {
                 className={`${classNameStyle()} `}
               >
                 Thành viên
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            {/* Mục 7: Link đơn "Đăng ký" */}
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                href="/apply"
+                className={`${classNameStyle()} `}
+              >
+                Đăng ký
               </NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
@@ -285,6 +335,7 @@ export default function Nav() {
               <MobileNavLink href="/questions">Hỏi đáp</MobileNavLink>
               <MobileNavLink href="/events">Sự kiện</MobileNavLink>
               <MobileNavLink href="/members">Thành viên</MobileNavLink>
+              <MobileNavLink href="/apply">Đăng ký</MobileNavLink>
 
               {/* Render các nhóm (dùng component lồng nhau) */}
               {isLoading ? (
@@ -298,11 +349,17 @@ export default function Nav() {
                     items={baiVietTree}
                     slugPrefix="/post"
                   />
-                  <MobileNavGroup
-                    title="Tài liệu"
-                    items={taiLieuTree}
-                    slugPrefix="/documents"
-                  />
+                  {isDocumentCategoriesLoading ? (
+                    <div className="text-center text-sm text-muted-foreground py-4">
+                      Đang tải danh mục tài liệu...
+                    </div>
+                  ) : (
+                    <MobileNavGroup
+                      title="Tài liệu"
+                      items={taiLieuTree}
+                      slugPrefix="/documents"
+                    />
+                  )}
                 </>
               )}
             </div>

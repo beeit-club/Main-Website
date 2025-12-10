@@ -22,5 +22,9 @@ Router.post('/google', authController.google);
 Router.get('/profile', middleware.verifyToken, authController.getProfile);
 // Cập nhật profile hiện tại
 Router.put('/profile', middleware.verifyToken, authController.updateProfile);
+// Yêu cầu đặt lại mật khẩu
+Router.post('/forgot-password', authController.requestPasswordReset);
+// Đặt lại mật khẩu
+Router.post('/reset-password', authController.resetPassword);
 
 export default Router;

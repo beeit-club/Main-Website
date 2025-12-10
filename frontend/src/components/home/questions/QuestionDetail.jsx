@@ -2,18 +2,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Clock } from "lucide-react";
-// Giả sử bạn có hàm format ngày trong lib/datetime.js
-import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
+import { ClientTimeAgo } from "@/components/common/ClientTimeAgo";
 
 export function QuestionDetail({ question }) {
   const { title, content, author_name, author_avatar, created_at, view_count } =
     question;
-
-  const timeAgo = formatDistanceToNow(new Date(created_at), {
-    addSuffix: true,
-    locale: vi,
-  });
 
   return (
     <div className="w-full">
@@ -29,9 +22,9 @@ export function QuestionDetail({ question }) {
           </Avatar>
           <span className="font-medium text-foreground">{author_name}</span>
         </div>
-        <div className="flex items-center space-x-1" title={timeAgo}>
+        <div className="flex items-center space-x-1">
           <Clock className="h-4 w-4" />
-          <span>Đã hỏi {timeAgo}</span>
+          <span>Đã hỏi <ClientTimeAgo date={created_at} /></span>
         </div>
         <div className="flex items-center space-x-1">
           <Eye className="h-4 w-4" />

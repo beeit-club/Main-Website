@@ -4,8 +4,7 @@ import dynamic from "next/dynamic";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Edit, Trash2, MoreVertical } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
+import { ClientTimeAgo } from "@/components/common/ClientTimeAgo";
 import { CommentReplyForm } from "./CommentReplyForm";
 import { useAuthStore } from "@/stores/authStore";
 import {
@@ -37,11 +36,6 @@ export function CommentCard({ comment, postId, onUpdate, depth = 0 }) {
     updated_at,
     children = [],
   } = comment;
-
-  const timeAgo = formatDistanceToNow(new Date(created_at), {
-    addSuffix: true,
-    locale: vi,
-  });
 
   const maxDepth = 3; // Giới hạn độ sâu để tránh UI quá phức tạp
   const isNested = depth > 0;
@@ -86,11 +80,8 @@ export function CommentCard({ comment, postId, onUpdate, depth = 0 }) {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <span className="font-semibold text-foreground">{author_name}</span>
-              <span
-                className="text-xs text-muted-foreground"
-                title={new Date(created_at).toLocaleString()}
-              >
-                • {timeAgo}
+              <span className="text-xs text-muted-foreground">
+                • <ClientTimeAgo date={created_at} />
                 {updated_at && updated_at !== created_at && " (đã chỉnh sửa)"}
               </span>
             </div>
@@ -228,7 +219,7 @@ function CommentEditForm({ comment, onSuccess, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <TinyEditor editorRef={editorRef} initialValue={comment.content} />
+      <TinyEditor editorRef={editorRef} initialValue={comment.content} heightMin={200} hideMenubar={true} />
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" size="sm" onClick={onCancel}>
           Hủy

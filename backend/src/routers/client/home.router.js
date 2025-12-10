@@ -5,6 +5,7 @@ const Router = express.Router();
 
 Router.get('/', HomeControler.Home);
 Router.get('/category', HomeControler.getCategories);
+Router.get('/documentCategory', HomeControler.getDocumentCategories);
 Router.get('/tags', HomeControler.getTags);
 Router.get('/posts/:slug', HomeControler.postDetaill);
 Router.get('/posts', HomeControler.getAllPost);

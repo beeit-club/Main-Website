@@ -7,6 +7,7 @@ import { slugify } from '../../utils/function.js';
 import { utils } from '../../utils/index.js';
 import EventSchema from '../../validation/admin/event.validation.js';
 import { params } from '../../validation/common/common.schema.js';
+import { sanitizeHtml, sanitizeText } from '../../utils/sanitize.js';
 
 const eventController = {
   // === EVENTS ===
@@ -19,7 +20,16 @@ const eventController = {
     const data = await EventSchema.create.validate(req.body, {
       abortEarly: false,
     });
-    data.slug = slugify(data.title);
+    
+    // Sanitize HTML content và text để tránh XSS
+    if (data.content) {
+      data.content = sanitizeHtml(data.content);
+    }
+    if (data.title) {
+      data.title = sanitizeText(data.title);
+      data.slug = slugify(data.title);
+    }
+    
     // data.created_by = req.user.id; // Lấy từ middleware xác thực
     const event = await eventService.createEvent(data);
     utils.success(res, message.Event.EVENT_CREATE_SUCCESS, {
@@ -38,9 +48,16 @@ const eventController = {
     const data = await EventSchema.update.validate(req.body, {
       abortEarly: false,
     });
+    
+    // Sanitize HTML content và text để tránh XSS
+    if (data.content) {
+      data.content = sanitizeHtml(data.content);
+    }
     if (data.title) {
+      data.title = sanitizeText(data.title);
       data.slug = slugify(data.title);
     }
+    
     await eventService.updateEvent(id, data);
     utils.success(res, message.Event.EVENT_UPDATE_SUCCESS);
   }),
@@ -80,7 +97,9 @@ const eventController = {
   performCheckIn: asyncWrapper(async (req, res) => {
     const { id } = await params.id.validate(req.params);
     const data = await EventSchema.checkIn.validate(req.body);
-    await eventService.performCheckIn(id, data.registration_id, data.notes);
+    // Sanitize notes để tránh XSS
+    const sanitizedNotes = data.notes ? sanitizeText(data.notes) : null;
+    await eventService.performCheckIn(id, data.registration_id, sanitizedNotes);
     utils.success(res, message.Event.CHECKIN_SUCCESS);
   }),
 };

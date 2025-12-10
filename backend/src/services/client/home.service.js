@@ -24,7 +24,7 @@ function buildAnswerTree(answers) {
   // Bước 2: Xây dựng tree structure
   answers.forEach((answer) => {
     const answerWithChildren = answerMap.get(answer.id);
-    
+
     if (answer.parent_id === null || answer.parent_id === undefined) {
       // Root answer (trả lời trực tiếp câu hỏi)
       rootAnswers.push(answerWithChildren);
@@ -57,6 +57,18 @@ const HomeService = {
     try {
       const categories = await HomeModel.getAllCategory(option);
       return categories;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getAllDocumentCategory: async (option) => {
+    try {
+      const documentCategories = await HomeModel.getAllDocumentCategory(option);
+      console.log(
+        '🚀 ~ HomeService ~ getAllDocumentCategory ~ documentCategories:',
+        documentCategories,
+      );
+      return documentCategories;
     } catch (error) {
       throw error;
     }
@@ -141,7 +153,9 @@ const HomeService = {
   createAnswer: async (data) => {
     try {
       // Kiểm tra question tồn tại
-      const questionExists = await questionModel.getOneQuestion(data.question_id);
+      const questionExists = await questionModel.getOneQuestion(
+        data.question_id,
+      );
       if (!questionExists) {
         throw new ServiceError(
           'Câu hỏi không tồn tại',
@@ -242,7 +256,11 @@ const HomeService = {
       }
       // Kiểm tra document có published và public không
       const fullDocument = await documentModel.getOneDocument(documentId.id);
-      if (!fullDocument || fullDocument.status !== 1 || fullDocument.access_level !== 'public') {
+      if (
+        !fullDocument ||
+        fullDocument.status !== 1 ||
+        fullDocument.access_level !== 'public'
+      ) {
         throw new ServiceError(
           'Tài liệu không tồn tại',
           'DOCUMENT_NOT_FOUND',

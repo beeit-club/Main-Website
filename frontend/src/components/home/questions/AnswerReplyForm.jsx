@@ -85,7 +85,7 @@ export function AnswerReplyForm({ questionId, parentId, onSuccess, onCancel }) {
         )}
       </div>
       <form onSubmit={onSubmit} className="space-y-3">
-        <TinyEditor editorRef={editorRef} initialValue="" />
+        <TinyEditor editorRef={editorRef} initialValue="" heightMin={200} hideMenubar={true} />
         <div className="flex justify-end gap-2">
           {onCancel && (
             <Button type="button" variant="outline" size="sm" onClick={onCancel}>

@@ -10,9 +10,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Eye, Clock } from "lucide-react";
-// Giả sử bạn có hàm format ngày trong lib/datetime.js
-import { formatDistanceToNow } from "date-fns"; // Hoặc dùng thư viện bạn thích
-import { vi } from "date-fns/locale";
+import { ClientTimeAgo } from "@/components/common/ClientTimeAgo";
 
 export function QuestionCard({ question }) {
   const {
@@ -24,11 +22,6 @@ export function QuestionCard({ question }) {
     view_count,
     answer_count,
   } = question;
-
-  const timeAgo = formatDistanceToNow(new Date(created_at), {
-    addSuffix: true,
-    locale: vi,
-  });
 
   return (
     <Card className="w-full hover:border-primary/50 transition-colors">
@@ -50,7 +43,7 @@ export function QuestionCard({ question }) {
         <div className="text-sm text-muted-foreground">
           <span>{author_name}</span>
           <span className="mx-1">•</span>
-          <span title={new Date(created_at).toLocaleString()}>{timeAgo}</span>
+          <ClientTimeAgo date={created_at} />
         </div>
       </CardContent>
       <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
