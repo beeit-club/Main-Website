@@ -39,6 +39,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { revalidatePosts, revalidateHome } from "@/utils/revalidateCache";
 // Giả sử bạn có component Toast
 // import { useToast } from "@/components/ui/use-toast";
 
@@ -69,8 +70,6 @@ function AddPost() {
           postServices.getAllcategory(),
           postServices.getAlltags(),
         ]);
-        console.log("🚀 ~ fetchData ~ tagRes:", tagRes);
-        console.log("🚀 ~ fetchData ~ catRes:", catRes);
         setCategories(catRes?.data?.data.categories.data || []);
         setTags(tagRes?.data?.data.data || []);
       } catch (error) {
@@ -84,7 +83,6 @@ function AddPost() {
   // 3. Hàm xử lý khi submit form
   const onSubmit = async (data) => {
     setIsSubmitting(true);
-    console.log("Form Data:", data);
     const editorContent = editorRef.current
       ? editorRef.current.getContent()
       : "";
@@ -118,7 +116,13 @@ function AddPost() {
     // --- Gửi lên server ---
     try {
       setIsSubmitting(true);
-      await postServices.createPost(formData);
+      const response = await postServices.createPost(formData);
+      // Revalidate cache sau khi tạo post
+      const slug = response?.data?.slug || response?.data?.data?.slug;
+      await Promise.all([
+        revalidatePosts(slug),
+        revalidateHome(),
+      ]);
       // toast({ title: "Thành công", description: "Đã thêm bài viết mới." });
       alert("Đã thêm bài viết mới!"); // Dùng tạm alert
       form.reset(); // Reset form

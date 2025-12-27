@@ -5,6 +5,7 @@ import {
   findOne,
   selectWithPagination,
 } from '../../utils/database.js';
+import pool from '../../db.js';
 
 const TABLE = 'users';
 
@@ -61,6 +62,65 @@ class UserModel {
 
     return await selectWithPagination(baseSql, params, option);
   }
+  /**
+   * Lấy danh sách thành viên CLB (role_id = 4) với thông tin từ member_profiles
+   * @param {Object} option - Tùy chọn phân trang và filter
+   * @param {number} option.page - Số trang (mặc định: 1)
+   * @param {number} option.limit - Số bản ghi mỗi trang (mặc định: 10)
+   * @param {Object} option.filters - Bộ lọc
+   * @param {string} option.filters.search - Tìm kiếm theo tên, email, MSSV
+   * @param {Object} option.filters.sortBy - Sắp xếp theo field
+   * @param {string} option.filters.sortDirection - Hướng sắp xếp (ASC/DESC)
+   * @returns {Promise<Object>} Danh sách thành viên với thông tin phân trang
+   */
+  static async getAllMembers(option) {
+    let baseSql = `
+      SELECT 
+        u.id,
+        u.fullname,
+        u.email,
+        u.phone,
+        u.avatar_url,
+        u.bio,
+        u.is_active,
+        u.created_at,
+        mp.student_id,
+        mp.course,
+        mp.academic_year,
+        mp.join_date
+      FROM ${TABLE} u
+      INNER JOIN member_profiles mp ON u.id = mp.user_id
+      WHERE u.deleted_at IS NULL 
+        AND mp.deleted_at IS NULL
+        AND u.role_id = 4
+        AND u.is_active = 1
+    `;
+    let params = [];
+
+    // Filter theo search (tên, email, MSSV)
+    if (option?.filters?.search) {
+      baseSql += ` AND (u.fullname LIKE ? OR u.email LIKE ? OR mp.student_id LIKE ?)`;
+      const searchTerm = `%${option.filters.search}%`;
+      params.push(searchTerm, searchTerm, searchTerm);
+    }
+
+    // Sắp xếp
+    if (option?.filters?.sortBy && option?.filters?.sortDirection) {
+      option.orderBy = {
+        field: option.filters.sortBy,
+        direction: option.filters.sortDirection || 'DESC',
+      };
+    } else if (!option?.orderBy) {
+      // Sắp xếp mặc định: ngày tham gia mới nhất
+      option.orderBy = {
+        field: 'mp.join_date',
+        direction: 'DESC',
+      };
+    }
+
+    return await selectWithPagination(baseSql, params, option);
+  }
+
   static async getAllRoles() {
     let baseSql = `
       SELECT *
@@ -291,6 +351,146 @@ class UserModel {
     `;
 
     return await findOne(sql, []);
+  }
+
+  /**
+   * Lấy danh sách users với member_profiles để gửi email
+   * Query tối ưu: 1 query duy nhất cho nhiều users
+   *
+   * @param {Array<number>} userIds - Danh sách user IDs
+   * @returns {Promise<Array>} Danh sách users với thông tin đầy đủ
+   *
+   * @example
+   * const users = await UserModel.getUsersForEmail([1, 2, 3]);
+   */
+  static async getUsersForEmail(userIds = []) {
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return [];
+    }
+
+    // Validate: chỉ lấy số nguyên dương
+    const validUserIds = userIds
+      .map((id) => parseInt(id))
+      .filter((id) => !isNaN(id) && id > 0);
+
+    if (validUserIds.length === 0) {
+      return [];
+    }
+
+    // Tạo placeholders cho IN clause
+    const placeholders = validUserIds.map(() => '?').join(',');
+
+    const sql = `
+      SELECT 
+        u.id,
+        u.fullname,
+        u.email,
+        u.phone,
+        u.avatar_url,
+        u.bio,
+        u.is_active,
+        u.email_verified_at,
+        u.created_at,
+        r.name AS role_name,
+        r.description AS role_description,
+        mp.student_id,
+        mp.academic_year,
+        mp.course,
+        mp.join_date
+      FROM ${TABLE} u
+      LEFT JOIN roles r ON u.role_id = r.id
+      LEFT JOIN member_profiles mp ON u.id = mp.user_id AND mp.deleted_at IS NULL
+      WHERE u.id IN (${placeholders})
+        AND u.deleted_at IS NULL
+        AND u.is_active = 1
+      ORDER BY u.id
+    `;
+
+    try {
+      const [rows] = await pool.query(sql, validUserIds);
+      return rows;
+    } catch (error) {
+      console.error('Error in getUsersForEmail:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Lấy users theo filter để gửi email
+   * Hỗ trợ filter: role_id, search, is_member_only
+   *
+   * @param {Object} filters - Filters
+   * @param {number} filters.role_id - Filter theo role ID
+   * @param {string} filters.search - Search theo tên, email, MSSV
+   * @param {boolean} filters.is_member_only - Chỉ lấy members (có member_profiles)
+   * @returns {Promise<Array>} Danh sách users
+   *
+   * @example
+   * const users = await UserModel.getUsersForEmailByFilter({
+   *   is_member_only: true,
+   *   search: "Nguyễn"
+   * });
+   */
+  static async getUsersForEmailByFilter(filters = {}) {
+    let sql = `
+      SELECT 
+        u.id,
+        u.fullname,
+        u.email,
+        u.phone,
+        u.avatar_url,
+        u.bio,
+        u.is_active,
+        u.email_verified_at,
+        u.created_at,
+        r.name AS role_name,
+        r.description AS role_description,
+        mp.student_id,
+        mp.academic_year,
+        mp.course,
+        mp.join_date
+      FROM ${TABLE} u
+      LEFT JOIN roles r ON u.role_id = r.id
+      LEFT JOIN member_profiles mp ON u.id = mp.user_id AND mp.deleted_at IS NULL
+      WHERE u.deleted_at IS NULL
+        AND u.is_active = 1
+    `;
+    const params = [];
+
+    // Filter: chỉ lấy members (có member_profiles)
+    if (filters.is_member_only) {
+      sql += ` AND mp.user_id IS NOT NULL`;
+    }
+
+    // Filter: role_id
+    if (filters.role_id) {
+      const roleId = parseInt(filters.role_id);
+      if (!isNaN(roleId) && roleId > 0) {
+        sql += ` AND u.role_id = ?`;
+        params.push(roleId);
+      }
+    }
+
+    // Filter: search (tên, email, MSSV)
+    if (filters.search && typeof filters.search === 'string') {
+      const searchTerm = `%${filters.search.trim()}%`;
+      sql += ` AND (
+        u.fullname LIKE ? 
+        OR u.email LIKE ? 
+        OR mp.student_id LIKE ?
+      )`;
+      params.push(searchTerm, searchTerm, searchTerm);
+    }
+
+    sql += ` ORDER BY u.id`;
+
+    try {
+      const [rows] = await pool.query(sql, params);
+      return rows;
+    } catch (error) {
+      console.error('Error in getUsersForEmailByFilter:', error);
+      throw error;
+    }
   }
 }
 

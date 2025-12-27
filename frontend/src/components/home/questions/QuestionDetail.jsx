@@ -2,18 +2,22 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Clock } from "lucide-react";
-// Giả sử bạn có hàm format ngày trong lib/datetime.js
-import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
+import { ClientTimeAgo } from "@/components/common/ClientTimeAgo";
 
 export function QuestionDetail({ question }) {
   const { title, content, author_name, author_avatar, created_at, view_count } =
     question;
 
-  const timeAgo = formatDistanceToNow(new Date(created_at), {
-    addSuffix: true,
-    locale: vi,
-  });
+  // Log dữ liệu trong component
+  console.log('=== DEBUG: QuestionDetail Component ===');
+  console.log('Full question prop:', JSON.stringify(question, null, 2));
+  console.log('author_name:', author_name);
+  console.log('author_avatar:', author_avatar);
+  console.log('Type of author_avatar:', typeof author_avatar);
+  console.log('Is author_avatar null?', author_avatar === null);
+  console.log('Is author_avatar undefined?', author_avatar === undefined);
+  console.log('author_name?.[0]:', author_name?.[0]);
+  console.log('========================================');
 
   return (
     <div className="w-full">
@@ -24,14 +28,18 @@ export function QuestionDetail({ question }) {
       <div className="flex flex-wrap items-center gap-4 mb-6 text-sm text-muted-foreground">
         <div className="flex items-center space-x-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={author_avatar} alt={author_name} />
-            <AvatarFallback>{author_name?.[0].toUpperCase()}</AvatarFallback>
+            <AvatarImage src={author_avatar || undefined} alt={author_name || "Ẩn danh"} />
+            <AvatarFallback className="bg-muted">
+              {author_name?.[0]?.toUpperCase() || "?"}
+            </AvatarFallback>
           </Avatar>
-          <span className="font-medium text-foreground">{author_name}</span>
+          <span className="font-medium text-foreground">
+            {author_name || "Người dùng ẩn danh"}
+          </span>
         </div>
-        <div className="flex items-center space-x-1" title={timeAgo}>
+        <div className="flex items-center space-x-1">
           <Clock className="h-4 w-4" />
-          <span>Đã hỏi {timeAgo}</span>
+          <span>Đã hỏi <ClientTimeAgo date={created_at} /></span>
         </div>
         <div className="flex items-center space-x-1">
           <Eye className="h-4 w-4" />
@@ -44,7 +52,7 @@ export function QuestionDetail({ question }) {
 
       {/* Nội dung câu hỏi */}
       <div
-        className="prose dark:prose-invert max-w-none"
+        className="prose dark:prose-invert max-w-none overflow-hidden break-words break-all"
         dangerouslySetInnerHTML={{ __html: content }}
       />
     </div>

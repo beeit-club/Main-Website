@@ -24,7 +24,7 @@ function buildAnswerTree(answers) {
   // Bước 2: Xây dựng tree structure
   answers.forEach((answer) => {
     const answerWithChildren = answerMap.get(answer.id);
-    
+
     if (answer.parent_id === null || answer.parent_id === undefined) {
       // Root answer (trả lời trực tiếp câu hỏi)
       rootAnswers.push(answerWithChildren);
@@ -61,6 +61,14 @@ const HomeService = {
       throw error;
     }
   },
+  getAllDocumentCategory: async (option) => {
+    try {
+      const documentCategories = await HomeModel.getAllDocumentCategory(option);
+      return documentCategories;
+    } catch (error) {
+      throw error;
+    }
+  },
   getAllTag: async (option) => {
     try {
       const tags = await HomeModel.getAllTag(option);
@@ -81,7 +89,6 @@ const HomeService = {
     try {
       // kiểm tra xem post tồn tại không
       const isCheck = await postModel.checkIsPost(slug);
-      console.log('🚀 ~ isCheck:', isCheck);
       if (!isCheck) {
         throw new ServiceError(
           'Bài viết không tồn tại', // Bạn cần định nghĩa message này
@@ -90,6 +97,11 @@ const HomeService = {
           404,
         );
       }
+
+      // Tăng số lượt xem trước khi lấy bài viết
+      await postModel.incrementViewCount(slug);
+
+      // Lấy thông tin bài viết
       const post = await HomeModel.getPostDetaill(slug);
       return post;
     } catch (error) {
@@ -117,6 +129,20 @@ const HomeService = {
         );
       }
 
+      // Log dữ liệu từ service
+      console.log('=== DEBUG: Question data in Service ===');
+      console.log('Question object:', JSON.stringify(question, null, 2));
+      console.log('author_name:', question?.author_name);
+      console.log('author_avatar:', question?.author_avatar);
+      console.log('author_id:', question?.author_id);
+      console.log('Type of author_avatar:', typeof question?.author_avatar);
+      console.log('Is author_avatar null?', question?.author_avatar === null);
+      console.log(
+        'Is author_avatar undefined?',
+        question?.author_avatar === undefined,
+      );
+      console.log('========================================');
+
       // Build tree structure cho answers (nested comments)
       if (question.answers && question.answers.length > 0) {
         question.answers = buildAnswerTree(question.answers);
@@ -141,7 +167,9 @@ const HomeService = {
   createAnswer: async (data) => {
     try {
       // Kiểm tra question tồn tại
-      const questionExists = await questionModel.getOneQuestion(data.question_id);
+      const questionExists = await questionModel.getOneQuestion(
+        data.question_id,
+      );
       if (!questionExists) {
         throw new ServiceError(
           'Câu hỏi không tồn tại',
@@ -242,7 +270,11 @@ const HomeService = {
       }
       // Kiểm tra document có published và public không
       const fullDocument = await documentModel.getOneDocument(documentId.id);
-      if (!fullDocument || fullDocument.status !== 1 || fullDocument.access_level !== 'public') {
+      if (
+        !fullDocument ||
+        fullDocument.status !== 1 ||
+        fullDocument.access_level !== 'public'
+      ) {
         throw new ServiceError(
           'Tài liệu không tồn tại',
           'DOCUMENT_NOT_FOUND',

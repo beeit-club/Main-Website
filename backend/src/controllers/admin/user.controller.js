@@ -3,6 +3,7 @@ import asyncWrapper from '../../middlewares/error.handler.js';
 import userService from '../../services/admin/user.service.js';
 import { utils } from '../../utils/index.js';
 import Schema from '../../validation/admin/user.validation.js';
+import { sanitizeText } from '../../utils/sanitize.js';
 import {
   PaginationSchema,
   params,
@@ -36,13 +37,36 @@ const userController = {
   }),
 
   /**
+   * 📋 Lấy danh sách thành viên CLB (có phân trang)
+   * GET /api/admin/users/members?page=1&limit=10
+   */
+  getAllMembers: asyncWrapper(async (req, res) => {
+    // Ép apply default trước khi validate
+    const query = PaginationSchema.cast(req.query);
+
+    // Validate (nhưng sẽ không lỗi vì transform đã fallback)
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { search, sortBy, sortDirection } = req.query;
+    const result = await userService.getAllMembers({
+      ...valid,
+      filters: {
+        search,
+        sortBy,
+        sortDirection,
+      },
+    });
+    return utils.success(res, message.User.FETCH_SUCCESS, result);
+  }),
+
+  /**
    * 🔹 Lấy thông tin chi tiết user theo ID
    * GET /api/users/:id
    */
   getUserById: asyncWrapper(async (req, res) => {
     await params.id.validate(req.params, { abortEarly: false });
     const { id } = req.params;
-    console.log('🚀 ~ id: view', id);
     const user = await userService.getUserById(id);
     return utils.success(res, message.User.FETCH_SUCCESS, { user });
   }),
@@ -75,12 +99,13 @@ const userController = {
       is_active,
       email_verified_at,
     } = req.body;
+    // Sanitize text fields để tránh XSS
     const data = {
-      ...(fullname && { fullname }),
+      ...(fullname && { fullname: sanitizeText(fullname) }),
       ...(email && { email }),
       ...(phone && { phone }),
       ...(avatar_url && { avatar_url }),
-      ...(bio && { bio }),
+      ...(bio && { bio: sanitizeText(bio) }),
       ...(role_id && { role_id }),
       ...(is_active && { is_active }),
       ...(email_verified_at && { email_verified_at }),
@@ -152,7 +177,6 @@ const userController = {
   hardDeleteUser: asyncWrapper(async (req, res) => {
     await params.id.validate(req.params, { abortEarly: false });
     const { id } = req.params;
-    console.log('🚀 ~ id:', id);
     const { fullname, email } = await userService.getUserById(id);
     await userService.hardDeleteUser(id);
     return utils.success(res, message.User.HARD_DELETE_SUCCESS, {

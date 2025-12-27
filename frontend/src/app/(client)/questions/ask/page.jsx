@@ -21,12 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -47,16 +42,13 @@ export default function AskQuestionPage() {
 
   // 2. Hàm xử lý khi submit form
   const onSubmit = async (data) => {
-    console.log("🚀 Form submitted with data:", data);
     setIsSubmitting(true);
 
     // Lấy nội dung từ TinyEditor
     const editorContent = editorRef.current
       ? editorRef.current.getContent()
       : "";
-    
-    console.log("📝 Editor content:", editorContent);
-    
+
     if (!editorContent || editorContent.trim() === "") {
       toast.error("Nội dung câu hỏi không được để trống");
       setIsSubmitting(false);
@@ -69,49 +61,35 @@ export default function AskQuestionPage() {
         content: editorContent,
         meta_description: data.meta_description || "",
       };
-      
-      console.log("📤 Sending question data:", questionData);
-      
+
       // Gửi dữ liệu lên server
       const response = await createQuestion(questionData);
-      
-      console.log("✅ Response from server:", response);
 
       toast.success("Câu hỏi đã được đăng thành công!");
-      
+
       // Reset form
       form.reset();
       if (editorRef.current) {
         editorRef.current.setContent("");
       }
-      
+
       // Revalidate cache để cập nhật danh sách câu hỏi
       try {
-        await fetch("/api/revalidate?tag=questionsList", {
-          method: "POST",
-        });
-        console.log("✅ Cache revalidated for questionsList");
+        const { revalidateQuestions } = await import("@/utils/revalidateCache");
+        await revalidateQuestions();
       } catch (revalidateError) {
-        console.error("⚠️ Failed to revalidate cache:", revalidateError);
         // Không block flow nếu revalidate fail
       }
-      
+
       // Redirect về trang danh sách câu hỏi (sẽ tự động lấy dữ liệu mới vì cache đã revalidate)
       setTimeout(() => {
         router.push("/questions");
       }, 1500);
     } catch (error) {
-      console.error("❌ Error creating question:", error);
-      console.error("❌ Error details:", {
-        error,
-        message: error?.message,
-        response: error?.response?.data,
-        status: error?.response?.status,
-      });
-      
+
       // Hiển thị lỗi chi tiết hơn
       let errorMessage = "Không thể tạo câu hỏi. Vui lòng thử lại.";
-      
+
       if (typeof error === "string") {
         errorMessage = error;
       } else if (error?.message) {
@@ -123,7 +101,7 @@ export default function AskQuestionPage() {
       } else if (error?.error) {
         errorMessage = error.error;
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -132,7 +110,6 @@ export default function AskQuestionPage() {
 
   // Hàm xử lý khi form validation fail
   const onError = (errors) => {
-    console.error("❌ Form validation errors:", errors);
     toast.error("Vui lòng kiểm tra lại thông tin đã nhập");
   };
 
@@ -155,7 +132,10 @@ export default function AskQuestionPage() {
 
       {/* Form */}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onError)}
+          className="space-y-6"
+        >
           <Card>
             <CardHeader>
               <CardTitle>Thông tin câu hỏi</CardTitle>
@@ -168,7 +148,8 @@ export default function AskQuestionPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Tiêu đề câu hỏi <span className="text-destructive">*</span>
+                      Tiêu đề câu hỏi{" "}
+                      <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -177,7 +158,8 @@ export default function AskQuestionPage() {
                       />
                     </FormControl>
                     <FormDescription>
-                      Một tiêu đề rõ ràng giúp người khác dễ dàng hiểu và trả lời.
+                      Một tiêu đề rõ ràng giúp người khác dễ dàng hiểu và trả
+                      lời.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -214,7 +196,12 @@ export default function AskQuestionPage() {
                   Mô tả chi tiết vấn đề của bạn. Càng rõ ràng càng tốt.
                 </FormDescription>
                 <FormControl>
-                  <TinyEditor editorRef={editorRef} initialValue="" />
+                  <TinyEditor
+                    editorRef={editorRef}
+                    initialValue=""
+                    heightMin={700}
+                    hideMenubar={false}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -240,4 +227,3 @@ export default function AskQuestionPage() {
     </div>
   );
 }
-

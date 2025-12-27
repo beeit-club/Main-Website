@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Search, FileText, MessageSquare } from "lucide-react";
 
-// Import các component Command từ shadcn/ui
+// Import các component Command từ shadcn/ui (không phải Radix UI nên không cần dynamic)
 import {
   Command,
-  CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
@@ -15,6 +15,13 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+
+// Dynamic import CommandDialog để tránh hydration error (sử dụng Dialog từ Radix UI)
+const CommandDialog = dynamic(
+  () => import("@/components/ui/command").then((mod) => mod.CommandDialog),
+  { ssr: false }
+);
+
 // Import Button để làm trigger
 import { Button } from "@/components/ui/button";
 

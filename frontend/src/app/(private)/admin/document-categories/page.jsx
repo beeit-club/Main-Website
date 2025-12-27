@@ -40,9 +40,6 @@ import { PlusCircle } from "lucide-react";
 export default function ListDocumentCategories() {
   // Data state
   const [data, setData] = useState([]); // Dữ liệu cho bảng (đã phân trang)
-  console.log("🚀 ~ ListDocumentCategories ~ data:", data);
-  const [categoryList, setCategoryList] = useState([]); // Danh sách đầy đủ (cho dropdown)
-  const [categoryMap, setCategoryMap] = useState(new Map()); // Map ID -> Tên (để hiển thị)
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -56,23 +53,6 @@ export default function ListDocumentCategories() {
 
   const debouncedSearch = useDebounce(globalFilter, 500);
 
-  // Tải danh sách đầy đủ (cho dropdown và mapping)
-  async function loadAllCategories() {
-    try {
-      const res = await documentCategoryServices.getAll({ limit: 1000 }); // Lấy tất cả
-      const categories = res?.data.data.data || [];
-      setCategoryList(categories);
-
-      // Tạo Map để tra cứu tên
-      const map = new Map();
-      categories.forEach((cat) => {
-        map.set(cat.id, cat.name);
-      });
-      setCategoryMap(map);
-    } catch (error) {
-      toast.error("Tải danh sách danh mục (đầy đủ) thất bại.");
-    }
-  }
 
   // Tải dữ liệu chính cho bảng (phân trang)
   async function loadData() {
@@ -85,10 +65,13 @@ export default function ListDocumentCategories() {
       };
 
       const res = await documentCategoryServices.getAll(options);
-      const categories = res?.data.data.data || [];
-      setData(categories || []);
-      setPageCount(res?.data.data.pagination.totalPages || 0);
+      // Response structure: { status, message, data: { documentCategories: { data: [...], pagination: {...} } } }
+      const documentCategories = res?.data?.data?.documentCategories || {};
+      const categories = documentCategories?.data || res?.data?.data?.data || [];
+      setData(categories);
+      setPageCount(documentCategories?.pagination?.totalPages || res?.data?.data?.pagination?.totalPages || 0);
     } catch (error) {
+      console.error("❌ Error loading data:", error);
       toast.error("Tải danh sách tài liệu thất bại.");
     } finally {
       setIsLoading(false);
@@ -100,25 +83,11 @@ export default function ListDocumentCategories() {
     loadData();
   }, [pagination, debouncedSearch]);
 
-  // Tải danh sách đầy đủ khi mount
-  useEffect(() => {
-    loadAllCategories();
-  }, []);
-
-  // Transform data để thêm parent_name
-  const displayData = useMemo(() => {
-    return data.map((item) => ({
-      ...item,
-      parent_name: categoryMap.get(item.parent_id) || "— Không có —", //
-    }));
-  }, [data, categoryMap]);
-
   // --- Cấu hình React Hook Form (cho Dialog Thêm) ---
   const form = useForm({
     resolver: yupResolver(documentCategorySchema),
     defaultValues: {
       name: "",
-      parent_id: "null", // Dùng "null" string cho Select
     },
   });
   const { isSubmitting } = form.formState;
@@ -132,7 +101,6 @@ export default function ListDocumentCategories() {
         setOpenAdd(false);
         form.reset();
         loadData(); // Tải lại trang hiện tại
-        loadAllCategories(); // Tải lại danh sách đầy đủ
       } else {
         toast.error(res.message || "Thêm danh mục thất bại.");
       }
@@ -143,7 +111,7 @@ export default function ListDocumentCategories() {
 
   function handleCloseDialog() {
     setOpenAdd(false);
-    form.reset({ name: "", parent_id: "null" });
+    form.reset({ name: "" });
   }
 
   return (
@@ -159,7 +127,7 @@ export default function ListDocumentCategories() {
       {/* Bảng dữ liệu */}
       <DataTable
         columns={columns}
-        data={displayData} // Dùng data đã biến đổi
+        data={data}
         isLoading={isLoading}
         // State
         pagination={pagination}
@@ -199,37 +167,6 @@ export default function ListDocumentCategories() {
                 )}
               />
 
-              {/* Parent ID */}
-              <FormField
-                control={form.control}
-                name="parent_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Danh mục cha</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={String(field.value || "null")}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="— Chọn danh mục cha —" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="null">
-                          — Là danh mục cha —
-                        </SelectItem>
-                        {categoryList.map((cat) => (
-                          <SelectItem key={cat.id} value={String(cat.id)}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>{" "}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <DialogFooter>
                 <Button

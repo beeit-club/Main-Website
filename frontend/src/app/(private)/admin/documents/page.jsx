@@ -55,7 +55,7 @@ export default function ListDocuments() {
 
   const [sorting, setSorting] = useState([]); // BE chưa hỗ trợ, nhưng để đây
   const [globalFilter, setGlobalFilter] = useState(""); // Lọc theo 'title'
-  const [categoryFilter, setCategoryFilter] = useState(""); // Lọc theo 'category_id'
+  const [categoryFilter, setCategoryFilter] = useState("all"); // Lọc theo 'category_id'
 
   const debouncedSearch = useDebounce(globalFilter, 500);
 
@@ -63,8 +63,19 @@ export default function ListDocuments() {
   async function loadCategories() {
     try {
       const res = await documentCategoryServices.getAll();
-      setCategories(res?.data?.data?.categories.data || []);
+      // Response structure: { status, message, data: { documentCategories: { data: [...], pagination: {...} } } }
+      // res từ axiosClient = { data: { status, message, data: { documentCategories: {...} } } }
+      // res.data = { status, message, data: { documentCategories: {...} } }
+      // res.data.data = { documentCategories: { data: [...], pagination: {...} } }
+      // res.data.data.documentCategories = { data: [...], pagination: {...} }
+      // res.data.data.documentCategories.data = [...]
+      const categories =
+        res?.data?.data?.documentCategories?.data ||
+        res?.data?.data?.data ||
+        [];
+      setCategories(categories);
     } catch (error) {
+      console.error("❌ Error loading categories:", error);
       toast.error("Tải danh mục thất bại.");
     }
   }
@@ -77,7 +88,10 @@ export default function ListDocuments() {
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
         search: debouncedSearch,
-        category_id: categoryFilter || undefined,
+        category_id:
+          categoryFilter && categoryFilter !== "all"
+            ? categoryFilter
+            : undefined,
         // (BE chưa hỗ trợ sort)
       };
 
@@ -121,6 +135,9 @@ export default function ListDocuments() {
     try {
       const res = await documentServices.createDocument(formData);
       if (res.status === "success") {
+        // Revalidate cache sau khi tạo document
+        const { revalidateDocuments } = await import("@/utils/revalidateCache");
+        await revalidateDocuments();
         toast.success("Thêm tài liệu mới thành công!");
         setOpenAdd(false);
         form.reset();
@@ -182,7 +199,7 @@ export default function ListDocuments() {
               <SelectValue placeholder="Lọc theo danh mục..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tất cả danh mục</SelectItem>
+              <SelectItem value="all">Tất cả danh mục</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={String(cat.id)}>
                   {cat.name}

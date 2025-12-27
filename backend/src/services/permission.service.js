@@ -12,21 +12,21 @@ import { ROLE } from '../common/enum.js';
 export async function userHasPermission(userId, permissionName) {
   try {
     // First, get the user's role
-    // const [userRows] = await db.query(
-    //   'SELECT role_id FROM users WHERE id = ?',
-    //   [userId],
-    // );
+    const [userRows] = await db.query(
+      'SELECT role_id FROM users WHERE id = ? AND deleted_at IS NULL',
+      [userId],
+    );
 
-    // if (userRows.length === 0) {
-    //   return false; // User not found
-    // }
+    if (userRows.length === 0) {
+      return false; // User not found
+    }
 
-    // const user = userRows[0];
+    const user = userRows[0];
 
-    // // Super Admin (assuming role_id 1) has all permissions
-    // if (user.role_id === ROLE.SUPER_ADMIN) {
-    //   return true;
-    // }
+    // Super Admin (role_id = 1) has all permissions
+    if (user.role_id === ROLE.SUPER_ADMIN) {
+      return true;
+    }
 
     // Check for specific permission in the user_permissions table
     const [permissionRows] = await db.query(

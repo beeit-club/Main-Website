@@ -3,6 +3,7 @@ import tagService from '../../services/admin/tag.service.js';
 import { slugify } from '../../utils/function.js';
 import { utils } from '../../utils/index.js';
 import TagSchema from '../../validation/admin/tag.validation.js';
+import { sanitizeText } from '../../utils/sanitize.js';
 import {
   PaginationSchema,
   params,
@@ -47,12 +48,14 @@ const tagController = {
     const { name, meta_description } = req.body;
     const slug = slugify(name);
     const user = req.user;
-    console.log('🚀 ~ user:', user);
     const { id } = user;
+    // Sanitize text để tránh XSS
+    const sanitizedName = sanitizeText(name);
+    const sanitizedMetaDescription = meta_description ? sanitizeText(meta_description) : null;
     const tagData = {
-      name,
+      name: sanitizedName,
       slug,
-      meta_description,
+      meta_description: sanitizedMetaDescription,
       created_by: id, // Sẽ cập nhật sau
       updated_by: null,
     };
@@ -73,11 +76,12 @@ const tagController = {
     const { id: userID } = user;
     const tagData = {};
     if (name) {
-      tagData.name = name;
+      // Sanitize text để tránh XSS
+      tagData.name = sanitizeText(name);
       tagData.slug = slugify(name);
     }
     if (meta_description) {
-      tagData.meta_description = meta_description;
+      tagData.meta_description = sanitizeText(meta_description);
     }
     tagData.updated_by = userID;
 

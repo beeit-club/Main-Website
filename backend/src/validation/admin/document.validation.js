@@ -11,9 +11,62 @@ const DocumentSchema = {
       .required('Tiêu đề là bắt buộc')
       .min(5, 'Tiêu đề phải có ít nhất 5 ký tự')
       .max(500, 'Tiêu đề không được vượt quá 500 ký tự'),
-    description: yup.string().trim().optional(),
-    file_url: yup.string().trim().url('URL file không hợp lệ').optional(),
-    category_id: yup.number().min(1, 'ID danh mục không hợp lệ').nullable(),
+    description: yup
+      .string()
+      .trim()
+      .transform((value, originalValue) => {
+        if (originalValue === '' || originalValue === null || originalValue === undefined) {
+          return null;
+        }
+        return value;
+      })
+      .nullable()
+      .optional(),
+    file_url: yup
+      .string()
+      .trim()
+      .transform((value, originalValue) => {
+        if (originalValue === '' || originalValue === null || originalValue === undefined) {
+          return null;
+        }
+        return value;
+      })
+      .nullable()
+      .test('is-url', 'URL file không hợp lệ', function(value) {
+        if (!value || value.trim() === '') return true; // Cho phép null/empty
+        try {
+          new URL(value);
+          return true;
+        } catch {
+          return false;
+        }
+      })
+      .optional(),
+    preview_url: yup
+      .string()
+      .trim()
+      .transform((value, originalValue) => {
+        if (originalValue === '' || originalValue === null || originalValue === undefined) {
+          return null;
+        }
+        return value;
+      })
+      .nullable()
+      .test('is-url', 'URL preview không hợp lệ', function(value) {
+        if (!value || value.trim() === '') return true; // Cho phép null/empty
+        try {
+          new URL(value);
+          return true;
+        } catch {
+          return false;
+        }
+      })
+      .optional(),
+    category_id: yup
+      .number()
+      .transform((value) => (value === '' || value === null || value === 0 ? null : value))
+      .nullable()
+      .optional(),
     access_level: yup
       .string()
       .oneOf(
@@ -32,11 +85,60 @@ const DocumentSchema = {
       .min(5, 'Tiêu đề phải có ít nhất 5 ký tự')
       .max(500, 'Tiêu đề không được vượt quá 500 ký tự')
       .optional(),
-    description: yup.string().trim().optional(),
-    file_url: yup.string().trim().url('URL file không hợp lệ').optional(),
+    description: yup
+      .string()
+      .trim()
+      .transform((value, originalValue) => {
+        if (originalValue === '' || originalValue === null || originalValue === undefined) {
+          return null;
+        }
+        return value;
+      })
+      .nullable()
+      .optional(),
+    file_url: yup
+      .string()
+      .trim()
+      .transform((value, originalValue) => {
+        if (originalValue === '' || originalValue === null || originalValue === undefined) {
+          return null;
+        }
+        return value;
+      })
+      .nullable()
+      .test('is-url', 'URL file không hợp lệ', function(value) {
+        if (!value || value.trim() === '') return true; // Cho phép null/empty
+        try {
+          new URL(value);
+          return true;
+        } catch {
+          return false;
+        }
+      })
+      .optional(),
+    preview_url: yup
+      .string()
+      .trim()
+      .transform((value, originalValue) => {
+        if (originalValue === '' || originalValue === null || originalValue === undefined) {
+          return null;
+        }
+        return value;
+      })
+      .nullable()
+      .test('is-url', 'URL preview không hợp lệ', function(value) {
+        if (!value || value.trim() === '') return true; // Cho phép null/empty
+        try {
+          new URL(value);
+          return true;
+        } catch {
+          return false;
+        }
+      })
+      .optional(),
     category_id: yup
       .number()
-      .min(1, 'ID danh mục không hợp lệ')
+      .transform((value) => (value === '' || value === null || value === 0 ? null : value))
       .nullable()
       .optional(),
     access_level: yup

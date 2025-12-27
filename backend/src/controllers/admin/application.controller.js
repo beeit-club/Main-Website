@@ -2,6 +2,7 @@ import asyncWrapper from '../../middlewares/error.handler.js';
 import { applicationService } from '../../services/admin/index.js';
 import { utils } from '../../utils/index.js';
 import ApplicationSchema from '../../validation/admin/application.validation.js';
+import { sanitizeText } from '../../utils/sanitize.js';
 import { message } from '../../common/message/index.js';
 import {
   PaginationSchema,
@@ -16,8 +17,16 @@ const applicationController = {
       stripUnknown: true,
     });
 
-    // Mặc định status là 0 (Chờ xử lý)
-    const applicationData = { ...req.body, status: 0 };
+    const { fullname, student_id, student_year, major, ...rest } = req.body;
+    // Sanitize text fields để tránh XSS
+    const applicationData = {
+      fullname: sanitizeText(fullname),
+      student_id: sanitizeText(student_id),
+      student_year: sanitizeText(student_year),
+      major: sanitizeText(major),
+      ...rest,
+      status: 0, // Mặc định status là 0 (Chờ xử lý)
+    };
 
     const application = await applicationService.createApplication(
       applicationData,
@@ -80,10 +89,12 @@ const applicationController = {
     await params.id.validate(req.params);
     await ApplicationSchema.decision.validate(req.body, { stripUnknown: true });
     const adminId = req.user.id; // Lấy từ middleware auth
+    // Sanitize interview_notes để tránh XSS
+    const sanitizedNotes = req.body.interview_notes ? sanitizeText(req.body.interview_notes) : null;
 
     const result = await applicationService.approveApplication(
       req.params.id,
-      req.body.interview_notes,
+      sanitizedNotes,
       adminId,
     );
     utils.success(res, message.APPLICATION_APPROVED_SUCCESS, {
@@ -95,10 +106,12 @@ const applicationController = {
   rejectApplication: asyncWrapper(async (req, res) => {
     await params.id.validate(req.params);
     await ApplicationSchema.decision.validate(req.body, { stripUnknown: true });
+    // Sanitize interview_notes để tránh XSS
+    const sanitizedNotes = req.body.interview_notes ? sanitizeText(req.body.interview_notes) : null;
 
     const result = await applicationService.rejectApplication(
       req.params.id,
-      req.body.interview_notes,
+      sanitizedNotes,
     );
     utils.success(res, message.APPLICATION_REJECTED_SUCCESS, { id: result.id });
   }),

@@ -4,6 +4,7 @@ import categoryService from '../../services/admin/category.service.js';
 import { slugify } from '../../utils/function.js';
 import { utils } from '../../utils/index.js';
 import CategorySchema from '../../validation/admin/category.validation.js';
+import { sanitizeText } from '../../utils/sanitize.js';
 import {
   PaginationSchema,
   params,
@@ -58,9 +59,11 @@ const categoryControler = {
   createCategory: asyncWrapper(async (req, res) => {
     await CategorySchema.create.validate(req.body, { abortEarly: false });
     const { name, parent_id } = req.body;
+    // Sanitize text để tránh XSS
+    const sanitizedName = sanitizeText(name);
     const slug = slugify(name);
     const cate = {
-      name,
+      name: sanitizedName,
       slug,
       parent_id: parent_id ?? null,
     };
@@ -78,9 +81,11 @@ const categoryControler = {
     await CategorySchema.update.validate(req.body, { abortEarly: false });
     const { id } = req.params;
     const { name, parent_id } = req.body;
+    // Sanitize text để tránh XSS
+    const sanitizedName = sanitizeText(name);
     const slug = slugify(name);
     const cate = {
-      name,
+      name: sanitizedName,
       slug,
       parent_id: parent_id ?? null,
     };

@@ -41,7 +41,7 @@ export const getAllQuestions = async (params) => {
     method: "GET",
     next: {
       revalidate: ONE_HOUR_IN_SECONDS, // Danh sách revalidate mỗi giờ
-      tags: ["questionsList"], // Tag để revalidate thủ công
+      tags: ["questions-list"], // Tag để revalidate thủ công (kebab-case)
     },
   });
 
@@ -85,7 +85,20 @@ export const getQuestionDetail = async (slug) => {
   }
 
   // res.json() sẽ trả về { status: 'success', message: '...', data: { ... } }
-  return res.json();
+  const data = await res.json();
+  
+  // Log dữ liệu nhận được từ API
+  console.log('=== DEBUG: Question data from API ===');
+  console.log('Full response:', JSON.stringify(data, null, 2));
+  if (data?.data) {
+    console.log('author_name:', data.data.author_name);
+    console.log('author_avatar:', data.data.author_avatar);
+    console.log('author_id:', data.data.author_id);
+    console.log('All keys:', Object.keys(data.data));
+  }
+  console.log('=====================================');
+  
+  return data;
 };
 
 /**
@@ -94,21 +107,20 @@ export const getQuestionDetail = async (slug) => {
  */
 export const createQuestion = async (data) => {
   try {
-    console.log("📡 API Call: POST /client/questions", data);
+    // Log để debug
+    const token = localStorage.getItem("accessToken");
+    console.log('=== DEBUG: Frontend createQuestion ===');
+    console.log('Has token in localStorage:', !!token);
+    console.log('Token value:', token ? token.substring(0, 20) + '...' : 'No token');
+    console.log('======================================');
+    
     const response = await axiosClient.post("/client/questions", data, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    console.log("✅ API Response:", response.data);
     return response.data; // { status: 'success', message: '...', data: { id: ... } }
   } catch (error) {
-    console.error("❌ API Error creating question:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      config: error.config,
-    });
     
     // Throw error object để component có thể xử lý
     // Đảm bảo error object luôn có property message
@@ -136,21 +148,13 @@ export const createQuestion = async (data) => {
  */
 export const createAnswer = async (data) => {
   try {
-    console.log("📡 API Call: POST /client/answers", data);
     const response = await axiosClient.post("/client/answers", data, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    console.log("✅ API Response:", response.data);
     return response.data; // { status: 'success', message: '...', data: { id: ... } }
   } catch (error) {
-    console.error("❌ API Error creating answer:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      config: error.config,
-    });
     
     // Throw error object để component có thể xử lý
     // Đảm bảo error object luôn có property message
@@ -179,7 +183,6 @@ export const createAnswer = async (data) => {
  */
 export const voteAnswer = async (answerId, voteType) => {
   try {
-    console.log("📡 API Call: POST /admin/answers/" + answerId + "/vote", { vote_type: voteType });
     const response = await axiosClient.post(`/admin/answers/${answerId}/vote`, {
       vote_type: voteType,
     }, {
@@ -187,15 +190,8 @@ export const voteAnswer = async (answerId, voteType) => {
         "Content-Type": "application/json",
       },
     });
-    console.log("✅ API Response:", response.data);
     return response.data; // { status: 'success', data: { id, vote_score } }
   } catch (error) {
-    console.error("❌ API Error voting answer:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    });
-    
     if (error.response?.data) {
       const serverError = error.response.data;
       const errorObj = {

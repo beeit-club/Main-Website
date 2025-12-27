@@ -40,7 +40,6 @@ class CommentModel {
   }
   // update
   static async update(id, data) {
-    console.log('🚀 ~ CommentModel ~ update ~ data:', data);
     try {
       const updatedComment = await update(TABLE, data, { id });
       return updatedComment;

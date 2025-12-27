@@ -90,7 +90,7 @@ export function AnswerForm({ questionId, onSuccess }) {
             <p className="text-sm text-muted-foreground">
               Viết câu trả lời chi tiết và rõ ràng cho câu hỏi này (tối thiểu 10 ký tự).
             </p>
-            <TinyEditor editorRef={editorRef} initialValue="" />
+            <TinyEditor editorRef={editorRef} initialValue="" heightMin={200} hideMenubar={true} />
           </div>
 
           <div className="flex justify-end gap-3">

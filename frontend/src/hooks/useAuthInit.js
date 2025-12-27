@@ -20,8 +20,17 @@ export function useAuthInit() {
       try {
         // 2. Gọi /auth/me để lấy dữ liệu mới nhất
         const res = await authServices.getPremiss();
+        console.log("=== useAuthInit Debug ===");
+        console.log("Full response:", res);
+        console.log("res.data:", res?.data);
+        console.log("res.data.userData:", res?.data?.userData);
+        console.log("userData.role_id:", res?.data?.userData?.role_id);
+        
         setPermissions(res?.data?.permissions);
         setUser(res?.data?.userData); // <-- setUser() sẽ set isLoading: false
+        
+        // Log sau khi set user
+        console.log("User set to store:", res?.data?.userData);
       } catch (err) {
         console.error("Auth init error:", err);
         logout(); // <-- SỬA Ở ĐÂY: nếu token hết hạn hoặc lỗi → logout()

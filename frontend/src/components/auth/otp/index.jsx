@@ -65,15 +65,43 @@ export default function InputOTPForm({ token }) {
       setLoading(false);
       const { error, message } = err ?? {};
       const { code, fields } = error ?? {};
+
+      // Xử lý validation errors
       if (code === "VALIDATION_ERROR" && fields) {
         Object.entries(fields).forEach(([field, messages]) => {
           setError(field, { type: "server", message: messages[0] });
         });
+        return;
+      }
+
+      // Xử lý các lỗi OTP
+      if (code === "OTP_ATTEMPTS_EXCEEDED") {
+        toast.error(message || "Bạn đã nhập sai quá nhiều lần");
+        setOtpLock();
+        return;
+      }
+
+      if (code === "OTP_EXPIRED") {
+        toast.error(message || "OTP đã hết hạn. Vui lòng yêu cầu mã OTP mới", {
+          duration: 5000,
+        });
+        // Redirect về trang login để yêu cầu OTP mới
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+        return;
+      }
+
+      if (code === "OTP_INVALID") {
+        toast.error(message || "Mã OTP không chính xác. Vui lòng thử lại");
+        return;
+      }
+
+      // Xử lý các lỗi khác
+      if (message) {
+        toast.error(message);
       } else {
-        if (code == "OTP_ATTEMPTS_EXCEEDED") {
-          toast.error(message);
-          setOtpLock();
-        }
+        toast.error("Đã xảy ra lỗi. Vui lòng thử lại");
       }
     }
   }

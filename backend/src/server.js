@@ -1,3 +1,6 @@
+// Import env.config đầu tiên để đảm bảo dotenv được load trước tất cả
+import './config/env.config.js';
+
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -52,7 +55,7 @@ app.get('/', async (req, res) => {
 app.use('/', routers);
 
 // Lắng nghe port
-const PORT = config.PORT || 8080;
+const PORT = config.PORT || 8000;
 httpServer.listen(PORT, () => {
   console.log(`✅ Server đang chạy tại http://localhost:${PORT}`);
 });

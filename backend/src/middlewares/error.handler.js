@@ -8,9 +8,28 @@ import { formatYupErrors } from '../utils/yupError.js';
 // Hàm Higher-Order để bọc các hàm controller async
 const asyncWrapper = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch((error) => {
+    console.error('🚨 [asyncWrapper] Caught error:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      path: req.path,
+      method: req.method,
+      query: req.query,
+      params: req.params,
+      body: req.body,
+    });
+
     // Bắt lỗi validate (Yup)
     if (error.name === 'ValidationError') {
+      console.error('🚨 [asyncWrapper] ValidationError detected:', {
+        errors: error.errors,
+        inner: error.inner,
+        path: error.path,
+        value: error.value,
+      });
+
       const fieldErrors = formatYupErrors(error);
+      console.error('🚨 [asyncWrapper] Formatted field errors:', fieldErrors);
 
       return res.status(400).json({
         status: 'error',

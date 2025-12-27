@@ -2,6 +2,7 @@ import asyncWrapper from '../../middlewares/error.handler.js';
 import answerService from '../../services/admin/answer.service.js';
 import { utils } from '../../utils/index.js';
 import AnswerSchema from '../../validation/admin/answer.validation.js';
+import { sanitizeHtml } from '../../utils/sanitize.js';
 import {
   PaginationSchema,
   params,
@@ -34,9 +35,16 @@ const answerController = {
   // 👇 THAY ĐỔI LOGIC
   createAnswer: asyncWrapper(async (req, res) => {
     await AnswerSchema.create.validate(req.body, { abortEarly: false });
+    const { content } = req.body;
+
+    // Sanitize HTML content để tránh XSS
+    const sanitizedContent = sanitizeHtml(content);
 
     // Lấy question_id từ body thay vì params
-    const answerData = { ...req.body };
+    const answerData = { 
+      ...req.body,
+      content: sanitizedContent
+    };
     const newAnswer = await answerService.createAnswer(answerData);
     utils.success(res, ANSWER_CREATE_SUCCESS, { id: newAnswer.insertId });
   }),
@@ -52,8 +60,15 @@ const answerController = {
     await params.id.validate(req.params);
     await AnswerSchema.update.validate(req.body, { abortEarly: false });
     const { id } = req.params;
+    const { content } = req.body;
+    
+    // Sanitize HTML content để tránh XSS
+    const updateData = { ...req.body };
+    if (content) {
+      updateData.content = sanitizeHtml(content);
+    }
 
-    await answerService.updateAnswer(id, req.body);
+    await answerService.updateAnswer(id, updateData);
     utils.success(res, ANSWER_UPDATE_SUCCESS, { id: Number(id) });
   }),
 

@@ -1,12 +1,24 @@
 "use client";
-import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Download, Lock, Users, Globe, ExternalLink } from "lucide-react";
+import {
+  FileText,
+  Download,
+  Lock,
+  Users,
+  Globe,
+  Folder,
+  Calendar,
+} from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-
-const DEFAULT_PREVIEW_IMAGE = "https://picsum.photos/seed/document/800/600";
 
 export function DocumentCard({ document }) {
   const {
@@ -23,32 +35,34 @@ export function DocumentCard({ document }) {
     created_at,
   } = document;
 
-  const handleClick = (e) => {
-    e.preventDefault();
-    if (file_url) {
-      window.open(file_url, "_blank", "noopener,noreferrer");
-    }
-  };
-
   const getAccessBadge = () => {
     switch (access_level) {
       case "public":
         return (
-          <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+          <Badge
+            variant="secondary"
+            className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+          >
             <Globe className="h-3 w-3 mr-1" />
             Công khai
           </Badge>
         );
       case "member_only":
         return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+          <Badge
+            variant="secondary"
+            className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+          >
             <Users className="h-3 w-3 mr-1" />
             Thành viên
           </Badge>
         );
       case "restricted":
         return (
-          <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+          <Badge
+            variant="secondary"
+            className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+          >
             <Lock className="h-3 w-3 mr-1" />
             Hạn chế
           </Badge>
@@ -58,70 +72,55 @@ export function DocumentCard({ document }) {
     }
   };
 
-  const previewImage = preview_url || DEFAULT_PREVIEW_IMAGE;
+  const documentUrl = slug ? `/documents/${slug}` : "#";
 
   return (
-    <Card 
-      className="h-full hover:shadow-lg transition-shadow cursor-pointer overflow-hidden group"
-      onClick={handleClick}
-    >
-      {/* Preview Image */}
-      <div className="relative w-full h-48 overflow-hidden bg-muted">
-        <Image
-          src={previewImage}
-          alt={title}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-        <div className="absolute top-2 right-2">
-          {getAccessBadge()}
-        </div>
-      </div>
+    <Card className="h-full hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group">
+      <Link href={documentUrl}>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              <FileText className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+              <CardTitle className="text-lg font-semibold line-clamp-2 group-hover:text-primary transition-colors">
+                {title}
+              </CardTitle>
+            </div>
+            <div className="flex-shrink-0">{getAccessBadge()}</div>
+          </div>
+        </CardHeader>
 
-      <CardContent className="p-6">
-        {/* Title */}
-        <div className="flex items-start gap-2 mb-3">
-          <FileText className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-          <h3 className="text-lg font-bold line-clamp-2 flex-1 group-hover:text-primary transition-colors">
-            {title}
-          </h3>
-          {file_url && (
-            <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+        <CardContent>
+          {/* Description */}
+          {description && (
+            <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+              {description}
+            </p>
           )}
-        </div>
 
-        {/* Description */}
-        {description && (
-          <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-            {description}
-          </p>
-        )}
-
-        {/* Category */}
-        {(category || category_name) && (
-          <div className="mb-4">
+          {/* Category */}
+          {(category || category_name) && (
             <Badge variant="outline" className="text-xs">
+              <Folder className="h-3 w-3 mr-1" />
               {category?.name || category_name || category}
             </Badge>
-          </div>
-        )}
+          )}
+        </CardContent>
 
-        {/* Footer Info */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t">
-          <span>
-            {format(new Date(created_at), "dd/MM/yyyy", { locale: vi })}
-          </span>
+        <CardFooter className="flex items-center justify-between text-xs text-muted-foreground border-t pt-4">
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            <span>
+              {format(new Date(created_at), "dd/MM/yyyy", { locale: vi })}
+            </span>
+          </div>
           {download_count !== undefined && download_count !== null && (
             <div className="flex items-center gap-1">
               <Download className="h-3 w-3" />
               <span>{download_count} lượt tải</span>
             </div>
           )}
-        </div>
-      </CardContent>
+        </CardFooter>
+      </Link>
     </Card>
   );
 }
-

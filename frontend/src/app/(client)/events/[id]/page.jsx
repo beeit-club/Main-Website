@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { fetchEventDetail } from "@/services/event";
 import { EventDetail } from "@/components/home/events/EventDetail";
+import { getFullUrl, getOgImageUrl, cleanHtmlForMeta } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -16,20 +17,38 @@ export async function generateMetadata({ params }) {
     }
 
     const event = eventResponse.data.event;
-    const url = `https://yourdomain.com/events/${slug}`;
+    const url = getFullUrl(`/events/${slug}`);
+    const description = cleanHtmlForMeta(event.content || event.description || "");
+    const ogImage = event.featured_image 
+      ? getOgImageUrl(event.featured_image, "/logo.jpg")
+      : getOgImageUrl("/logo.jpg");
+    
     return {
       title: event.title,
-      description: event.content?.replace(/<[^>]*>/g, "").substring(0, 160) || "",
+      description: description || "Sự kiện từ Bee IT Club",
       alternates: {
         canonical: url,
       },
       openGraph: {
         title: event.title,
-        description: event.content?.replace(/<[^>]*>/g, "").substring(0, 160) || "",
+        description: description || "Sự kiện từ Bee IT Club",
         url,
         type: "website",
-        images: event.featured_image ? [event.featured_image] : [],
         siteName: "Bee IT Club",
+        images: [
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: event.title,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: event.title,
+        description: description || "Sự kiện từ Bee IT Club",
+        images: [ogImage],
       },
     };
   } catch (error) {

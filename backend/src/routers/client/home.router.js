@@ -1,17 +1,19 @@
 import express from 'express';
 import { HomeControler } from '../../controllers/client/index.js';
+import { verifyTokenOptional } from '../../middlewares/jwt.js';
 
 const Router = express.Router();
 
 Router.get('/', HomeControler.Home);
 Router.get('/category', HomeControler.getCategories);
+Router.get('/documentCategory', HomeControler.getDocumentCategories);
 Router.get('/tags', HomeControler.getTags);
 Router.get('/posts/:slug', HomeControler.postDetaill);
 Router.get('/posts', HomeControler.getAllPost);
 // Routes cho Questions
 Router.get('/questions', HomeControler.getAllQuestions);
 Router.get('/questions/:slug', HomeControler.getQuestionDetail);
-Router.post('/questions', HomeControler.createQuestion); // Client tạo câu hỏi mới
+Router.post('/questions', verifyTokenOptional, HomeControler.createQuestion); // Client tạo câu hỏi mới (optional auth)
 // Routes cho Answers
 Router.post('/answers', HomeControler.createAnswer); // Client trả lời câu hỏi
 // Routes cho Applications (PUBLIC - không cần đăng nhập)

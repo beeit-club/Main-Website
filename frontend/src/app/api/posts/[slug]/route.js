@@ -5,7 +5,6 @@ export const revalidate = 3600; // Cache toàn route này 1h
 export const runtime = "nodejs";
 export async function GET(req, { params }) {
   const { slug } = params;
-  console.log("🔥 [API] Proxy route hit:", params.slug);
 
   try {
     // Gọi đến backend Laravel thật
@@ -20,7 +19,6 @@ export async function GET(req, { params }) {
         },
       }
     );
-    console.log("🚀 ~ GET ~ res:", res);
 
     if (!res.ok) {
       return NextResponse.json(

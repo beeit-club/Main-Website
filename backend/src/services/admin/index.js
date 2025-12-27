@@ -8,6 +8,18 @@ import questionService from './question.service.js';
 import tagService from './tag.service.js';
 import applicationService from './application.service.js';
 import interviewService from './interview.service.js';
+import emailTemplateService from './emailTemplate.service.js';
+import bulkEmailService from './bulkEmail.service.js';
+import memoryFlowService from './memoryFlow.service.js';
+import founderService from './founder.service.js';
+import beeitHeroService from './beeitHero.service.js';
+import beeitStatService from './beeitStat.service.js';
+import beeitFooterService from './beeitFooter.service.js';
+import beeitEmailSubmissionService from './beeitEmailSubmission.service.js';
+import beeitLeaderService from './beeitLeader.service.js';
+import beeitAchievementService from './beeitAchievement.service.js';
+import beeitBehindSceneService from './beeitBehindScene.service.js';
+
 export {
   interviewService,
   questionService,
@@ -19,4 +31,15 @@ export {
   categoryService,
   documentCategoryService,
   applicationService,
+  emailTemplateService,
+  bulkEmailService,
+  memoryFlowService,
+  founderService,
+  beeitHeroService,
+  beeitStatService,
+  beeitFooterService,
+  beeitEmailSubmissionService,
+  beeitLeaderService,
+  beeitAchievementService,
+  beeitBehindSceneService,
 };

@@ -1,5 +1,30 @@
 const ONE_HOUR_IN_SECONDS = 3600;
+const ONE_DAY_IN_SECONDS = 86400;
 const baseUrl = process.env.NEXT_PUBLIC_API_BACKEND;
+
+/**
+ * Lấy chi tiết document theo slug
+ * @param {string} slug - Slug của document
+ */
+export const fetchDocumentBySlug = async (slug) => {
+  const res = await fetch(`${baseUrl}/client/documents/${slug}`, {
+    method: "GET",
+    next: {
+      revalidate: ONE_DAY_IN_SECONDS,
+      tags: ["documents", `document-${slug}`],
+    },
+  });
+
+  if (res.status === 404) {
+    return null;
+  }
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch document. Status: ${res.status}`);
+  }
+
+  return res.json();
+};
 
 /**
  * Lấy danh sách documents (Server-side, dùng fetch cho SSR)

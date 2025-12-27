@@ -1,6 +1,98 @@
-<html>
-  <body>
-    <p>Đây là OTP {{otp}}.</p>
-    <p>Trân trọng.</p>
+<html lang='vi'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Mã OTP đăng nhập</title>
+  </head>
+  <body
+    style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'
+  >
+    <table role='presentation' style='width: 100%; border-collapse: collapse;'>
+      <tr>
+        <td
+          style='padding: 20px 0; text-align: center; background-color: #ffffff;'
+        >
+          <table
+            role='presentation'
+            style='width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style='padding: 30px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;'
+              >
+                <h1 style='margin: 0; color: #ffffff; font-size: 24px;'>🔐 Mã
+                  OTP đăng nhập</h1>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style='padding: 40px 30px;'>
+                <p
+                  style='margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;'
+                >
+                  Xin chào,
+                </p>
+
+                <p
+                  style='margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;'
+                >
+                  Bạn đã yêu cầu mã OTP để đăng nhập vào hệ thống. Vui lòng sử
+                  dụng mã sau:
+                </p>
+
+                <div
+                  style='background-color: #f8f9fa; padding: 30px; border-radius: 6px; margin: 25px 0; text-align: center; border: 2px dashed #667eea;'
+                >
+                  <p
+                    style='margin: 0 0 10px 0; color: #666666; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;'
+                  >Mã OTP của bạn</p>
+                  <p
+                    style="margin: 0; color: #667eea; font-size: 32px; font-weight: bold; letter-spacing: 5px; font-family: 'Courier New', monospace;"
+                  >{{otp}}</p>
+                </div>
+
+                <div
+                  style='background-color: #fff3cd; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #ffc107;'
+                >
+                  <p
+                    style='margin: 0; color: #856404; font-size: 14px; line-height: 1.6;'
+                  >
+                    <strong>⚠️ Lưu ý bảo mật:</strong><br />
+                    • Mã OTP này chỉ có hiệu lực trong thời gian ngắn<br />
+                    • Không chia sẻ mã OTP với bất kỳ ai<br />
+                    • Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email này
+                    hoặc liên hệ với chúng tôi ngay lập tức
+                  </p>
+                </div>
+
+                <p
+                  style='margin: 20px 0 0 0; color: #333333; font-size: 16px; line-height: 1.6;'
+                >
+                  Nếu bạn không yêu cầu mã này, bạn có thể bỏ qua email này một
+                  cách an toàn.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                style='padding: 20px 30px; text-align: center; background-color: #f8f9fa; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;'
+              >
+                <p style='margin: 0; color: #666666; font-size: 14px;'>
+                  Trân trọng,<br />
+                  <strong style='color: #333333;'>Ban Quản Lý CLB</strong>
+                </p>
+                <p style='margin: 10px 0 0 0; color: #999999; font-size: 12px;'>
+                  Email này được gửi tự động, vui lòng không trả lời.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>

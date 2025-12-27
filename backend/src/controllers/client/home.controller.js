@@ -7,6 +7,7 @@ import QuestionSchema from '../../validation/admin/question.validation.js';
 import AnswerSchema from '../../validation/admin/answer.validation.js';
 import ApplicationSchema from '../../validation/admin/application.validation.js';
 import { slugify } from '../../utils/function.js';
+import { sanitizeHtml, sanitizeText } from '../../utils/sanitize.js';
 import {
   QUESTION_CREATE_SUCCESS,
   ANSWER_CREATE_SUCCESS,
@@ -40,22 +41,46 @@ const HomeControler = {
   getQuestionDetail: asyncWrapper(async (req, res) => {
     const { slug } = req.params;
     const question = await HomeService.getQuestionDetail(slug);
+    
+    // Log dữ liệu trước khi trả về
+    console.log('=== DEBUG: Question data in Controller (before response) ===');
+    console.log('author_name:', question?.author_name);
+    console.log('author_avatar:', question?.author_avatar);
+    console.log('Full question keys:', Object.keys(question || {}));
+    console.log('============================================================');
+    
     utils.success(res, 'Lấy chi tiết câu hỏi thành công', question);
   }),
 
   createQuestion: asyncWrapper(async (req, res) => {
     // Validate dữ liệu đầu vào
     await QuestionSchema.create.validate(req.body, { abortEarly: false });
-    const { title } = req.body;
+    const { title, content } = req.body;
     const slug = slugify(title);
 
+    // Sanitize HTML content để tránh XSS
+    const sanitizedContent = sanitizeHtml(content);
+    const sanitizedTitle = sanitizeText(title);
+
+    // Log để debug
+    console.log('=== DEBUG: Create Question ===');
+    console.log('req.user:', req.user);
+    console.log('req.user?.id:', req.user?.id);
+    console.log('Has token:', !!req.headers.authorization);
+    console.log('==============================');
+
     // Tạo object dữ liệu câu hỏi
+    // Nếu đã đăng nhập thì lấy user id, nếu không thì null (ẩn danh)
     const questionData = {
       ...req.body,
+      title: sanitizedTitle,
+      content: sanitizedContent,
       slug,
-      created_by: req.user?.id || null, // Lấy user từ JWT (nếu có middleware auth)
+      created_by: req.user?.id || null, // Lấy user từ JWT nếu có, nếu không thì null (ẩn danh)
       status: 1, // Client tạo câu hỏi được publish ngay (1), không cần duyệt
     };
+
+    console.log('questionData.created_by:', questionData.created_by);
 
     const newQuestion = await HomeService.createQuestion(questionData);
     utils.success(res, QUESTION_CREATE_SUCCESS, { id: newQuestion.insertId });
@@ -64,10 +89,15 @@ const HomeControler = {
   createAnswer: asyncWrapper(async (req, res) => {
     // Validate dữ liệu đầu vào
     await AnswerSchema.create.validate(req.body, { abortEarly: false });
+    const { content } = req.body;
+
+    // Sanitize HTML content để tránh XSS
+    const sanitizedContent = sanitizeHtml(content);
 
     // Tạo object dữ liệu câu trả lời
     const answerData = {
       ...req.body,
+      content: sanitizedContent,
       created_by: req.user?.id || null, // Lấy user từ JWT (nếu có middleware auth)
       status: 1, // Client tạo câu trả lời được publish ngay (1)
     };
@@ -92,6 +122,15 @@ const HomeControler = {
       // filters: { name },
     });
     utils.success(res, 'Lấy danh sách thẻ thành công', tags);
+  }),
+  getDocumentCategories: asyncWrapper(async (req, res) => {
+    // const { name, status } = req.query;
+    const documentCategories = await HomeService.getAllDocumentCategory({
+      //   filters: { name, status },
+    });
+    utils.success(res, 'Lấy danh sách thành công', {
+      documentCategories,
+    });
   }),
   // lấy chi tiết bài viết
   postDetaill: asyncWrapper(async (req, res) => {

@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config();
+// Không cần import dotenv nữa, đã được load ở env.config.js
 export const JWT_ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '60';
 export const JWT_REFRESH_EXPIRES_IN =
   process.env.JWT_REFRESH_EXPIRES_IN || '604800';

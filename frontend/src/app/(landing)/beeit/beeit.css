@@ -1,0 +1,165 @@
+/* BeeIT Landing Page - Custom Styles */
+
+/* Lenis Smooth Scroll CSS */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Ensure scroll works */
+html {
+  scroll-behavior: auto !important;
+  overflow-y: auto;
+}
+
+/* CSS Variables for BeeIT Colors */
+.beeit-landing {
+  /* Colors */
+  --beeit-background: #050505;
+  --beeit-primary: #FFD60A;
+  --beeit-secondary: #7C3AED;
+  --beeit-accent: #22D3EE;
+  --beeit-text: #A1A1AA;
+  --beeit-text-heading: #FAFAFA;
+  
+  /* Override Tailwind CSS variables for this page */
+  --background: var(--beeit-background);
+  --primary: var(--beeit-primary);
+  --secondary: var(--beeit-secondary);
+  --accent: var(--beeit-accent);
+  
+  background-color: var(--beeit-background);
+  color: var(--beeit-text);
+}
+
+/* Font Classes - Using CSS variables from Next.js fonts */
+.beeit-landing .font-display {
+  font-family: var(--font-syne), 'Syne', sans-serif;
+}
+
+.beeit-landing .font-body {
+  font-family: var(--font-plus-jakarta-sans), 'Plus Jakarta Sans', sans-serif;
+}
+
+.beeit-landing .font-mono {
+  font-family: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+}
+
+/* Color Utilities - Override Tailwind classes */
+.beeit-landing .text-heading {
+  color: var(--beeit-text-heading) !important;
+}
+
+.beeit-landing .text-text {
+  color: var(--beeit-text) !important;
+}
+
+.beeit-landing .bg-background {
+  background-color: var(--beeit-background) !important;
+}
+
+.beeit-landing .text-primary {
+  color: var(--beeit-primary) !important;
+}
+
+.beeit-landing .bg-primary {
+  background-color: var(--beeit-primary) !important;
+}
+
+.beeit-landing .text-secondary {
+  color: var(--beeit-secondary) !important;
+}
+
+.beeit-landing .bg-secondary {
+  background-color: var(--beeit-secondary) !important;
+}
+
+.beeit-landing .text-accent {
+  color: var(--beeit-accent) !important;
+}
+
+.beeit-landing .bg-accent {
+  background-color: var(--beeit-accent) !important;
+}
+
+.beeit-landing .border-primary {
+  border-color: var(--beeit-primary) !important;
+}
+
+.beeit-landing .border-secondary {
+  border-color: var(--beeit-secondary) !important;
+}
+
+.beeit-landing .border-accent {
+  border-color: var(--beeit-accent) !important;
+}
+
+/* Grid Pattern Background */
+.beeit-landing .bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, #1f1f1f 1px, transparent 1px),
+    linear-gradient(to bottom, #1f1f1f 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Scrollbar Styling */
+.beeit-landing ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.beeit-landing ::-webkit-scrollbar-track {
+  background: var(--beeit-background);
+}
+
+.beeit-landing ::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+.beeit-landing ::-webkit-scrollbar-thumb:hover {
+  background: var(--beeit-primary);
+}
+
+/* Animation Utilities */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes reverse-spin {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.beeit-landing .animate-spin-slow {
+  animation: spin-slow 30s linear infinite;
+}
+
+.beeit-landing .animate-reverse-spin {
+  animation: reverse-spin 20s linear infinite;
+}
+

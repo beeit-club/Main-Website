@@ -28,12 +28,16 @@ export const columns = [
     ),
   },
   {
-    // Giả định BE JOIN và trả về { ..., category: { name: '...' } }
-    accessorKey: "category.name",
+    accessorKey: "category_name",
     header: "Danh mục",
     cell: ({ row }) => {
-      const categoryName = row.original.category?.name;
-      return categoryName || <span className="italic text-gray-400">N/A</span>;
+      // Backend trả về category_name trực tiếp, không phải object
+      const categoryName = row.original.category_name || row.getValue("category_name");
+      return categoryName ? (
+        <span>{categoryName}</span>
+      ) : (
+        <span className="italic text-gray-400">N/A</span>
+      );
     },
   },
   {

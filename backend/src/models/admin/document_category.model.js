@@ -11,7 +11,7 @@ const TABLE = 'document_categories';
 class DocumentCategoryModel {
   static async getAll(options = {}) {
     try {
-      let sql = `SELECT id, name, slug, parent_id, created_at FROM ${TABLE} WHERE deleted_at IS NULL`;
+      let sql = `SELECT id, name, slug, created_at FROM ${TABLE} WHERE deleted_at IS NULL`;
       const params = [];
 
       if (options?.filters?.name) {

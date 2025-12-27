@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
 
 export function DataTable({ columns, data, meta }) {
-  console.log("🚀 ~ DataTable ~ meta:", meta);
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnVisibility, setColumnVisibility] = useState({});

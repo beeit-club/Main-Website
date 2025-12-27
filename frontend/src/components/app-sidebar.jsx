@@ -13,6 +13,7 @@ import {
   IconHelp,
   IconInnerShadowTop,
   IconListDetails,
+  IconMail,
   IconReport,
   IconSearch,
   IconSettings,
@@ -32,7 +33,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { User } from "lucide-react";
+import { User, Layout, BarChart3, Mail, UsersRound, Settings } from "lucide-react";
 
 const data = {
   user: {
@@ -41,60 +42,122 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
+    // 1. Tổng quan
     {
-      title: "Dashboard",
+      title: "Bảng điều khiển",
       url: "/admin/dashboard",
       icon: IconDashboard,
     },
+    // 2. Quản lý người dùng và quyền
     {
-      title: "Users",
+      title: "Người dùng",
       url: "/admin/users",
       icon: User,
     },
     {
-      title: "Posts",
+      title: "Thành viên",
+      url: "/admin/members",
+      icon: IconUsers,
+    },
+    {
+      title: "Vai trò & Quyền",
+      url: "/admin/roles-permissions",
+      icon: IconSettings,
+    },
+    {
+      title: "Gán quyền",
+      url: "/admin/assign-permissions",
+      icon: IconUsers,
+    },
+    // 3. Nội dung & Bài viết
+    {
+      title: "Bài viết",
       url: "/admin/posts",
       icon: IconChartBar,
     },
     {
-      title: "Tags",
-      url: "/admin/tags",
-      icon: IconFolder,
-    },
-    {
-      title: "Categories",
+      title: "Danh mục",
       url: "/admin/categories",
       icon: IconUsers,
     },
     {
-      title: "Question",
-      url: "/admin/questions",
-      icon: IconUsers,
+      title: "Thẻ",
+      url: "/admin/tags",
+      icon: IconFolder,
     },
+    // 4. Tuyển dụng & Ứng viên
     {
-      title: "Applications",
+      title: "Đơn đăng ký",
       url: "/admin/applications",
       icon: IconUsers,
     },
     {
-      title: "Interviews",
+      title: "Phỏng vấn",
       url: "/admin/interviews",
       icon: IconUsers,
     },
     {
-      title: "Transactions",
-      url: "/admin/transactions",
+      title: "Câu hỏi",
+      url: "/admin/questions",
       icon: IconUsers,
     },
+    // 5. Tài liệu
     {
-      title: "Documents",
+      title: "Tài liệu",
       url: "/admin/documents",
       icon: IconUsers,
     },
     {
-      title: "Document Categories",
+      title: "Danh mục tài liệu",
       url: "/admin/document-categories",
       icon: IconUsers,
+    },
+    // 6. Giao dịch & Email
+    {
+      title: "Giao dịch",
+      url: "/admin/transactions",
+      icon: IconUsers,
+    },
+    {
+      title: "Mẫu email",
+      url: "/admin/email-templates",
+      icon: IconMail,
+    },
+    // 7. BeeIT Landing Page Management
+    {
+      title: "BeeIT - Hero",
+      url: "/admin/beeit/hero",
+      icon: Layout,
+    },
+    {
+      title: "BeeIT - Statistics",
+      url: "/admin/beeit/stats",
+      icon: BarChart3,
+    },
+    {
+      title: "BeeIT - Leaders",
+      url: "/admin/beeit/leaders",
+      icon: UsersRound,
+    },
+    {
+      title: "BeeIT - Footer",
+      url: "/admin/beeit/footer",
+      icon: Settings,
+    },
+    {
+      title: "BeeIT - Email Submissions",
+      url: "/admin/beeit/email-submissions",
+      icon: Mail,
+    },
+    {
+      title: "BeeIT - Achievements",
+      url: "/admin/beeit/achievements",
+      icon: IconChartBar,
+    },
+    {
+      title: "BeeIT - Photos",
+      url: "/admin/beeit/photos",
+      icon: IconCamera,
     },
   ],
   navClouds: [
@@ -147,17 +210,17 @@ const data = {
   ],
   navSecondary: [
     {
-      title: "Settings",
+      title: "Cài đặt",
       url: "#",
       icon: IconSettings,
     },
     {
-      title: "Get Help",
+      title: "Trợ giúp",
       url: "#",
       icon: IconHelp,
     },
     {
-      title: "Search",
+      title: "Tìm kiếm",
       url: "#",
       icon: IconSearch,
     },
@@ -193,7 +256,7 @@ export function AppSidebar({ ...props }) {
             >
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Bee IT</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

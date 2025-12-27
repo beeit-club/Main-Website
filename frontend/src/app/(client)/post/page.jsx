@@ -3,24 +3,46 @@ import { fetchAllPosts } from "@/services/post";
 import { BlogGrid } from "@/components/home/post/components/blog-grid";
 import { BlogList } from "@/components/home/post/components/blog-list";
 import { PostFilters } from "@/components/home/post/components/post-filters";
+import { PostCategoryFilter } from "@/components/home/post/components/PostCategoryFilter";
 import { PostPagination } from "@/components/home/post/components/post-pagination";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LayoutGrid, List } from "lucide-react";
+import { getFullUrl, getOgImageUrl } from "@/lib/seo";
 
 // Revalidate every hour
 export const revalidate = 3600;
 
 export const metadata = {
-  title: "Danh sách Bài viết | Bee IT Club",
+  title: "Danh sách Bài viết",
   description:
     "Khám phá các bài viết, hướng dẫn và chia sẻ kiến thức về công nghệ từ cộng đồng Bee IT",
+  alternates: {
+    canonical: getFullUrl("/post"),
+  },
   openGraph: {
     title: "Danh sách Bài viết | Bee IT Club",
     description:
-      "Khám phá các bài viết, hướng dẫn và chia sẻ kiến thức về công nghệ",
+      "Khám phá các bài viết, hướng dẫn và chia sẻ kiến thức về công nghệ từ cộng đồng Bee IT",
+    url: getFullUrl("/post"),
     type: "website",
+    siteName: "Bee IT Club",
+    images: [
+      {
+        url: getOgImageUrl("/og-image-posts.png"),
+        width: 1200,
+        height: 630,
+        alt: "Danh sách Bài viết - Bee IT Club",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Danh sách Bài viết | Bee IT Club",
+    description:
+      "Khám phá các bài viết, hướng dẫn và chia sẻ kiến thức về công nghệ",
+    images: [getOgImageUrl("/og-image-posts.png")],
   },
 };
 
@@ -44,13 +66,41 @@ function PostsSkeleton() {
 
 async function getData(searchParams) {
   try {
+    // Xử lý searchParams an toàn - có thể là undefined hoặc object
+    const safeSearchParams = searchParams || {};
+
+    // Parse page và limit, đảm bảo là number
+    const page = safeSearchParams.page
+      ? parseInt(
+          Array.isArray(safeSearchParams.page)
+            ? safeSearchParams.page[0]
+            : safeSearchParams.page,
+          10
+        ) || 1
+      : 1;
+
+    const limit = safeSearchParams.limit
+      ? parseInt(
+          Array.isArray(safeSearchParams.limit)
+            ? safeSearchParams.limit[0]
+            : safeSearchParams.limit,
+          10
+        ) || 12
+      : 12;
+
     const params = {
-      page: searchParams.page || 1,
-      limit: searchParams.limit || 12,
-      ...(searchParams.category && {
-        category: searchParams.category,
+      page,
+      limit,
+      ...(safeSearchParams.category && {
+        category: Array.isArray(safeSearchParams.category)
+          ? safeSearchParams.category[0]
+          : safeSearchParams.category,
       }),
-      ...(searchParams.title && { title: searchParams.title }),
+      ...(safeSearchParams.title && {
+        title: Array.isArray(safeSearchParams.title)
+          ? safeSearchParams.title[0]
+          : safeSearchParams.title,
+      }),
     };
 
     // Chỉ fetch posts, categories đã có trong Zustand store
@@ -70,7 +120,9 @@ async function getData(searchParams) {
 }
 
 export default async function PostsPage({ searchParams }) {
-  const { posts, pagination } = await getData(searchParams);
+  // Next.js 15: searchParams is a Promise, need to await it
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const { posts, pagination } = await getData(resolvedSearchParams);
 
   return (
     <main className="min-h-screen bg-background">
@@ -84,6 +136,9 @@ export default async function PostsPage({ searchParams }) {
             Khám phá các bài viết, hướng dẫn và chia sẻ từ cộng đồng
           </p>
         </div>
+
+        {/* Category Filter */}
+        <PostCategoryFilter />
 
         {/* Main Content */}
         <div className="grid gap-6 lg:grid-cols-[1fr_300px]">

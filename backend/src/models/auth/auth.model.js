@@ -8,10 +8,10 @@ class AuthModel {
   static async isEmail(email, getFullInfo = false) {
     try {
       const query = getFullInfo
-        ? `SELECT u.id, u.fullname, u.email, u.avatar_url, u.is_active, r.name AS role_name
+        ? `SELECT u.id, u.fullname, u.email, u.avatar_url, u.is_active, u.role_id, r.name AS role_name
            FROM users u
            LEFT JOIN roles r ON u.role_id = r.id
-           WHERE u.email = ? `
+           WHERE u.email = ? AND u.deleted_at IS NULL`
         : `SELECT COUNT(*) AS so_luong FROM users WHERE email = ? AND deleted_at IS NULL`;
 
       const result = await findOne(query, [email]);
@@ -28,7 +28,7 @@ class AuthModel {
         fullname,
         email,
         avatar_url,
-        role_id: 1,
+        role_id: 5,
       };
       const result = await insert('users', data);
       return result;
@@ -103,7 +103,7 @@ class AuthModel {
     try {
       const query = `
         SELECT u.id, u.fullname, u.email, u.phone, u.avatar_url, u.bio,
-               u.is_active, u.email_verified_at,
+               u.is_active, u.email_verified_at, u.role_id,
                r.name AS role_name, r.description AS role_description
         FROM users u
         LEFT JOIN roles r ON u.role_id = r.id
@@ -292,8 +292,12 @@ class AuthModel {
         email_verified_at: new Date(),
       };
       const result = await insert('users', insertData);
-      console.log('🚀 ~ AuthModel ~ findOrCreate ~ result:', result);
-      return await findOne('SELECT * FROM users WHERE id = ?', [result]);
+      // result là ResultSetHeader object, cần dùng result.insertId
+      const insertId = result.insertId;
+      if (!insertId) {
+        throw new Error('Failed to get insertId from insert result');
+      }
+      return await findOne('SELECT * FROM users WHERE id = ?', [insertId]);
     } catch (error) {
       throw error;
     }

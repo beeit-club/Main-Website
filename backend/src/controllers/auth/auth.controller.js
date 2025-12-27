@@ -1,11 +1,13 @@
 // src/controllers/auth.controller.js
 
 import { AuthService } from '../../services/auth/index.js';
+import { AuthModel } from '../../models/auth/index.js';
 import { utils } from '../../utils/index.js';
 import { message } from '../../common/message/index.js';
 import asyncWrapper from '../../middlewares/error.handler.js';
 import { config } from '../../config/index.js';
 import AuthSchema from '../../validation/auth/auth.validation.js';
+import { sanitizeText } from '../../utils/sanitize.js';
 
 const authController = {
   //  Đăng ký
@@ -13,7 +15,9 @@ const authController = {
     await AuthSchema.register.validate(req.body, { abortEarly: false });
 
     const { fullname, email } = req.body;
-    const result = await AuthService.registerUser(fullname, email);
+    // Sanitize fullname để tránh XSS
+    const sanitizedFullname = sanitizeText(fullname);
+    const result = await AuthService.registerUser(sanitizedFullname, email);
 
     return utils.success(res, message.Auth.REGISTER_SUCCESS, {
       user_id: result.user_id,
@@ -47,12 +51,15 @@ const authController = {
       sameSite: 'lax',
     });
 
+    // Lấy đầy đủ thông tin user kèm role_id
+    const fullUser = await AuthModel.getUserById(user.id);
     const userData = {
       id: user.id,
       name: user.fullname,
       email: user.email,
       avatar: user.avatar_url,
-      role: user.role_name || 'Guest',
+      role: fullUser?.role_name || user.role_name || 'Guest',
+      role_id: fullUser?.role_id || user.role_id || null,
     };
 
     return utils.success(res, message.Auth.LOGIN_SUCCESS, {
@@ -78,12 +85,15 @@ const authController = {
       sameSite: 'lax',
     });
 
+    // Lấy đầy đủ thông tin user kèm role_id
+    const fullUser = await AuthModel.getUserById(user.id);
     const userData = {
       id: user.id,
       name: user.fullname,
       email: user.email,
       avatar: user.avatar_url,
-      role: user.role_name || 'Guest',
+      role: fullUser?.role_name || user.role_name || 'Guest',
+      role_id: fullUser?.role_id || user.role_id || null,
     };
 
     return utils.success(res, message.Auth.LOGIN_SUCCESS, {
@@ -116,7 +126,12 @@ const authController = {
   //  Lấy quyền của user
   permissions: asyncWrapper(async (req, res) => {
     const { id } = req.user || {};
+    console.log("=== Auth Permissions Debug ===");
+    console.log("Request user id:", id);
+    
     const { user, permissions } = await AuthService.getPremiss(id);
+    console.log("User from service:", user);
+    console.log("User role_id:", user?.role_id);
 
     const userData = {
       id: user.id,
@@ -124,7 +139,11 @@ const authController = {
       email: user.email,
       avatar: user.avatar_url,
       role: user.role_name || 'Guest',
+      role_id: user.role_id || null,
     };
+    
+    console.log("userData to send:", userData);
+    console.log("userData.role_id:", userData.role_id);
 
     return utils.success(res, message.Auth.GET_PERMISSIONS, {
       permissions,
@@ -134,20 +153,27 @@ const authController = {
 
   // Cấp lại access token
   refreshToken: asyncWrapper(async (req, res) => {
-    const { accessToken, newRefreshToken } = await AuthService.refreshUserToken(
-      req.cookies.refreshToken,
-    );
+    try {
+      const { accessToken, newRefreshToken } = await AuthService.refreshUserToken(
+        req.cookies.refreshToken,
+      );
 
-    res.cookie('refreshToken', newRefreshToken, {
-      maxAge: Number(config.JWT_REFRESH_EXPIRES_IN),
-      httpOnly: true,
-      secure: config.NODE_ENV === 'production',
-      sameSite: 'lax',
-    });
+      res.cookie('refreshToken', newRefreshToken, {
+        maxAge: Number(config.JWT_REFRESH_EXPIRES_IN),
+        httpOnly: true,
+        secure: config.NODE_ENV === 'production',
+        sameSite: 'lax',
+      });
 
-    return utils.success(res, message.Auth.REFRESH_TOKEN_SUCCESS, {
-      accessToken,
-    });
+      return utils.success(res, message.Auth.REFRESH_TOKEN_SUCCESS, {
+        accessToken,
+      });
+    } catch (error) {
+      // ✅ FIX #5: Xóa cookie khi refresh thất bại
+      // Điều này đảm bảo không còn refresh token cũ/hết hạn trong cookie
+      res.clearCookie('refreshToken');
+      throw error; // Re-throw để error handler middleware xử lý
+    }
   }),
 
   //  Lấy thông tin profile hiện tại
@@ -163,12 +189,47 @@ const authController = {
   updateProfile: asyncWrapper(async (req, res) => {
     await AuthSchema.updateProfile.validate(req.body, { abortEarly: false });
     const { id } = req.user;
-    const updatedUser = await AuthService.updateProfile(id, req.body);
+    const { fullname, bio, ...rest } = req.body;
+    // Sanitize text fields để tránh XSS
+    const sanitizedData = {
+      ...(fullname && { fullname: sanitizeText(fullname) }),
+      ...(bio && { bio: sanitizeText(bio) }),
+      ...rest,
+    };
+    const updatedUser = await AuthService.updateProfile(id, sanitizedData);
 
     // Query không có password_hash nên không cần destructure
     return utils.success(res, message.Auth.UPDATE_PROFILE_SUCCESS, {
       user: updatedUser,
     });
+  }),
+
+  // Yêu cầu đặt lại mật khẩu
+  requestPasswordReset: asyncWrapper(async (req, res) => {
+    await AuthSchema.requestPasswordReset.validate(req.body, {
+      abortEarly: false,
+    });
+
+    const { email } = req.body;
+    const result = await AuthService.requestPasswordReset(email);
+
+    return utils.success(res, 'Nếu email tồn tại, bạn sẽ nhận được mã OTP', {
+      result,
+    });
+  }),
+
+  // Đặt lại mật khẩu
+  resetPassword: asyncWrapper(async (req, res) => {
+    await AuthSchema.resetPassword.validate(req.body, { abortEarly: false });
+
+    const { email, reset_code, new_password } = req.body;
+    const result = await AuthService.resetPassword(
+      email,
+      reset_code,
+      new_password,
+    );
+
+    return utils.success(res, 'Đặt lại mật khẩu thành công', { result });
   }),
 };
 

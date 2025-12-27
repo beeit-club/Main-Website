@@ -16,41 +16,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: {
-    default: "Bee IT",
-    template: "%s | Tên Thương Hiệu Của Bạn",
-  },
-  description:
-    "Bee IT là câu lạc bộ công nghệ thông tin trực thuộc FPT Polytechnic, nơi chia sẻ kiến thức và kết nối cộng đồng sinh viên yêu thích CNTT.",
-  openGraph: {
-    title: "Bee IT",
-    description:
-      "Bee IT là câu lạc bộ công nghệ thông tin trực thuộc FPT Polytechnic, nơi chia sẻ kiến thức và kết nối cộng đồng sinh viên yêu thích CNTT.",
-    url: "https://yourdomain.com",
-    type: "website",
-    images: [
-      {
-        url: "https://yourdomain.com/og-image-homepage.png",
-        width: 1200,
-        height: 630,
-        alt: "Ảnh đại diện trang chủ",
-      },
-    ],
-  },
+import { getDefaultMetadata } from "@/lib/seo";
 
-  twitter: {
-    card: "summary_large_image",
-    title: "Bee IT",
-    description:
-      "Bee IT là câu lạc bộ công nghệ thông tin trực thuộc FPT Polytechnic, nơi chia sẻ kiến thức và kết nối cộng đồng sinh viên yêu thích CNTT.",
-    images: ["https://yourdomain.com/twitter-image-homepage.png"],
-  },
-};
+export const metadata = getDefaultMetadata();
 export default function RootLayout({ children }) {
   return (
     <>
-      <html lang="en" suppressHydrationWarning>
+      <html lang="vi" suppressHydrationWarning>
         <head />
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
           <ThemeProvider

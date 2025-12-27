@@ -7,6 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/datetime";
 
 export function BlogFeatured({ post }) {
+  // Kiểm tra post có tồn tại không
+  if (!post) {
+    return null; // Để parent component xử lý empty state
+  }
+
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-xl  p-0">
       <CardContent className="p-0">

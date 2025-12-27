@@ -48,28 +48,44 @@ axiosClient.interceptors.response.use(
   (error) => {
     const originalReq = error.config;
     const code = error.response?.data?.errorCode;
+
     if (code === "TOKEN_EXPIRED") {
-      if (!originalReq._retry) {
-        originalReq._retry = true;
+      // ✅ FIX #1: Đổi từ _retry sang __isRetryRequest để tránh race condition
+      // Mỗi request sẽ có flag riêng, không bị override bởi request khác
+      if (!originalReq.__isRetryRequest) {
+        originalReq.__isRetryRequest = true;
+
         if (!isRefreshing) {
           localStorage.removeItem("accessToken");
           isRefreshing = true;
+
           return refreshToken()
             .then((newToken) => {
               localStorage.setItem("accessToken", newToken);
               isRefreshing = false;
+
+              // Thực hiện tất cả requests trong queue
               queue.forEach((cb) => cb(newToken));
               queue = [];
+
+              // Retry request ban đầu với token mới
               originalReq.headers.Authorization = `Bearer ${newToken}`;
               return axiosClient(originalReq);
             })
             .catch((err) => {
               queue = [];
+              isRefreshing = false;
+
+              // ✅ FIX #5: Cleanup state hoàn toàn khi refresh thất bại
+              localStorage.removeItem("accessToken");
+
               alert("hết phiên vui lòng đăng nhập lại");
               window.location.href = "/login";
               return Promise.reject(err);
             });
         }
+
+        // Nếu đang refresh, thêm vào queue
         return new Promise((resolve) => {
           queue.push((token) => {
             originalReq.headers.Authorization = `Bearer ${token}`;
@@ -78,6 +94,7 @@ axiosClient.interceptors.response.use(
         });
       }
     }
+
     return Promise.reject(error);
   }
 );

@@ -40,6 +40,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
+import { revalidatePosts, revalidateHome } from "@/utils/revalidateCache";
 // Giả sử bạn có component Toast
 // import { useToast } from "@/components/ui/use-toast";
 
@@ -119,10 +120,8 @@ function EditPost() {
       ? editorRef.current.getContent()
       : "";
     if (!editorContent || editorContent.trim() === "") {
-      toast({
-        title: "Lỗi",
-        description: "Nội dung bài viết không được để trống.",
-      });
+      setIsSubmitting(false);
+      toast.error("Nội dung bài viết không được để trống.");
       return;
     }
     const formData = new FormData();
@@ -144,18 +143,41 @@ function EditPost() {
 
     try {
       setIsSubmitting(true);
-      await postServices.updatePost(idPost.current, formData);
+      const response = await postServices.updatePost(idPost.current, formData);
+      // Revalidate cache sau khi update post
+      const postSlug = response?.data?.slug || response?.data?.data?.slug || id;
+      await Promise.all([
+        revalidatePosts(postSlug),
+        revalidateHome(),
+      ]);
       toast.success("Cập nhật bài viết thành công!");
       router.push("/admin/posts");
       setImagePreview(null);
       setIsSubmitting(false);
     } catch (error) {
       setIsSubmitting(false);
-      console.error("Error creating post:", error);
-      toast({
-        title: "Lỗi",
-        description: error.message || "Không thể tạo bài viết.",
-      });
+      console.error("Error updating post:", error);
+      
+      // Extract error message from different possible error structures
+      // Note: postServices.updatePost throws error?.response?.data || error
+      // So error might already be the response.data object
+      let errorMessage = "Không thể cập nhật bài viết.";
+      
+      // Handle different error structures
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error?.message && typeof error.message === 'string') {
+        // error is already response.data object with {status, message, error}
+        errorMessage = error.message;
+      } else if (error?.response?.data?.message) {
+        // Fallback: if error still has response structure
+        errorMessage = String(error.response.data.message);
+      } else if (error?.response?.data?.error?.message) {
+        errorMessage = String(error.response.data.error.message);
+      }
+      
+      // Ensure we never pass an object to toast - always convert to string
+      toast.error(String(errorMessage));
     }
   };
 
@@ -284,7 +306,6 @@ function EditPost() {
                 control={form.control}
                 name="category_id"
                 render={({ field }) => {
-                  console.log("🚀 ~ EditPost ~ field:", field);
                   return (
                     <FormItem>
                       <Select

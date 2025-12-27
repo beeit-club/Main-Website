@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -8,28 +9,63 @@ import { CommentSection } from "./CommentSection";
 
 export function ArticleDetail({ article }) {
   if (!article) return null;
+  
   const formattedDate = formatDate(article?.published_at);
+  
+  // Xử lý featured_image - hỗ trợ cả URL tuyệt đối và tương đối
+  const getImageSrc = () => {
+    if (!article.featured_image) {
+      return "/logo.jpg"; // Fallback image
+    }
+    // Nếu là URL đầy đủ (http/https), dùng trực tiếp
+    if (article.featured_image.startsWith("http://") || article.featured_image.startsWith("https://")) {
+      return article.featured_image;
+    }
+    // Nếu là đường dẫn tương đối, thêm base URL
+    if (article.featured_image.startsWith("/")) {
+      return article.featured_image;
+    }
+    // Mặc định
+    return article.featured_image;
+  };
+
+  const initialImageSrc = getImageSrc();
+  const [imageSrc, setImageSrc] = useState(initialImageSrc);
+  const [hasError, setHasError] = useState(false);
+
+  const handleImageError = () => {
+    if (!hasError && imageSrc !== "/logo.jpg") {
+      setHasError(true);
+      setImageSrc("/logo.jpg");
+    }
+  };
 
   return (
     <article className="w-full max-w-3xl mx-auto">
       {/* Featured Image */}
-      <div className="relative w-full h-96 mb-8 rounded-lg overflow-hidden shadow-lg">
-        <Image
-          src={article.featured_image || "/placeholder.svg"}
-          alt={article.title}
-          fill
-          className="object-cover"
-          priority
-        />
-      </div>
+      {imageSrc && (
+        <div className="relative w-full h-96 mb-8 rounded-lg overflow-hidden shadow-lg">
+          <Image
+            src={imageSrc}
+            alt={article.title || "Bài viết"}
+            fill
+            className="object-cover"
+            priority
+            unoptimized={imageSrc.startsWith("http://") || imageSrc.startsWith("https://")}
+            onError={handleImageError}
+          />
+        </div>
+      )}
 
       {/* Category Badge */}
-      <div className="mb-4">
-        <Badge variant="secondary" className="text-sm">
-          <Folder className="w-3 h-3 mr-1" />
-          {article.category_name}
-        </Badge>
-      </div>
+      {article.category_name && (
+        <div className="mb-4">
+          <Badge variant="secondary" className="text-sm">
+            <Folder className="w-3 h-3 mr-1" />
+            {article.category_name}
+          </Badge>
+        </div>
+      )}
 
       {/* Title */}
       <h1 className="text-4xl font-bold mb-4 text-pretty leading-tight">
@@ -39,18 +75,22 @@ export function ArticleDetail({ article }) {
       {/* Meta Information */}
       <div className="flex flex-wrap gap-6 mb-8 pb-6 border-b border-border">
         {/* Published Date */}
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Calendar className="w-4 h-4" />
-          <span className="text-sm">{formattedDate}</span>
-        </div>
+        {formattedDate && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Calendar className="w-4 h-4" />
+            <span className="text-sm">{formattedDate}</span>
+          </div>
+        )}
 
         {/* View Count */}
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Eye className="w-4 h-4" />
-          <span className="text-sm">
-            {article.view_count.toLocaleString("vi-VN")} lượt xem
-          </span>
-        </div>
+        {article.view_count !== undefined && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Eye className="w-4 h-4" />
+            <span className="text-sm">
+              {article.view_count.toLocaleString("vi-VN")} lượt xem
+            </span>
+          </div>
+        )}
 
         {/* Author */}
         {article.author_name && (
@@ -64,21 +104,23 @@ export function ArticleDetail({ article }) {
       </div>
 
       {/* Content */}
-      <div className="prose prose-sm dark:prose-invert max-w-none mb-8">
-        <div
-          className="text-base leading-relaxed space-y-4"
-          dangerouslySetInnerHTML={{ __html: article.content }}
-        />
-      </div>
+      {article.content && (
+        <div className="prose prose-sm dark:prose-invert max-w-none mb-8">
+          <div
+            className="text-base leading-relaxed space-y-4"
+            dangerouslySetInnerHTML={{ __html: article.content }}
+          />
+        </div>
+      )}
 
       {/* Tags */}
-      {article.tags && article.tags.length > 0 && (
+      {article.tags && Array.isArray(article.tags) && article.tags.length > 0 && (
         <Card className="p-6 bg-muted/30">
           <h3 className="font-semibold mb-3 text-foreground">Thẻ liên quan</h3>
           <div className="flex flex-wrap gap-2">
             {article.tags.map((tag) => (
               <Badge
-                key={tag.id}
+                key={tag.id || tag.name}
                 variant="outline"
                 className="cursor-pointer hover:bg-muted"
               >
@@ -90,11 +132,13 @@ export function ArticleDetail({ article }) {
       )}
 
       {/* Description (SEO Meta) */}
-      <div className="mt-8 pt-6 border-t border-border">
-        <p className="text-sm text-muted-foreground italic">
-          {article.meta_description}
-        </p>
-      </div>
+      {article.meta_description && (
+        <div className="mt-8 pt-6 border-t border-border">
+          <p className="text-sm text-muted-foreground italic">
+            {article.meta_description}
+          </p>
+        </div>
+      )}
 
       {/* Comments Section */}
       {article?.id && <CommentSection postId={article.id} />}

@@ -156,4 +156,83 @@ export const usersServices = {
       throw error?.response?.data || error;
     }
   },
+
+  /**
+   * 📋 Lấy danh sách thành viên CLB (có phân trang, filter)
+   * GET /admin/members?page=1&limit=10&search=...
+   * @param {URLSearchParams} params - query params
+   */
+  getAllMembers: async (params) => {
+    try {
+      const res = await axiosClient.get("admin/members", { params });
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  /**
+   * 🔹 Lấy thông tin chi tiết thành viên theo user_id
+   * GET /admin/members/:userId
+   */
+  getMemberByUserId: async (userId) => {
+    try {
+      const res = await axiosClient.get(`admin/members/${userId}`);
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  /**
+   * ➕ Tạo thành viên mới
+   * POST /admin/members
+   */
+  createMember: async (data) => {
+    try {
+      const res = await axiosClient.post("admin/members", data);
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  /**
+   * ✏️ Cập nhật thông tin thành viên
+   * PATCH /admin/members/:userId
+   */
+  updateMember: async (userId, data) => {
+    try {
+      const res = await axiosClient.patch(`admin/members/${userId}`, data);
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  /**
+   * 🗑️ Xóa thành viên
+   * DELETE /admin/members/:userId
+   */
+  deleteMember: async (userId) => {
+    try {
+      const res = await axiosClient.delete(`admin/members/${userId}`);
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  /**
+   * 📋 Lấy danh sách users chưa có member profile (để chọn khi thêm)
+   * GET /admin/members/available-users?page=1&limit=10&search=...
+   */
+  getAvailableUsers: async (params) => {
+    try {
+      const res = await axiosClient.get("admin/members/available-users", { params });
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
 };

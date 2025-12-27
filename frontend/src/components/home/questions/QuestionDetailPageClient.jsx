@@ -11,18 +11,9 @@ export function QuestionDetailPageClient({ question, initialAnswers }) {
     // Revalidate cache để cập nhật danh sách câu trả lời
     // Tag phải khớp với tag trong getQuestionDetail (services/home.js)
     try {
-      // Revalidate tag "question" và tag động theo slug
-      await Promise.all([
-        fetch(`/api/revalidate?tag=question`, {
-          method: "POST",
-        }),
-        fetch(`/api/revalidate?tag=${question.slug}`, {
-          method: "POST",
-        }),
-      ]);
-      console.log(`✅ Cache revalidated for question and ${question.slug}`);
+      const { revalidateQuestions } = await import("@/utils/revalidateCache");
+      await revalidateQuestions(question.slug);
     } catch (revalidateError) {
-      console.error("⚠️ Failed to revalidate cache:", revalidateError);
     }
 
     // Refresh page để lấy dữ liệu mới

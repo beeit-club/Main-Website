@@ -1,4 +1,5 @@
-import { API_BACKEND } from '../../config/server.config.js';
+import { config } from '../../config/index.js';
+const { API_BACKEND } = config;
 import asyncWrapper from '../../middlewares/error.handler.js';
 import { handleDeleteImage } from '../../routers/upload/upload.js';
 import postService from '../../services/admin/posts.service.js';
@@ -9,6 +10,7 @@ import {
   PaginationSchema,
   params,
 } from '../../validation/common/common.schema.js';
+import { sanitizeHtml, sanitizeText } from '../../utils/sanitize.js';
 
 const postController = {
   // lấy toàn bộ
@@ -50,11 +52,14 @@ const postController = {
       );
     }
     const featured_image = `${API_BACKEND}/uploads/posts/${file.filename}`;
+    // Sanitize HTML content để tránh XSS
+    const sanitizedContent = sanitizeHtml(content);
+    const sanitizedMetaDescription = meta_description ? sanitizeText(meta_description) : null;
     const data = {
-      title,
+      title: sanitizeText(title),
       slug,
-      content,
-      meta_description,
+      content: sanitizedContent,
+      meta_description: sanitizedMetaDescription,
       category_id,
       status: status ?? 0,
       tags,
@@ -77,7 +82,7 @@ const postController = {
     const { title, content, meta_description, category_id, status, tags } =
       req.body;
     const { id } = req.params;
-    const slug = slugify(title);
+    const slug = title ? slugify(title) : undefined;
     const file = req.file;
     const user = req.user;
     const { id: userId } = user;
@@ -91,17 +96,21 @@ const postController = {
       }
     }
 
-    const data = {
-      title,
-      slug,
-      content,
-      meta_description,
-      category_id,
-      status: status ?? 0,
-      tags,
-      featured_image,
-      updated_by: userId,
-    };
+    // Sanitize HTML content để tránh XSS
+    const sanitizedContent = content ? sanitizeHtml(content) : undefined;
+    const sanitizedTitle = title ? sanitizeText(title) : undefined;
+    const sanitizedMetaDescription = meta_description ? sanitizeText(meta_description) : undefined;
+    
+    const data = {};
+    if (sanitizedTitle) data.title = sanitizedTitle;
+    if (slug) data.slug = slug;
+    if (sanitizedContent) data.content = sanitizedContent;
+    if (sanitizedMetaDescription !== undefined) data.meta_description = sanitizedMetaDescription;
+    if (category_id !== undefined) data.category_id = category_id;
+    if (status !== undefined) data.status = status ?? 0;
+    if (tags !== undefined) data.tags = tags;
+    if (featured_image) data.featured_image = featured_image;
+    data.updated_by = userId;
     const post = await postService.updatePost(id, data);
 
     utils.success(res, 'Cập nhật bài viết thành công', {
