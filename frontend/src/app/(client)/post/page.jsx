@@ -3,6 +3,7 @@ import { fetchAllPosts } from "@/services/post";
 import { BlogGrid } from "@/components/home/post/components/blog-grid";
 import { BlogList } from "@/components/home/post/components/blog-list";
 import { PostFilters } from "@/components/home/post/components/post-filters";
+import { PostCategoryFilter } from "@/components/home/post/components/PostCategoryFilter";
 import { PostPagination } from "@/components/home/post/components/post-pagination";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,28 +68,38 @@ async function getData(searchParams) {
   try {
     // Xử lý searchParams an toàn - có thể là undefined hoặc object
     const safeSearchParams = searchParams || {};
-    
+
     // Parse page và limit, đảm bảo là number
-    const page = safeSearchParams.page 
-      ? parseInt(Array.isArray(safeSearchParams.page) ? safeSearchParams.page[0] : safeSearchParams.page, 10) || 1
+    const page = safeSearchParams.page
+      ? parseInt(
+          Array.isArray(safeSearchParams.page)
+            ? safeSearchParams.page[0]
+            : safeSearchParams.page,
+          10
+        ) || 1
       : 1;
-    
+
     const limit = safeSearchParams.limit
-      ? parseInt(Array.isArray(safeSearchParams.limit) ? safeSearchParams.limit[0] : safeSearchParams.limit, 10) || 12
+      ? parseInt(
+          Array.isArray(safeSearchParams.limit)
+            ? safeSearchParams.limit[0]
+            : safeSearchParams.limit,
+          10
+        ) || 12
       : 12;
 
     const params = {
       page,
       limit,
       ...(safeSearchParams.category && {
-        category: Array.isArray(safeSearchParams.category) 
-          ? safeSearchParams.category[0] 
+        category: Array.isArray(safeSearchParams.category)
+          ? safeSearchParams.category[0]
           : safeSearchParams.category,
       }),
-      ...(safeSearchParams.title && { 
-        title: Array.isArray(safeSearchParams.title) 
-          ? safeSearchParams.title[0] 
-          : safeSearchParams.title 
+      ...(safeSearchParams.title && {
+        title: Array.isArray(safeSearchParams.title)
+          ? safeSearchParams.title[0]
+          : safeSearchParams.title,
       }),
     };
 
@@ -109,7 +120,9 @@ async function getData(searchParams) {
 }
 
 export default async function PostsPage({ searchParams }) {
-  const { posts, pagination } = await getData(searchParams);
+  // Next.js 15: searchParams is a Promise, need to await it
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const { posts, pagination } = await getData(resolvedSearchParams);
 
   return (
     <main className="min-h-screen bg-background">
@@ -123,6 +136,9 @@ export default async function PostsPage({ searchParams }) {
             Khám phá các bài viết, hướng dẫn và chia sẻ từ cộng đồng
           </p>
         </div>
+
+        {/* Category Filter */}
+        <PostCategoryFilter />
 
         {/* Main Content */}
         <div className="grid gap-6 lg:grid-cols-[1fr_300px]">

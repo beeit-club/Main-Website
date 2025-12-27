@@ -100,15 +100,19 @@ export function AnswerCard({ answer, questionId, onReplySuccess, depth = 0 }) {
 
         {/* Avatar */}
         <Avatar className="h-10 w-10 flex-shrink-0">
-          <AvatarImage src={author_avatar} alt={author_name} />
-          <AvatarFallback>{author_name?.[0]?.toUpperCase()}</AvatarFallback>
+          <AvatarImage src={author_avatar || undefined} alt={author_name || "Ẩn danh"} />
+          <AvatarFallback className="bg-muted">
+            {author_name?.[0]?.toUpperCase() || "?"}
+          </AvatarFallback>
         </Avatar>
 
         {/* Nội dung trả lời */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
-              <span className="font-semibold text-foreground">{author_name}</span>
+              <span className="font-semibold text-foreground">
+                {author_name || "Người dùng ẩn danh"}
+              </span>
               <span className="text-xs text-muted-foreground">
                 • <ClientTimeAgo date={created_at} />
               </span>
@@ -123,7 +127,7 @@ export function AnswerCard({ answer, questionId, onReplySuccess, depth = 0 }) {
 
           {/* Nội dung HTML */}
           <div
-            className="prose dark:prose-invert max-w-none mb-3"
+            className="prose dark:prose-invert max-w-none mb-3 overflow-hidden break-words break-all"
             dangerouslySetInnerHTML={{ __html: content }}
           />
 

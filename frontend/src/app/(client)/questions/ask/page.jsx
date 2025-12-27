@@ -42,15 +42,12 @@ export default function AskQuestionPage() {
 
   // 2. Hàm xử lý khi submit form
   const onSubmit = async (data) => {
-    console.log("🚀 Form submitted with data:", data);
     setIsSubmitting(true);
 
     // Lấy nội dung từ TinyEditor
     const editorContent = editorRef.current
       ? editorRef.current.getContent()
       : "";
-
-    console.log("📝 Editor content:", editorContent);
 
     if (!editorContent || editorContent.trim() === "") {
       toast.error("Nội dung câu hỏi không được để trống");
@@ -65,12 +62,8 @@ export default function AskQuestionPage() {
         meta_description: data.meta_description || "",
       };
 
-      console.log("📤 Sending question data:", questionData);
-
       // Gửi dữ liệu lên server
       const response = await createQuestion(questionData);
-
-      console.log("✅ Response from server:", response);
 
       toast.success("Câu hỏi đã được đăng thành công!");
 
@@ -84,9 +77,7 @@ export default function AskQuestionPage() {
       try {
         const { revalidateQuestions } = await import("@/utils/revalidateCache");
         await revalidateQuestions();
-        console.log("✅ Cache revalidated for questions-list");
       } catch (revalidateError) {
-        console.error("⚠️ Failed to revalidate cache:", revalidateError);
         // Không block flow nếu revalidate fail
       }
 
@@ -95,13 +86,6 @@ export default function AskQuestionPage() {
         router.push("/questions");
       }, 1500);
     } catch (error) {
-      console.error("❌ Error creating question:", error);
-      console.error("❌ Error details:", {
-        error,
-        message: error?.message,
-        response: error?.response?.data,
-        status: error?.response?.status,
-      });
 
       // Hiển thị lỗi chi tiết hơn
       let errorMessage = "Không thể tạo câu hỏi. Vui lòng thử lại.";
@@ -126,7 +110,6 @@ export default function AskQuestionPage() {
 
   // Hàm xử lý khi form validation fail
   const onError = (errors) => {
-    console.error("❌ Form validation errors:", errors);
     toast.error("Vui lòng kiểm tra lại thông tin đã nhập");
   };
 

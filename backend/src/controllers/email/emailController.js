@@ -1,4 +1,4 @@
-import { emailService } from '../../services/email/emailService.js';
+import emailService from '../../services/email/emailService.js';
 
 export const emailController = {
   async sendReminder(req, res) {

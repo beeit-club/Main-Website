@@ -9,9 +9,9 @@ export function getSiteUrl() {
   return (
     process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.VERCEL_URL
+    (process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : "https://yourdomain.com"
+      : "https://beeitclub.com")
   );
 }
 
@@ -57,8 +57,16 @@ export function cleanHtmlForMeta(html, maxLength = 160) {
   // Remove HTML tags
   const text = html.replace(/<[^>]*>/g, "");
   
+  // Remove extra whitespace
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  
   // Trim and limit length
-  return text.trim().substring(0, maxLength);
+  if (cleaned.length <= maxLength) {
+    return cleaned;
+  }
+  
+  // Truncate at word boundary
+  return cleaned.substring(0, maxLength).replace(/\s+\S*$/, "") + "...";
 }
 
 /**
@@ -70,38 +78,50 @@ export function getDefaultMetadata() {
   return {
     metadataBase: new URL(siteUrl),
     title: {
-      default: "Bee IT Club",
+      default: "Bee IT Club - Câu lạc bộ Công nghệ Thông tin FPT Polytechnic",
       template: "%s | Bee IT Club",
     },
     description:
-      "Bee IT là câu lạc bộ công nghệ thông tin trực thuộc FPT Polytechnic, nơi chia sẻ kiến thức và kết nối cộng đồng sinh viên yêu thích CNTT.",
+      "Bee IT là câu lạc bộ công nghệ thông tin trực thuộc FPT Polytechnic, nơi chia sẻ kiến thức và kết nối cộng đồng sinh viên yêu thích CNTT. Tham gia để học hỏi, chia sẻ và phát triển cùng cộng đồng.",
     keywords: [
       "Bee IT",
+      "Bee IT Club",
       "FPT Polytechnic",
       "Câu lạc bộ CNTT",
       "Công nghệ thông tin",
       "IT Club",
       "Học lập trình",
       "Chia sẻ kiến thức",
+      "Cộng đồng sinh viên",
+      "FPT Poly",
     ],
-    authors: [{ name: "Bee IT Club" }],
+    authors: [{ name: "Bee IT Club", url: siteUrl }],
     creator: "Bee IT Club",
     publisher: "Bee IT Club",
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
     icons: {
       icon: [
-        { url: "/logo.jpg", sizes: "any" },
-        { url: "/logo.jpg", type: "image/jpeg" },
+        { url: "/favicon.ico", sizes: "any" },
+        { url: "/logo.jpg", sizes: "192x192", type: "image/jpeg" },
       ],
       apple: [
         { url: "/logo.jpg", sizes: "180x180", type: "image/jpeg" },
       ],
-      shortcut: "/logo.jpg",
+      shortcut: "/favicon.ico",
     },
+    manifest: "/manifest.json",
     openGraph: {
       type: "website",
       locale: "vi_VN",
       url: siteUrl,
       siteName: "Bee IT Club",
+      title: "Bee IT Club - Câu lạc bộ Công nghệ Thông tin FPT Polytechnic",
+      description:
+        "Bee IT là câu lạc bộ công nghệ thông tin trực thuộc FPT Polytechnic, nơi chia sẻ kiến thức và kết nối cộng đồng sinh viên yêu thích CNTT.",
       images: [
         {
           url: getOgImageUrl("/logo.jpg"),
@@ -115,6 +135,10 @@ export function getDefaultMetadata() {
       card: "summary_large_image",
       site: "@beeitclub",
       creator: "@beeitclub",
+      title: "Bee IT Club - Câu lạc bộ Công nghệ Thông tin FPT Polytechnic",
+      description:
+        "Bee IT là câu lạc bộ công nghệ thông tin trực thuộc FPT Polytechnic, nơi chia sẻ kiến thức và kết nối cộng đồng sinh viên yêu thích CNTT.",
+      images: [getOgImageUrl("/logo.jpg")],
     },
     robots: {
       index: true,
@@ -127,6 +151,9 @@ export function getDefaultMetadata() {
         "max-snippet": -1,
       },
     },
+    verification: {
+      // Thêm Google Search Console verification nếu có
+      // google: "your-verification-code",
+    },
   };
 }
-

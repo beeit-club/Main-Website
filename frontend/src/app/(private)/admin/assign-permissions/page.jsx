@@ -110,7 +110,6 @@ export default function AssignPermissionsPage() {
       // Nếu có pagination và totalPages > 1, fetch các trang còn lại
       const pagination = firstPage?.data?.pagination;
       if (pagination && pagination.totalPages > 1) {
-        console.log(`📄 Có ${pagination.totalPages} trang, đang fetch thêm...`);
         const allPromises = [];
         for (let page = 2; page <= pagination.totalPages; page++) {
           const pageParams = new URLSearchParams();
@@ -126,14 +125,6 @@ export default function AssignPermissionsPage() {
         });
       }
 
-      console.log("✅ Total permissions fetched:", permissionsList.length);
-      console.log("📋 Modules:", [
-        ...new Set(permissionsList.map((p) => p.module)),
-      ]);
-      console.log(
-        "📋 Sample (first 10):",
-        permissionsList.slice(0, 10).map((p) => p.name)
-      );
 
       setPermissions(permissionsList);
     } catch (error) {
@@ -153,7 +144,6 @@ export default function AssignPermissionsPage() {
       setUserPermissions(Array.isArray(permissions) ? permissions : []);
     } catch (error) {
       // User có thể chưa có permissions
-      console.log("User chưa có permissions hoặc lỗi:", error);
       setUserPermissions([]);
     }
   };
@@ -183,22 +173,12 @@ export default function AssignPermissionsPage() {
   // Chỉ hiển thị các quyền khác (posts, events, documents, transactions, applications, etc.)
   const filteredPermissions = permissions.filter((perm) => {
     // Loại trừ tất cả quyền về user management, role management và permission management
-    const shouldShow =
+    return (
       !perm.name.startsWith("users.") &&
       !perm.name.startsWith("roles.") &&
-      !perm.name.startsWith("permissions.");
-    if (!shouldShow) {
-      console.log("🚫 Filtered out:", perm.name);
-    }
-    return shouldShow;
+      !perm.name.startsWith("permissions.")
+    );
   });
-
-  console.log("🔍 All permissions:", permissions.length);
-  console.log("🔍 Filtered permissions:", filteredPermissions.length);
-  console.log(
-    "🔍 Filtered list:",
-    filteredPermissions.map((p) => p.name)
-  );
 
   // Group permissions by module
   const groupedPermissions = filteredPermissions.reduce((acc, perm) => {

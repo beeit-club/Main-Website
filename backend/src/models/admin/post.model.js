@@ -335,5 +335,16 @@ WHERE
       throw error;
     }
   }
+
+  // Tăng số lượt xem bài viết
+  static async incrementViewCount(slug) {
+    try {
+      const sql = `UPDATE ${table} SET view_count = COALESCE(view_count, 0) + 1 WHERE slug = ? AND deleted_at IS NULL`;
+      const result = await pool.query(sql, [slug]);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 export default postModel;

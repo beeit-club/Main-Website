@@ -47,8 +47,6 @@ export function RowActions({ row }) {
 
   const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
 
-  // State cho dropdown của Dialog Sửa
-  const [editCategoryList, setEditCategoryList] = useState([]);
 
   // --- Cấu hình React Hook Form cho Edit ---
   const form = useForm({
@@ -75,34 +73,19 @@ export function RowActions({ row }) {
   // 1. Mở dialog và fetch data
   async function onEditClick() {
     try {
-      // Gọi 2 API cùng lúc
-      const [dataRes, listRes] = await Promise.all([
-        documentCategoryServices.getOne(categoryId),
-        documentCategoryServices.getAll({ limit: 1000 }),
-      ]);
+      // Gọi API lấy chi tiết
+      const dataRes = await documentCategoryServices.getOne(categoryId);
 
       // Xử lý dữ liệu chi tiết
       if (dataRes?.data.data) {
         const category = dataRes.data.data;
         form.reset({
           name: category.name,
-          parent_id: category.parent_id || "null", // Dùng string "null" cho Select
         });
+        setOpenEdit(true); // Mở dialog khi đã load thành công
       } else {
         toast.error("Lấy chi tiết danh mục thất bại");
-        return;
       }
-
-      // Xử lý danh sách dropdown (lọc chính nó ra)
-      if (listRes?.data.data.data) {
-        setEditCategoryList(
-          listRes.data.data.data.filter((cat) => cat.id !== categoryId)
-        );
-      } else {
-        toast.error("Tải danh sách danh mục cha thất bại");
-      }
-
-      setOpenEdit(true); // Chỉ mở khi tất cả đã thành công
     } catch (error) {
       toast.error("Có lỗi xảy ra khi lấy dữ liệu.");
     }
@@ -197,38 +180,6 @@ export function RowActions({ row }) {
                 )}
               />
 
-              {/* Danh mục cha (Select) */}
-              <FormField
-                control={form.control}
-                name="parent_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Danh mục cha</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={String(field.value || "null")}
-                      disabled={isEditSubmitting}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="— Chọn danh mục cha —" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="null">
-                          — Là danh mục cha —
-                        </SelectItem>
-                        {editCategoryList.map((cat) => (
-                          <SelectItem key={cat.id} value={String(cat.id)}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <DialogFooter>
                 <Button

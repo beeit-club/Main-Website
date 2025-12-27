@@ -1,8 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Plus, Mail, Eye, Send, Trash2, Edit, X } from "lucide-react";
+import { Plus, Mail, Eye, Send, Trash2, Edit, X, Sparkles } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -44,6 +45,8 @@ import { emailTemplateServices } from "@/services/admin/emailTemplateServices";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { EmailVariableList } from "@/components/admin/email-templates/EmailVariableList";
+import { EmailEditor } from "@/components/admin/email-templates/EmailEditor";
 
 // Validation Schema
 const emailTemplateSchema = yup.object({
@@ -54,7 +57,14 @@ const emailTemplateSchema = yup.object({
   category: yup
     .string()
     .oneOf(
-      ["authentication", "application", "event", "document", "system", "custom"],
+      [
+        "authentication",
+        "application",
+        "event",
+        "document",
+        "system",
+        "custom",
+      ],
       "Category không hợp lệ"
     )
     .optional(),
@@ -317,14 +327,36 @@ export default function EmailTemplatesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Email Templates</h1>
-          <p className="text-muted-foreground">
-            Quản lý templates email động
-          </p>
+          <p className="text-muted-foreground">Quản lý templates email động</p>
         </div>
-        <Button onClick={() => setOpenAdd(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Tạo Template
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() =>
+              router.push("/admin/email-templates/custom-variables")
+            }
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            Custom Variables
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/admin/email-templates/bulk-send")}
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            Gửi Bulk Email
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/admin/email-templates/bulk-jobs")}
+          >
+            Batch Jobs
+          </Button>
+          <Button onClick={() => setOpenAdd(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Tạo Template
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
@@ -438,164 +470,193 @@ export default function EmailTemplatesPage() {
 
       {/* === DIALOG CREATE === */}
       <Dialog open={openAdd} onOpenChange={setOpenAdd}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[1400px] max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Tạo Template Mới</DialogTitle>
             <DialogDescription>
-              Tạo email template mới với variables động
+              Tạo email template mới với variables động. Kéo thả biến từ danh
+              sách bên phải vào nội dung.
             </DialogDescription>
           </DialogHeader>
           <Form {...formAdd}>
             <form
               onSubmit={formAdd.handleSubmit(handleCreate)}
-              className="space-y-4"
+              className="flex-1 flex flex-col overflow-hidden"
             >
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={formAdd.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tên Template *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="VD: Thông báo sự kiện" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={formAdd.control}
-                  name="slug"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Slug (Tự động tạo nếu để trống)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="event-notification" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="flex-1 grid grid-cols-3 gap-4 overflow-hidden">
+                {/* Left Column: Form Fields */}
+                <div className="col-span-2 space-y-4 overflow-y-auto pr-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={formAdd.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tên Template *</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="VD: Thông báo sự kiện"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={formAdd.control}
+                      name="slug"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Slug (Tự động tạo nếu để trống)</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="event-notification"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={formAdd.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Chọn category" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="authentication">
+                                Authentication
+                              </SelectItem>
+                              <SelectItem value="application">
+                                Application
+                              </SelectItem>
+                              <SelectItem value="event">Event</SelectItem>
+                              <SelectItem value="document">Document</SelectItem>
+                              <SelectItem value="system">System</SelectItem>
+                              <SelectItem value="custom">Custom</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={formAdd.control}
+                      name="is_active"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status</FormLabel>
+                          <Select
+                            onValueChange={(value) =>
+                              field.onChange(value === "true")
+                            }
+                            value={field.value ? "true" : "false"}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="true">Active</SelectItem>
+                              <SelectItem value="false">Inactive</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={formAdd.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mô tả</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            rows={2}
+                            placeholder="Mô tả template..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={formAdd.control}
+                    name="subject"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subject *</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="VD: Thông báo: {{event_title}}"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={formAdd.control}
+                    name="html_content"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nội dung HTML *</FormLabel>
+                        <FormControl>
+                          <EmailEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                            subject={formAdd.watch("subject")}
+                            onSubjectChange={(value) =>
+                              formAdd.setValue("subject", value)
+                            }
+                            label=""
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Right Column: Variable List */}
+                <div className="col-span-1 border-l pl-4">
+                  <EmailVariableList
+                    templateId={null}
+                    onInsertVariable={(variable) => {
+                      const currentContent =
+                        formAdd.getValues("html_content") || "";
+                      formAdd.setValue(
+                        "html_content",
+                        currentContent + variable
+                      );
+                    }}
+                  />
+                </div>
               </div>
 
-              <FormField
-                control={formAdd.control}
-                name="subject"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subject *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="VD: Thông báo: {{event_title}}"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={formAdd.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Chọn category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="authentication">
-                            Authentication
-                          </SelectItem>
-                          <SelectItem value="application">Application</SelectItem>
-                          <SelectItem value="event">Event</SelectItem>
-                          <SelectItem value="document">Document</SelectItem>
-                          <SelectItem value="system">System</SelectItem>
-                          <SelectItem value="custom">Custom</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={formAdd.control}
-                  name="is_active"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select
-                        onValueChange={(value) =>
-                          field.onChange(value === "true")
-                        }
-                        value={field.value ? "true" : "false"}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="true">Active</SelectItem>
-                          <SelectItem value="false">Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={formAdd.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mô tả</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        rows={2}
-                        placeholder="Mô tả template..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={formAdd.control}
-                name="html_content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nội dung HTML *</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        rows={15}
-                        placeholder='<html><body><h1>Xin chào {{fullname}}!</h1></body></html>'
-                        className="font-mono text-sm"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                    <p className="text-xs text-muted-foreground">
-                      Sử dụng Handlebars syntax: {`{{variable_name}}`}
-                    </p>
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
+              <DialogFooter className="mt-4">
                 <Button
                   type="button"
                   variant="ghost"
@@ -614,153 +675,180 @@ export default function EmailTemplatesPage() {
 
       {/* === DIALOG EDIT === */}
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[1400px] max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Chỉnh Sửa Template</DialogTitle>
             <DialogDescription>
-              Cập nhật thông tin template
+              Cập nhật thông tin template. Kéo thả biến từ danh sách bên phải
+              vào nội dung.
             </DialogDescription>
           </DialogHeader>
           <Form {...formEdit}>
             <form
               onSubmit={formEdit.handleSubmit(handleUpdate)}
-              className="space-y-4"
+              className="flex-1 flex flex-col overflow-hidden"
             >
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={formEdit.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tên Template *</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={formEdit.control}
-                  name="slug"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Slug</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="flex-1 grid grid-cols-3 gap-4 overflow-hidden">
+                {/* Left Column: Form Fields */}
+                <div className="col-span-2 space-y-4 overflow-y-auto pr-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={formEdit.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tên Template *</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={formEdit.control}
+                      name="slug"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Slug</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={formEdit.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="authentication">
+                                Authentication
+                              </SelectItem>
+                              <SelectItem value="application">
+                                Application
+                              </SelectItem>
+                              <SelectItem value="event">Event</SelectItem>
+                              <SelectItem value="document">Document</SelectItem>
+                              <SelectItem value="system">System</SelectItem>
+                              <SelectItem value="custom">Custom</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={formEdit.control}
+                      name="is_active"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status</FormLabel>
+                          <Select
+                            onValueChange={(value) =>
+                              field.onChange(value === "true")
+                            }
+                            value={field.value ? "true" : "false"}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="true">Active</SelectItem>
+                              <SelectItem value="false">Inactive</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={formEdit.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mô tả</FormLabel>
+                        <FormControl>
+                          <Textarea rows={2} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={formEdit.control}
+                    name="subject"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subject *</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={formEdit.control}
+                    name="html_content"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nội dung HTML *</FormLabel>
+                        <FormControl>
+                          <EmailEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                            subject={formEdit.watch("subject")}
+                            onSubjectChange={(value) =>
+                              formEdit.setValue("subject", value)
+                            }
+                            label=""
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Right Column: Variable List */}
+                <div className="col-span-1 border-l pl-4">
+                  <EmailVariableList
+                    templateId={selectedTemplate?.id || null}
+                    onInsertVariable={(variable) => {
+                      const currentContent =
+                        formEdit.getValues("html_content") || "";
+                      formEdit.setValue(
+                        "html_content",
+                        currentContent + variable
+                      );
+                    }}
+                  />
+                </div>
               </div>
 
-              <FormField
-                control={formEdit.control}
-                name="subject"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subject *</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={formEdit.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="authentication">
-                            Authentication
-                          </SelectItem>
-                          <SelectItem value="application">Application</SelectItem>
-                          <SelectItem value="event">Event</SelectItem>
-                          <SelectItem value="document">Document</SelectItem>
-                          <SelectItem value="system">System</SelectItem>
-                          <SelectItem value="custom">Custom</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={formEdit.control}
-                  name="is_active"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select
-                        onValueChange={(value) =>
-                          field.onChange(value === "true")
-                        }
-                        value={field.value ? "true" : "false"}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="true">Active</SelectItem>
-                          <SelectItem value="false">Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={formEdit.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mô tả</FormLabel>
-                    <FormControl>
-                      <Textarea rows={2} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={formEdit.control}
-                name="html_content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nội dung HTML *</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        rows={15}
-                        className="font-mono text-sm"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
+              <DialogFooter className="mt-4">
                 <Button
                   type="button"
                   variant="ghost"
@@ -772,7 +860,9 @@ export default function EmailTemplatesPage() {
                   type="submit"
                   disabled={formEdit.formState.isSubmitting}
                 >
-                  {formEdit.formState.isSubmitting ? "Đang cập nhật..." : "Cập nhật"}
+                  {formEdit.formState.isSubmitting
+                    ? "Đang cập nhật..."
+                    : "Cập nhật"}
                 </Button>
               </DialogFooter>
             </form>
@@ -785,9 +875,7 @@ export default function EmailTemplatesPage() {
         <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Preview Template</DialogTitle>
-            <DialogDescription>
-              {selectedTemplate?.name}
-            </DialogDescription>
+            <DialogDescription>{selectedTemplate?.name}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -895,16 +983,10 @@ export default function EmailTemplatesPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="ghost"
-              onClick={() => setOpenDelete(false)}
-            >
+            <Button variant="ghost" onClick={() => setOpenDelete(false)}>
               Hủy
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-            >
+            <Button variant="destructive" onClick={handleDelete}>
               Xóa
             </Button>
           </DialogFooter>

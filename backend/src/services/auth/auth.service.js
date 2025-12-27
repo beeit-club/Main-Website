@@ -8,7 +8,7 @@ import { config } from '../../config/index.js';
 import { code, message } from '../../common/message/index.js';
 import ServiceError from '../../error/service.error.js';
 import { utils } from '../../utils/index.js';
-import { emailService } from '../email/emailService.js';
+import emailService from '../email/emailService.js';
 const client = new OAuth2Client({
   clientId: config.GOOGLE_CLIENT_ID,
   clientSecret: config.GOOGLE_CLIENT_SECRET,

@@ -58,8 +58,6 @@ export function AssignUserDialog({ open, onOpenChange, docId, docTitle }) {
         usersServices.getAllUser(), // Lấy 1000 user
         documentServices.getOneDocument(docId), // Lấy user đã gán
       ]);
-      console.log("🚀 ~ fetchData ~ docRes:", docRes);
-      console.log("🚀 ~ fetchData ~ userRes:", userRes);
       setAllUsers(userRes?.data?.data.data || []);
       // Giả định BE trả về { document: { ..., assigned_users: [...] } }
       setAssignedUsers(docRes?.data?.data?.document?.assigned_users || []);

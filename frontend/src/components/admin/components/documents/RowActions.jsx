@@ -73,7 +73,10 @@ export function RowActions({ row }) {
       try {
         const res = await documentCategoryServices.getAll();
         // Response structure: { status, message, data: { documentCategories: { data: [...], pagination: {...} } } }
-        const categoriesList = res?.data?.data?.documentCategories?.data || res?.data?.data?.data || [];
+        const categoriesList =
+          res?.data?.data?.documentCategories?.data ||
+          res?.data?.data?.data ||
+          [];
         setCategories(categoriesList);
       } catch (error) {
         console.error("❌ Error loading categories:", error);
@@ -89,7 +92,7 @@ export function RowActions({ row }) {
       await documentServices.deleteDocument(document.id);
       // Revalidate cache sau khi xóa document
       const { revalidateDocuments } = await import("@/utils/revalidateCache");
-      await revalidateDocuments();
+      await revalidateDocuments(document.slug);
       toast.success("Đã chuyển tài liệu vào thùng rác.");
       setOpenDelete(false);
       window.location.reload(); // Tải lại trang
@@ -121,7 +124,11 @@ export function RowActions({ row }) {
       if (res.status === "success") {
         // Revalidate cache sau khi update document
         const { revalidateDocuments } = await import("@/utils/revalidateCache");
-        await revalidateDocuments();
+        // Revalidate slug cũ (để xóa cache cũ nếu slug thay đổi)
+        await revalidateDocuments(document.slug);
+        // Nếu title thay đổi, slug sẽ thay đổi, nhưng chúng ta chưa có slug mới
+        // Backend sẽ trả về slug mới trong response, nhưng ở đây chúng ta chỉ revalidate slug cũ
+        // Tag "documents" sẽ được revalidate để cover cả trường hợp slug mới
         toast.success("Cập nhật tài liệu thành công!");
         setOpenEdit(false);
         window.location.reload();
@@ -200,8 +207,7 @@ export function RowActions({ row }) {
               onSubmit={form.handleSubmit(onConfirmEdit)}
               className="space-y-4"
             >
-              {/* (Copy toàn bộ FormFields từ page.jsx: title, file_url, description, category_id, access_level, status) */}
-              {/* ... (Ví dụ: FormField cho title) ... */}
+              {/* Title */}
               <FormField
                 control={form.control}
                 name="title"
@@ -209,13 +215,134 @@ export function RowActions({ row }) {
                   <FormItem>
                     <FormLabel>Tiêu đề</FormLabel>
                     <FormControl>
-                      <Input {...field} />
-                    </FormControl>{" "}
+                      <Input
+                        placeholder="VD: Báo cáo tài chính quý 1"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              {/* ... (Các fields còn lại) ... */}
+
+              {/* File URL */}
+              <FormField
+                control={form.control}
+                name="file_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL Tệp (Google Drive, ...)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mô tả (Tùy chọn)</FormLabel>
+                    <FormControl>
+                      <Textarea rows={3} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-3 gap-4">
+                {/* Category */}
+                <FormField
+                  control={form.control}
+                  name="category_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Danh mục</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value ? String(field.value) : ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="— Chọn danh mục —" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={String(cat.id)}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Access Level */}
+                <FormField
+                  control={form.control}
+                  name="access_level"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Truy cập</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="public">Công khai</SelectItem>
+                          <SelectItem value="member_only">
+                            Thành viên
+                          </SelectItem>
+                          <SelectItem value="restricted">
+                            Hạn chế (Chỉ định)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Status */}
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Trạng thái</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={String(field.value)}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="0">Bản nháp</SelectItem>
+                          <SelectItem value="1">Xuất bản</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <DialogFooter>
                 <Button
                   variant="ghost"

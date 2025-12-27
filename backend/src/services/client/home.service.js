@@ -64,10 +64,6 @@ const HomeService = {
   getAllDocumentCategory: async (option) => {
     try {
       const documentCategories = await HomeModel.getAllDocumentCategory(option);
-      console.log(
-        '🚀 ~ HomeService ~ getAllDocumentCategory ~ documentCategories:',
-        documentCategories,
-      );
       return documentCategories;
     } catch (error) {
       throw error;
@@ -93,7 +89,6 @@ const HomeService = {
     try {
       // kiểm tra xem post tồn tại không
       const isCheck = await postModel.checkIsPost(slug);
-      console.log('🚀 ~ isCheck:', isCheck);
       if (!isCheck) {
         throw new ServiceError(
           'Bài viết không tồn tại', // Bạn cần định nghĩa message này
@@ -102,6 +97,11 @@ const HomeService = {
           404,
         );
       }
+
+      // Tăng số lượt xem trước khi lấy bài viết
+      await postModel.incrementViewCount(slug);
+
+      // Lấy thông tin bài viết
       const post = await HomeModel.getPostDetaill(slug);
       return post;
     } catch (error) {
@@ -128,6 +128,20 @@ const HomeService = {
           404,
         );
       }
+
+      // Log dữ liệu từ service
+      console.log('=== DEBUG: Question data in Service ===');
+      console.log('Question object:', JSON.stringify(question, null, 2));
+      console.log('author_name:', question?.author_name);
+      console.log('author_avatar:', question?.author_avatar);
+      console.log('author_id:', question?.author_id);
+      console.log('Type of author_avatar:', typeof question?.author_avatar);
+      console.log('Is author_avatar null?', question?.author_avatar === null);
+      console.log(
+        'Is author_avatar undefined?',
+        question?.author_avatar === undefined,
+      );
+      console.log('========================================');
 
       // Build tree structure cho answers (nested comments)
       if (question.answers && question.answers.length > 0) {

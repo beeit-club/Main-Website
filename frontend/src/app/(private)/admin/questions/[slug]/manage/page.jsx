@@ -210,7 +210,7 @@ export default function ManageQuestionPage() {
         </CardHeader>
         <CardContent>
           <div
-            className="prose dark:prose-invert max-w-none"
+            className="prose dark:prose-invert max-w-none overflow-hidden break-words break-all"
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(question.content || ""),
             }}
@@ -287,7 +287,7 @@ export default function ManageQuestionPage() {
                 </CardHeader>
                 <CardContent>
                   <div
-                    className="prose dark:prose-invert max-w-none"
+                    className="prose dark:prose-invert max-w-none overflow-hidden break-words break-all"
                     dangerouslySetInnerHTML={{
                       __html: DOMPurify.sanitize(answer.content || ""),
                     }}

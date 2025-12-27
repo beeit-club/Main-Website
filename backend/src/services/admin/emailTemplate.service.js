@@ -2,7 +2,7 @@
 
 import EmailTemplateModel from '../../models/admin/emailTemplate.model.js';
 import templateRenderer from '../email/templateRenderer.service.js';
-import { emailService } from '../email/emailService.js';
+import emailService from '../email/emailService.js';
 import ServiceError from '../../error/service.error.js';
 import { code, message } from '../../common/message/index.js';
 import { slugify } from '../../utils/function.js';
@@ -29,7 +29,10 @@ class EmailTemplateService {
     if (template.variables && typeof template.variables === 'string') {
       template.variables = JSON.parse(template.variables);
     }
-    if (template.default_variables && typeof template.default_variables === 'string') {
+    if (
+      template.default_variables &&
+      typeof template.default_variables === 'string'
+    ) {
       template.default_variables = JSON.parse(template.default_variables);
     }
 
@@ -52,7 +55,10 @@ class EmailTemplateService {
     if (template.variables && typeof template.variables === 'string') {
       template.variables = JSON.parse(template.variables);
     }
-    if (template.default_variables && typeof template.default_variables === 'string') {
+    if (
+      template.default_variables &&
+      typeof template.default_variables === 'string'
+    ) {
       template.default_variables = JSON.parse(template.default_variables);
     }
 
@@ -71,20 +77,18 @@ class EmailTemplateService {
       );
     }
 
-    // Generate slug nếu không có
-    if (!data.slug) {
-      data.slug = slugify(data.name);
-    }
-
-    // Validate slug unique
-    const slugExists = await EmailTemplateModel.checkSlugExists(data.slug);
-    if (slugExists) {
-      throw new ServiceError(
-        'Slug đã tồn tại',
-        'SLUG_EXISTS',
-        `Slug "${data.slug}" đã được sử dụng`,
-        409,
-      );
+    // Slug không còn tự động generate
+    // Nếu có slug, validate unique
+    if (data.slug) {
+      const slugExists = await EmailTemplateModel.checkSlugExists(data.slug);
+      if (slugExists) {
+        throw new ServiceError(
+          'Slug đã tồn tại',
+          'SLUG_EXISTS',
+          `Slug "${data.slug}" đã được sử dụng`,
+          409,
+        );
+      }
     }
 
     // Validate name unique
@@ -123,7 +127,10 @@ class EmailTemplateService {
         if (typeof data.default_variables === 'string') {
           data.default_variables = JSON.parse(data.default_variables);
         }
-        if (typeof data.default_variables !== 'object' || Array.isArray(data.default_variables)) {
+        if (
+          typeof data.default_variables !== 'object' ||
+          Array.isArray(data.default_variables)
+        ) {
           throw new Error('Default variables phải là object');
         }
       } catch (error) {
@@ -137,7 +144,9 @@ class EmailTemplateService {
     }
 
     // Validate template syntax
-    const syntaxCheck = templateRenderer.validateTemplateSyntax(data.html_content);
+    const syntaxCheck = templateRenderer.validateTemplateSyntax(
+      data.html_content,
+    );
     if (!syntaxCheck.valid) {
       throw new ServiceError(
         'Template syntax không hợp lệ',
@@ -179,7 +188,10 @@ class EmailTemplateService {
 
     // Validate slug unique (nếu có thay đổi)
     if (data.slug && data.slug !== existingTemplate.slug) {
-      const slugExists = await EmailTemplateModel.checkSlugExists(data.slug, id);
+      const slugExists = await EmailTemplateModel.checkSlugExists(
+        data.slug,
+        id,
+      );
       if (slugExists) {
         throw new ServiceError(
           'Slug đã tồn tại',
@@ -192,7 +204,10 @@ class EmailTemplateService {
 
     // Validate name unique (nếu có thay đổi)
     if (data.name && data.name !== existingTemplate.name) {
-      const nameExists = await EmailTemplateModel.checkNameExists(data.name, id);
+      const nameExists = await EmailTemplateModel.checkNameExists(
+        data.name,
+        id,
+      );
       if (nameExists) {
         throw new ServiceError(
           'Tên template đã tồn tại',
@@ -228,7 +243,10 @@ class EmailTemplateService {
         if (typeof data.default_variables === 'string') {
           data.default_variables = JSON.parse(data.default_variables);
         }
-        if (typeof data.default_variables !== 'object' || Array.isArray(data.default_variables)) {
+        if (
+          typeof data.default_variables !== 'object' ||
+          Array.isArray(data.default_variables)
+        ) {
           throw new Error('Default variables phải là object');
         }
       } catch (error) {
@@ -243,7 +261,9 @@ class EmailTemplateService {
 
     // Validate template syntax (nếu có thay đổi html_content)
     if (data.html_content) {
-      const syntaxCheck = templateRenderer.validateTemplateSyntax(data.html_content);
+      const syntaxCheck = templateRenderer.validateTemplateSyntax(
+        data.html_content,
+      );
       if (!syntaxCheck.valid) {
         throw new ServiceError(
           'Template syntax không hợp lệ',
@@ -301,7 +321,10 @@ class EmailTemplateService {
 
     // Render template
     const html = await templateRenderer.renderFromDatabase(id, mergedVariables);
-    const subject = templateRenderer.renderSubject(template, mergedVariables);
+    const subject = await templateRenderer.renderSubject(
+      template,
+      mergedVariables,
+    );
 
     return {
       html,
@@ -349,4 +372,3 @@ class EmailTemplateService {
 }
 
 export default new EmailTemplateService();
-

@@ -8,11 +8,6 @@ import {
 
 class answerModel {
   static async getAnswersForQuestion(questionId, options = {}) {
-    console.log(
-      '🚀 ~ answerModel ~ getAnswersForQuestion ~ questionId:',
-      questionId,
-    );
-    console.log('🚀 ~ answerModel ~ getAnswersForQuestion ~ options:', options);
     let sql = `SELECT * FROM answers WHERE question_id = ? AND deleted_at IS NULL`;
     let params = [questionId];
     const { status } = options.filters || {};

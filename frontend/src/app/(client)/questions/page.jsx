@@ -67,18 +67,20 @@ async function getQuestions(searchParams) {
 }
 
 export default async function QuestionsPage({ searchParams }) {
-  const { data: questions, pagination } = await getQuestions(searchParams);
+  // Next.js 16: searchParams là Promise, cần await
+  const resolvedSearchParams = await searchParams;
+  const { data: questions, pagination } = await getQuestions(resolvedSearchParams);
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 md:py-12">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl md:text-4xl font-bold">Tất cả câu hỏi</h1>
-        <Button asChild>
+    <div className="container max-w-4xl mx-auto py-8 md:py-12 px-4 overflow-hidden">
+      <div className="flex items-center justify-between mb-6 gap-4 overflow-hidden">
+        <h1 className="text-3xl md:text-4xl font-bold truncate flex-1 min-w-0">Tất cả câu hỏi</h1>
+        <Button asChild className="flex-shrink-0">
           <a href="/questions/ask">Đặt câu hỏi mới</a>
         </Button>
       </div>
 
-      <div className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-4 overflow-hidden">
         {questions.length > 0 ? (
           questions.map((question) => (
             <QuestionCard key={question.id} question={question} />

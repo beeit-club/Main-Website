@@ -10,7 +10,7 @@ app.prepare().then(() => {
   createServer((req, res) => {
     const parsedUrl = parse(req.url, true);
     handle(req, res, parsedUrl);
-  }).listen(process.env.PORT || 3000, () => {
-    console.log(`> Ready on http://localhost:${process.env.PORT || 3000}`);
+  }).listen(process.env.PORT || 3001, () => {
+    console.log(`> Ready on http://localhost:${process.env.PORT || 3001}`);
   });
 });

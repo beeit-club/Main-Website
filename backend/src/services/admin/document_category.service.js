@@ -37,16 +37,6 @@ const documentCategoryService = {
           409,
         );
       }
-      if (data.parent_id) {
-        const parent = await DocumentCategoryModel.getOne(data.parent_id);
-        if (!parent) {
-          throw new ServiceError(
-            message.DOCCA.DOC_CATEGORY_PARENT_NOT_FOUND,
-            code.DOCCA.DOC_CATEGORY_PARENT_NOT_FOUND_CODE,
-            400,
-          );
-        }
-      }
       return DocumentCategoryModel.create(data);
     } catch (error) {
       throw error;
@@ -68,22 +58,6 @@ const documentCategoryService = {
         }
       }
 
-      if (data.parent_id) {
-        if (id === data.parent_id)
-          throw new ServiceError(
-            'Danh mục cha không hợp lệ',
-            'INVALID_PARENT_ID',
-            400,
-          );
-        const parent = await DocumentCategoryModel.getOne(data.parent_id);
-        if (!parent) {
-          throw new ServiceError(
-            message.DOCCA.DOC_CATEGORY_PARENT_NOT_FOUND,
-            code.DOCCA.DOC_CATEGORY_PARENT_NOT_FOUND_CODE,
-            400,
-          );
-        }
-      }
       return DocumentCategoryModel.update(id, data);
     } catch (error) {
       throw error;

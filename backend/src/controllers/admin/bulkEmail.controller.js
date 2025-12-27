@@ -12,7 +12,7 @@ import {
 } from '../../validation/common/common.schema.js';
 
 const bulkEmailController = {
-  // Gửi bulk email
+  // Gửi bulk email (manual recipients)
   sendBulkEmail: asyncWrapper(async (req, res) => {
     await params.id.validate(req.params);
     await BulkEmailSchema.sendBulk.validate(req.body, { abortEarly: false });
@@ -22,9 +22,39 @@ const bulkEmailController = {
     const userId = req.user?.id;
 
     // Tạo batch job
-    const job = await bulkEmailService.createBatchJob(
+    const job = await bulkEmailService.createBatchJob(id, recipients, {
+      ...options,
+      createdBy: userId,
+    });
+
+    // Process job (async - không block response)
+    bulkEmailService.processBatchJob(job.id, options).catch((error) => {
+      console.error('Lỗi khi process batch job:', error);
+    });
+
+    return utils.success(res, 'Đã tạo batch job và bắt đầu xử lý', {
+      job_id: job.id,
+      status: 'pending',
+      total_recipients: job.total_recipients,
+    });
+  }),
+
+  // Gửi bulk email từ user IDs
+  sendBulkEmailFromUsers: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params);
+    await BulkEmailSchema.sendBulkFromUsers.validate(req.body, {
+      abortEarly: false,
+    });
+
+    const { id } = req.params;
+    const { user_ids, additional_data = {}, options = {} } = req.body;
+    const userId = req.user?.id;
+
+    // Tạo batch job từ user IDs
+    const job = await bulkEmailService.createBatchJobFromUserIds(
       id,
-      recipients,
+      user_ids,
+      additional_data,
       {
         ...options,
         createdBy: userId,
@@ -32,11 +62,45 @@ const bulkEmailController = {
     );
 
     // Process job (async - không block response)
-    bulkEmailService.processBatchJob(job.id, options).catch(error => {
+    bulkEmailService.processBatchJob(job.id, options).catch((error) => {
       console.error('Lỗi khi process batch job:', error);
     });
 
-    return utils.success(res, 'Đã tạo batch job và bắt đầu xử lý', {
+    return utils.success(res, 'Đã tạo batch job từ user IDs và bắt đầu xử lý', {
+      job_id: job.id,
+      status: 'pending',
+      total_recipients: job.total_recipients,
+    });
+  }),
+
+  // Gửi bulk email từ filters
+  sendBulkEmailFromFilters: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params);
+    await BulkEmailSchema.sendBulkFromFilters.validate(req.body, {
+      abortEarly: false,
+    });
+
+    const { id } = req.params;
+    const { filters = {}, additional_data = {}, options = {} } = req.body;
+    const userId = req.user?.id;
+
+    // Tạo batch job từ filters
+    const job = await bulkEmailService.createBatchJobFromFilters(
+      id,
+      filters,
+      additional_data,
+      {
+        ...options,
+        createdBy: userId,
+      },
+    );
+
+    // Process job (async - không block response)
+    bulkEmailService.processBatchJob(job.id, options).catch((error) => {
+      console.error('Lỗi khi process batch job:', error);
+    });
+
+    return utils.success(res, 'Đã tạo batch job từ filters và bắt đầu xử lý', {
       job_id: job.id,
       status: 'pending',
       total_recipients: job.total_recipients,
@@ -109,4 +173,3 @@ const bulkEmailController = {
 };
 
 export default bulkEmailController;
-

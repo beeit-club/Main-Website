@@ -1,4 +1,5 @@
-import { API_BACKEND } from '../../config/server.config.js';
+import { config } from '../../config/index.js';
+const { API_BACKEND } = config;
 import asyncWrapper from '../../middlewares/error.handler.js';
 import { handleDeleteImage } from '../../routers/upload/upload.js';
 import postService from '../../services/admin/posts.service.js';

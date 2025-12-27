@@ -119,4 +119,18 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Đảm bảo prose không có overflow scroll và tự xuống dòng */
+  .prose {
+    overflow: hidden !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  .prose p {
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
 }

@@ -19,7 +19,6 @@ export default function GoogleAuthButton() {
       const redirect_uri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
       // Gửi code về backend để exchange token và verify
       const res = await loginGoogle({ code, redirect_uri });
-      console.log("🚀 ~ onCodeSuccess ~ res:", res);
 
       //   localStorage.setItem("token", token); // hoặc cookie, secure httpOnly cookie...
       //   console.log("User logged in:", user);

@@ -64,10 +64,11 @@ export default async function sitemap() {
   });
 
   // Dynamic routes - Posts
+  // Gracefully handle API failures during build (API may not be available)
   try {
     const postsResponse = await fetchAllPosts({ limit: 1000 }); // Lấy tối đa 1000 posts
     const posts = postsResponse?.data?.data || [];
-    
+
     posts.forEach((post) => {
       if (post.slug && post.status === 1) {
         routes.push({
@@ -79,14 +80,21 @@ export default async function sitemap() {
       }
     });
   } catch (error) {
-    console.error("Error fetching posts for sitemap:", error);
+    // Silently fail - static routes are already added, build can continue
+    // Only log in non-build environments to reduce build noise
+    if (
+      process.env.NODE_ENV !== "production" ||
+      process.env.NEXT_PHASE !== "phase-production-build"
+    ) {
+      console.error("Error fetching posts for sitemap:", error);
+    }
   }
 
   // Dynamic routes - Events
   try {
     const eventsResponse = await fetchAllEvents({ limit: 1000 });
     const events = eventsResponse?.data?.data || [];
-    
+
     events.forEach((event) => {
       // Events có thể dùng id hoặc slug
       const identifier = event.slug || event.id;
@@ -100,28 +108,41 @@ export default async function sitemap() {
       }
     });
   } catch (error) {
-    console.error("Error fetching events for sitemap:", error);
+    // Silently fail - static routes are already added, build can continue
+    if (
+      process.env.NODE_ENV !== "production" ||
+      process.env.NEXT_PHASE !== "phase-production-build"
+    ) {
+      console.error("Error fetching events for sitemap:", error);
+    }
   }
 
   // Dynamic routes - Questions
   try {
     const questionsResponse = await getAllQuestions({ limit: 1000 });
     const questions = questionsResponse?.data?.data || [];
-    
+
     questions.forEach((question) => {
       if (question.slug) {
         routes.push({
           url: `${baseUrl}/questions/${question.slug}`,
-          lastModified: question.updated_at ? new Date(question.updated_at) : now,
+          lastModified: question.updated_at
+            ? new Date(question.updated_at)
+            : now,
           changeFrequency: "weekly",
           priority: 0.8,
         });
       }
     });
   } catch (error) {
-    console.error("Error fetching questions for sitemap:", error);
+    // Silently fail - static routes are already added, build can continue
+    if (
+      process.env.NODE_ENV !== "production" ||
+      process.env.NEXT_PHASE !== "phase-production-build"
+    ) {
+      console.error("Error fetching questions for sitemap:", error);
+    }
   }
 
   return routes;
 }
-

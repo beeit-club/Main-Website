@@ -27,8 +27,9 @@ import {
 
 export const description = "An interactive area chart"
 
-const chartData = [
-  { date: "2024-04-01", desktop: 222, mobile: 150 },
+// Default empty data
+const defaultChartData = [
+  { date: "2024-04-01", users: 0, posts: 0, events: 0, applications: 0 },
   { date: "2024-04-02", desktop: 97, mobile: 180 },
   { date: "2024-04-03", desktop: 167, mobile: 120 },
   { date: "2024-04-04", desktop: 242, mobile: 260 },
@@ -122,24 +123,27 @@ const chartData = [
 ]
 
 const chartConfig = {
-  visitors: {
-    label: "Visitors",
+  users: {
+    label: "Người dùng",
+    color: "hsl(var(--chart-1))",
   },
-
-  desktop: {
-    label: "Desktop",
-    color: "var(--primary)",
+  posts: {
+    label: "Bài viết",
+    color: "hsl(var(--chart-2))",
   },
-
-  mobile: {
-    label: "Mobile",
-    color: "var(--primary)",
-  }
+  events: {
+    label: "Sự kiện",
+    color: "hsl(var(--chart-3))",
+  },
+  applications: {
+    label: "Đơn đăng ký",
+    color: "hsl(var(--chart-4))",
+  },
 }
 
-export function ChartAreaInteractive() {
+export function ChartAreaInteractive({ data = defaultChartData, isLoading = false, onPeriodChange }) {
   const isMobile = useIsMobile()
-  const [timeRange, setTimeRange] = React.useState("90d")
+  const [timeRange, setTimeRange] = React.useState("30d")
 
   React.useEffect(() => {
     if (isMobile) {
@@ -147,57 +151,77 @@ export function ChartAreaInteractive() {
     }
   }, [isMobile])
 
-  const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date)
-    const referenceDate = new Date("2024-06-30")
-    let daysToSubtract = 90
-    if (timeRange === "30d") {
-      daysToSubtract = 30
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7
+  React.useEffect(() => {
+    if (onPeriodChange) {
+      onPeriodChange(timeRange)
     }
-    const startDate = new Date(referenceDate)
-    startDate.setDate(startDate.getDate() - daysToSubtract)
-    return date >= startDate
-  })
+  }, [timeRange, onPeriodChange])
+
+  const handleTimeRangeChange = (value) => {
+    setTimeRange(value)
+    if (onPeriodChange) {
+      onPeriodChange(value)
+    }
+  }
+
+  // Sử dụng dữ liệu từ props hoặc default
+  const chartData = data && data.length > 0 ? data : defaultChartData
+
+  if (isLoading) {
+    return (
+      <Card className="@container/card">
+        <CardHeader>
+          <CardTitle>Thống kê theo thời gian</CardTitle>
+          <CardDescription>Đang tải dữ liệu...</CardDescription>
+        </CardHeader>
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+          <div className="h-[250px] w-full bg-muted animate-pulse rounded" />
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardTitle>Total Visitors</CardTitle>
+        <CardTitle>Thống kê theo thời gian</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:block">
-            Total for the last 3 months
+            Số lượng người dùng, bài viết, sự kiện và đơn đăng ký mới
           </span>
-          <span className="@[540px]/card:hidden">Last 3 months</span>
+          <span className="@[540px]/card:hidden">Thống kê hoạt động</span>
         </CardDescription>
         <CardAction>
           <ToggleGroup
             type="single"
             value={timeRange}
-            onValueChange={setTimeRange}
+            onValueChange={handleTimeRangeChange}
             variant="outline"
             className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex">
-            <ToggleGroupItem value="90d">Last 3 months</ToggleGroupItem>
-            <ToggleGroupItem value="30d">Last 30 days</ToggleGroupItem>
-            <ToggleGroupItem value="7d">Last 7 days</ToggleGroupItem>
+            <ToggleGroupItem value="7d">7 ngày</ToggleGroupItem>
+            <ToggleGroupItem value="30d">30 ngày</ToggleGroupItem>
+            <ToggleGroupItem value="90d">90 ngày</ToggleGroupItem>
+            <ToggleGroupItem value="1y">1 năm</ToggleGroupItem>
           </ToggleGroup>
-          <Select value={timeRange} onValueChange={setTimeRange}>
+          <Select value={timeRange} onValueChange={handleTimeRangeChange}>
             <SelectTrigger
               className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
               size="sm"
-              aria-label="Select a value">
-              <SelectValue placeholder="Last 3 months" />
+              aria-label="Chọn khoảng thời gian">
+              <SelectValue placeholder="30 ngày" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="90d" className="rounded-lg">
-                Last 3 months
+              <SelectItem value="7d" className="rounded-lg">
+                7 ngày
               </SelectItem>
               <SelectItem value="30d" className="rounded-lg">
-                Last 30 days
+                30 ngày
               </SelectItem>
-              <SelectItem value="7d" className="rounded-lg">
-                Last 7 days
+              <SelectItem value="90d" className="rounded-lg">
+                90 ngày
+              </SelectItem>
+              <SelectItem value="1y" className="rounded-lg">
+                1 năm
               </SelectItem>
             </SelectContent>
           </Select>
@@ -205,15 +229,23 @@ export function ChartAreaInteractive() {
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-          <AreaChart data={filteredData}>
+          <AreaChart data={chartData}>
             <defs>
-              <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-desktop)" stopOpacity={1.0} />
-                <stop offset="95%" stopColor="var(--color-desktop)" stopOpacity={0.1} />
+              <linearGradient id="fillUsers" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-users)" stopOpacity={1.0} />
+                <stop offset="95%" stopColor="var(--color-users)" stopOpacity={0.1} />
               </linearGradient>
-              <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-mobile)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-mobile)" stopOpacity={0.1} />
+              <linearGradient id="fillPosts" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-posts)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-posts)" stopOpacity={0.1} />
+              </linearGradient>
+              <linearGradient id="fillEvents" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-events)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-events)" stopOpacity={0.1} />
+              </linearGradient>
+              <linearGradient id="fillApplications" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-applications)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-applications)" stopOpacity={0.1} />
               </linearGradient>
             </defs>
             <CartesianGrid vertical={false} />
@@ -243,16 +275,28 @@ export function ChartAreaInteractive() {
                   indicator="dot" />
               } />
             <Area
-              dataKey="mobile"
+              dataKey="users"
               type="natural"
-              fill="url(#fillMobile)"
-              stroke="var(--color-mobile)"
+              fill="url(#fillUsers)"
+              stroke="var(--color-users)"
               stackId="a" />
             <Area
-              dataKey="desktop"
+              dataKey="posts"
               type="natural"
-              fill="url(#fillDesktop)"
-              stroke="var(--color-desktop)"
+              fill="url(#fillPosts)"
+              stroke="var(--color-posts)"
+              stackId="a" />
+            <Area
+              dataKey="events"
+              type="natural"
+              fill="url(#fillEvents)"
+              stroke="var(--color-events)"
+              stackId="a" />
+            <Area
+              dataKey="applications"
+              type="natural"
+              fill="url(#fillApplications)"
+              stroke="var(--color-applications)"
               stackId="a" />
           </AreaChart>
         </ChartContainer>

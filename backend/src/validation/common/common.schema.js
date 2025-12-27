@@ -5,7 +5,17 @@ export const PaginationSchema = yup
   .object({
     page: yup
       .number()
+      .optional()
+      .nullable()
       .transform((value, originalValue) => {
+        // Nếu không có giá trị hoặc undefined → trả về 1 (default)
+        if (
+          originalValue === undefined ||
+          originalValue === null ||
+          originalValue === ''
+        ) {
+          return 1;
+        }
         const num = Number(originalValue);
         // Nếu không phải số hoặc nhỏ hơn 1 → trả về 1 (default)
         if (isNaN(num) || num < 1) return 1;
@@ -15,7 +25,17 @@ export const PaginationSchema = yup
 
     limit: yup
       .number()
+      .optional()
+      .nullable()
       .transform((value, originalValue) => {
+        // Nếu không có giá trị hoặc undefined → trả về 10 (default)
+        if (
+          originalValue === undefined ||
+          originalValue === null ||
+          originalValue === ''
+        ) {
+          return 10;
+        }
         const num = Number(originalValue);
         // Nếu không phải số hoặc nhỏ hơn 1 hoặc lớn hơn 100 → trả về 10 (default)
         if (isNaN(num) || num < 1 || num > 100) return 10;

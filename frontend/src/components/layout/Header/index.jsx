@@ -10,8 +10,15 @@ import { ModeToggle } from "@/components/mode-toggle";
 export default function Header() {
   const [show, setShow] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     const handleScroll = () => {
       if (window.scrollY > lastScrollY) {
         // cuộn xuống
@@ -25,13 +32,13 @@ export default function Header() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, [lastScrollY, mounted]);
 
   return (
     <div className="h-20">
       <header
         className={` fixed left-0 right-0 top-0 z-50 transition-transform duration-300 bg-background ${
-          show ? "translate-y-0" : "-translate-y-full"
+          mounted && show ? "translate-y-0" : "-translate-y-full"
         }`}
       >
         <div className="flex justify-between max-w-7xl mx-auto h-20 items-center px-4 py-6">

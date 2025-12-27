@@ -44,16 +44,29 @@ export default async function Page() {
   try {
     apiResponse = await getHome();
   } catch (error) {
-    console.error(error);
-    // In a real app, you might want a nicer error boundary
-    throw new Error("Không thể tải dữ liệu trang chủ. Vui lòng thử lại sau.");
+    // Log error but don't crash the build
+    // Return empty data structure to allow build to complete
+    // At runtime, the page will show empty state or can be revalidated
+    console.error("Error fetching home data:", error.message || error);
+    apiResponse = {
+      data: {
+        home: {
+          latestEvent: null,
+          latestPosts: [],
+          mostViewedPosts: [],
+        },
+      },
+    };
   }
 
-  if (!apiResponse || !apiResponse.data || !apiResponse.data.home) {
-    notFound();
-  }
+  // Ensure we have valid data structure
+  const homeData = apiResponse?.data?.home || {
+    latestEvent: null,
+    latestPosts: [],
+    mostViewedPosts: [],
+  };
 
-  const { latestEvent, latestPosts, mostViewedPosts } = apiResponse.data.home;
+  const { latestEvent, latestPosts, mostViewedPosts } = homeData;
   return (
     <main className="">
       <Banner />

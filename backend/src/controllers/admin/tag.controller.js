@@ -48,7 +48,6 @@ const tagController = {
     const { name, meta_description } = req.body;
     const slug = slugify(name);
     const user = req.user;
-    console.log('🚀 ~ user:', user);
     const { id } = user;
     // Sanitize text để tránh XSS
     const sanitizedName = sanitizeText(name);

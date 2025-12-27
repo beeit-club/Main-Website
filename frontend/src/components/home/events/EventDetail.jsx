@@ -184,7 +184,7 @@ export function EventDetail({ event }) {
         </CardHeader>
         <CardContent>
           <div
-            className="prose dark:prose-invert max-w-none"
+            className="prose dark:prose-invert max-w-none overflow-hidden break-words break-all"
             dangerouslySetInnerHTML={{ __html: content }}
           />
         </CardContent>

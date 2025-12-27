@@ -306,7 +306,6 @@ function EditPost() {
                 control={form.control}
                 name="category_id"
                 render={({ field }) => {
-                  console.log("🚀 ~ EditPost ~ field:", field);
                   return (
                     <FormItem>
                       <Select

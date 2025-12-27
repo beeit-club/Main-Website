@@ -1,15 +1,11 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 
-// Import Zustand store
-import {
-  useCategoriesStore,
-  buildCategoryTree,
-} from "@/stores/categoriesStore";
-import {
-  useDocumentCategoriesStore,
-  buildDocumentCategoryTree,
-} from "@/stores/documentCategoriesStore";
+// Import Zustand store (không cần dùng nữa vì đã bỏ dropdown categories)
+// import {
+//   useCategoriesStore,
+//   buildCategoryTree,
+// } from "@/stores/categoriesStore";
 
 // Import Collapsible components (không cần dynamic vì không dùng Radix ID)
 import {
@@ -35,27 +31,37 @@ const NavigationMenu = dynamic(
 );
 const NavigationMenuContent = dynamic(
   () =>
-    import("@/components/ui/navigation-menu").then((mod) => mod.NavigationMenuContent),
+    import("@/components/ui/navigation-menu").then(
+      (mod) => mod.NavigationMenuContent
+    ),
   { ssr: false }
 );
 const NavigationMenuItem = dynamic(
   () =>
-    import("@/components/ui/navigation-menu").then((mod) => mod.NavigationMenuItem),
+    import("@/components/ui/navigation-menu").then(
+      (mod) => mod.NavigationMenuItem
+    ),
   { ssr: false }
 );
 const NavigationMenuLink = dynamic(
   () =>
-    import("@/components/ui/navigation-menu").then((mod) => mod.NavigationMenuLink),
+    import("@/components/ui/navigation-menu").then(
+      (mod) => mod.NavigationMenuLink
+    ),
   { ssr: false }
 );
 const NavigationMenuList = dynamic(
   () =>
-    import("@/components/ui/navigation-menu").then((mod) => mod.NavigationMenuList),
+    import("@/components/ui/navigation-menu").then(
+      (mod) => mod.NavigationMenuList
+    ),
   { ssr: false }
 );
 const NavigationMenuTrigger = dynamic(
   () =>
-    import("@/components/ui/navigation-menu").then((mod) => mod.NavigationMenuTrigger),
+    import("@/components/ui/navigation-menu").then(
+      (mod) => mod.NavigationMenuTrigger
+    ),
   { ssr: false }
 );
 
@@ -88,24 +94,8 @@ const classNameStyle = () => `${navigationMenuTriggerStyle()} text-[16px]`;
 
 // --- COMPONENT CHÍNH ---
 export default function Nav() {
-  // Lấy categories từ Zustand store
-  const { categories, isLoading } = useCategoriesStore();
-  // Build tree structure từ flat array
-  const baiVietTree = React.useMemo(
-    () => buildCategoryTree(categories),
-    [categories]
-  );
-
-  // Lấy documentCategories từ Zustand store
-  const {
-    documentCategories,
-    isLoading: isDocumentCategoriesLoading,
-  } = useDocumentCategoriesStore();
-  // Build tree structure từ flat array
-  const taiLieuTree = React.useMemo(
-    () => buildDocumentCategoryTree(documentCategories),
-    [documentCategories]
-  );
+  // Lấy categories từ Zustand store (không cần dùng nữa vì đã bỏ dropdown)
+  // const { categories, isLoading } = useCategoriesStore();
 
   return (
     // Sử dụng div bọc ngoài để chứa cả 2 phiên bản
@@ -115,83 +105,14 @@ export default function Nav() {
       <div className="hidden lg:flex justify-center">
         <NavigationMenu>
           <NavigationMenuList>
-            {/* Mục 2: Menu đa cấp "Bài viết" */}
+            {/* Mục 2: Link đơn "Bài viết" */}
             <NavigationMenuItem>
-              <NavigationMenuTrigger className={`${classNameStyle()} `}>
+              <NavigationMenuLink
+                href="/post"
+                className={`${classNameStyle()} `}
+              >
                 Bài viết
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-3 p-4 lg:w-[500px] lg:grid-cols-2 ">
-                  {isLoading ? (
-                    <li className="col-span-2 text-center text-sm text-muted-foreground py-4">
-                      Đang tải...
-                    </li>
-                  ) : baiVietTree.length === 0 ? (
-                    <li className="col-span-2 text-center text-sm text-muted-foreground py-4">
-                      Chưa có danh mục
-                    </li>
-                  ) : (
-                    baiVietTree.map((item) => (
-                      <React.Fragment key={item.id}>
-                        {item.children.length === 0 && (
-                          <ListItem
-                            title={item.name}
-                            href={`/post?category=${item.slug}`}
-                          ></ListItem>
-                        )}
-                        {item.children.length > 0 && (
-                          <li className="row-span-1">
-                            {" "}
-                            <Collapsible>
-                              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                                <div className="text-sm font-medium leading-none">
-                                  {item.name}
-                                </div>
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  className="h-4 w-4 transition-transform data-[state=open]:rotate-180"
-                                >
-                                  <path d="m6 9 6 6 6-6" />
-                                </svg>
-                              </CollapsibleTrigger>
-                              <CollapsibleContent>
-                                <ul className="mt-2 space-y-1 pl-4">
-                                  <li>
-                                    <a
-                                      href={`/post?category=${item.slug}`}
-                                      className="text-sm font-medium text-foreground hover:underline"
-                                    >
-                                      Tất cả trong "{item.name}"
-                                    </a>
-                                  </li>
-                                  {item.children.map((child) => (
-                                    <li key={child.id}>
-                                      <a
-                                        href={`/post?category=${child.slug}`}
-                                        className="text-sm text-muted-foreground hover:text-foreground"
-                                      >
-                                        {child.name}
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </CollapsibleContent>
-                            </Collapsible>
-                          </li>
-                        )}
-                      </React.Fragment>
-                    ))
-                  )}
-                </ul>
-              </NavigationMenuContent>
+              </NavigationMenuLink>
             </NavigationMenuItem>
 
             {/* Mục 3: Link đơn "Hỏi đáp" */}
@@ -204,83 +125,14 @@ export default function Nav() {
               </NavigationMenuLink>
             </NavigationMenuItem>
 
-            {/* Mục 4: Menu đa cấp "Tài liệu" */}
+            {/* Mục 4: Link đơn "Tài liệu" */}
             <NavigationMenuItem>
-              <NavigationMenuTrigger className={`${classNameStyle()} `}>
+              <NavigationMenuLink
+                href="/documents"
+                className={`${classNameStyle()} `}
+              >
                 Tài liệu
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-3 p-4 lg:w-[500px] lg:grid-cols-2">
-                  {isDocumentCategoriesLoading ? (
-                    <li className="col-span-2 text-center text-sm text-muted-foreground py-4">
-                      Đang tải...
-                    </li>
-                  ) : taiLieuTree.length === 0 ? (
-                    <li className="col-span-2 text-center text-sm text-muted-foreground py-4">
-                      Chưa có danh mục
-                    </li>
-                  ) : (
-                    taiLieuTree.map((item) => (
-                    <React.Fragment key={item.id}>
-                      {item.children.length === 0 && (
-                        <ListItem
-                          title={item.name}
-                          href={`/documents/${item.slug}`}
-                        ></ListItem>
-                      )}
-                      {item.children.length > 0 && (
-                        <li className="row-span-1">
-                          {" "}
-                          <Collapsible>
-                            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                              <div className="text-sm font-medium leading-none">
-                                {item.name}
-                              </div>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="h-4 w-4 transition-transform data-[state=open]:rotate-180"
-                              >
-                                <path d="m6 9 6 6 6-6" />
-                              </svg>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent>
-                              <ul className="mt-2 space-y-1 pl-4">
-                                <li>
-                                  <a
-                                    href={`/documents/${item.slug}`}
-                                    className="text-sm font-medium text-foreground hover:underline"
-                                  >
-                                    Tất cả trong "{item.name}"
-                                  </a>
-                                </li>
-                                {item.children.map((child) => (
-                                  <li key={child.id}>
-                                    <a
-                                      href={`/documents/${child.slug}`}
-                                      className="text-sm text-muted-foreground hover:text-foreground"
-                                    >
-                                      {child.name}
-                                    </a>
-                                  </li>
-                                ))}
-                              </ul>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        </li>
-                      )}
-                    </React.Fragment>
-                    ))
-                  )}
-                </ul>
-              </NavigationMenuContent>
+              </NavigationMenuLink>
             </NavigationMenuItem>
 
             {/* Mục 5: Link đơn "Sự kiện" */}
@@ -293,17 +145,7 @@ export default function Nav() {
               </NavigationMenuLink>
             </NavigationMenuItem>
 
-            {/* Mục 6: Link đơn "Thành viên" */}
-            <NavigationMenuItem>
-              <NavigationMenuLink
-                href="/members"
-                className={`${classNameStyle()} `}
-              >
-                Thành viên
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
-            {/* Mục 7: Link đơn "Đăng ký" */}
+            {/* Mục 6: Link đơn "Đăng ký" */}
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="/apply"
@@ -333,35 +175,12 @@ export default function Nav() {
             <div className="flex flex-col space-y-3 py-4">
               {/* Render các link đơn */}
               <MobileNavLink href="/questions">Hỏi đáp</MobileNavLink>
+              <MobileNavLink href="/documents">Tài liệu</MobileNavLink>
               <MobileNavLink href="/events">Sự kiện</MobileNavLink>
-              <MobileNavLink href="/members">Thành viên</MobileNavLink>
               <MobileNavLink href="/apply">Đăng ký</MobileNavLink>
 
-              {/* Render các nhóm (dùng component lồng nhau) */}
-              {isLoading ? (
-                <div className="text-center text-sm text-muted-foreground py-4">
-                  Đang tải danh mục...
-                </div>
-              ) : (
-                <>
-                  <MobileNavGroup
-                    title="Bài viết"
-                    items={baiVietTree}
-                    slugPrefix="/post"
-                  />
-                  {isDocumentCategoriesLoading ? (
-                    <div className="text-center text-sm text-muted-foreground py-4">
-                      Đang tải danh mục tài liệu...
-                    </div>
-                  ) : (
-                    <MobileNavGroup
-                      title="Tài liệu"
-                      items={taiLieuTree}
-                      slugPrefix="/documents"
-                    />
-                  )}
-                </>
-              )}
+              {/* Bài viết - Link đơn */}
+              <MobileNavLink href="/post">Bài viết</MobileNavLink>
             </div>
           </SheetContent>
         </Sheet>

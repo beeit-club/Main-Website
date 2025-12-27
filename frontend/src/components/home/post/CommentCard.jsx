@@ -111,7 +111,7 @@ export function CommentCard({ comment, postId, onUpdate, depth = 0 }) {
           {/* Nội dung HTML */}
           {!isEditing ? (
             <div
-              className="prose dark:prose-invert max-w-none mb-3"
+              className="prose dark:prose-invert max-w-none mb-3 overflow-hidden break-words break-all"
               dangerouslySetInnerHTML={{ __html: content }}
             />
           ) : (

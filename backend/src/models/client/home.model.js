@@ -83,13 +83,26 @@ LIMIT 1`; // 2. Câu SQL lấy 10 bài viết mới nhất (đã xuất bản) /
 
   static async getAllCategory(options = {}) {
     try {
-      let sql = `SELECT id,name,slug,parent_id FROM post_categories Where 1=1  AND deleted_at is NULL `;
+      // Chỉ lấy categories có ít nhất 1 post đã published và chưa bị xóa
+      let sql = `SELECT DISTINCT 
+        pc.id, 
+        pc.name, 
+        pc.slug, 
+        pc.parent_id 
+      FROM post_categories pc
+      INNER JOIN posts p ON p.category_id = pc.id
+      WHERE pc.deleted_at IS NULL 
+        AND p.deleted_at IS NULL 
+        AND p.status = 1`;
       let params = [];
 
       if (options?.filters?.name) {
-        sql += ` AND name LIKE ? `;
+        sql += ` AND pc.name LIKE ? `;
         params.push(`%${options.filters.name}%`);
       }
+
+      sql += ` ORDER BY pc.name ASC`;
+
       options.limit = 10000;
       options.page = 1;
       const category = await selectWithPagination(sql, params, options);
@@ -100,7 +113,7 @@ LIMIT 1`; // 2. Câu SQL lấy 10 bài viết mới nhất (đã xuất bản) /
   }
   static async getAllDocumentCategory(options = {}) {
     try {
-      let sql = `SELECT id,name,slug,parent_id FROM document_categories WHERE deleted_at IS NULL`;
+      let sql = `SELECT id,name,slug FROM document_categories WHERE deleted_at IS NULL`;
       let params = [];
 
       if (options?.filters?.name) {
@@ -110,10 +123,6 @@ LIMIT 1`; // 2. Câu SQL lấy 10 bài viết mới nhất (đã xuất bản) /
       options.limit = 10000;
       options.page = 1;
       const documentCategory = await selectWithPagination(sql, params, options);
-      console.log(
-        '🚀 ~ HomeModel ~ getAllDocumentCategory ~ documentCategory:',
-        documentCategory,
-      );
       return documentCategory;
     } catch (error) {
       console.error('Error in getAllDocumentCategory:', error);
@@ -211,6 +220,14 @@ LIMIT 1`; // 2. Câu SQL lấy 10 bài viết mới nhất (đã xuất bản) /
         WHERE q.deleted_at IS NULL AND q.slug = ? AND q.status = 1
       `;
       const question = await findOne(questionSql, [slug]);
+
+      // Log dữ liệu từ database
+      console.log('=== DEBUG: Question data from DB ===');
+      console.log('Question:', JSON.stringify(question, null, 2));
+      console.log('author_name:', question?.author_name);
+      console.log('author_avatar:', question?.author_avatar);
+      console.log('author_id:', question?.author_id);
+      console.log('====================================');
 
       if (!question) {
         return false; // Không tìm thấy câu hỏi

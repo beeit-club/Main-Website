@@ -29,7 +29,6 @@ export async function POST(request) {
       const providedSecret = secretFromHeader || secretFromQuery;
       
       if (providedSecret !== revalidateSecret) {
-        console.warn("⚠️ Unauthorized revalidate attempt");
         return NextResponse.json(
           { error: "Unauthorized" },
           { status: 401 }
@@ -47,15 +46,12 @@ export async function POST(request) {
     // Revalidate cache với tag được chỉ định
     revalidateTag(tag);
 
-    console.log(`✅ Revalidated cache for tag: ${tag}`);
-
     return NextResponse.json({
       revalidated: true,
       tag,
       now: Date.now(),
     });
   } catch (error) {
-    console.error("❌ Error revalidating cache:", error);
     return NextResponse.json(
       { error: "Error revalidating cache", message: error.message },
       { status: 500 }

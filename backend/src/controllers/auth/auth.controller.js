@@ -1,6 +1,7 @@
 // src/controllers/auth.controller.js
 
 import { AuthService } from '../../services/auth/index.js';
+import { AuthModel } from '../../models/auth/index.js';
 import { utils } from '../../utils/index.js';
 import { message } from '../../common/message/index.js';
 import asyncWrapper from '../../middlewares/error.handler.js';
@@ -50,12 +51,15 @@ const authController = {
       sameSite: 'lax',
     });
 
+    // Lấy đầy đủ thông tin user kèm role_id
+    const fullUser = await AuthModel.getUserById(user.id);
     const userData = {
       id: user.id,
       name: user.fullname,
       email: user.email,
       avatar: user.avatar_url,
-      role: user.role_name || 'Guest',
+      role: fullUser?.role_name || user.role_name || 'Guest',
+      role_id: fullUser?.role_id || user.role_id || null,
     };
 
     return utils.success(res, message.Auth.LOGIN_SUCCESS, {
@@ -81,12 +85,15 @@ const authController = {
       sameSite: 'lax',
     });
 
+    // Lấy đầy đủ thông tin user kèm role_id
+    const fullUser = await AuthModel.getUserById(user.id);
     const userData = {
       id: user.id,
       name: user.fullname,
       email: user.email,
       avatar: user.avatar_url,
-      role: user.role_name || 'Guest',
+      role: fullUser?.role_name || user.role_name || 'Guest',
+      role_id: fullUser?.role_id || user.role_id || null,
     };
 
     return utils.success(res, message.Auth.LOGIN_SUCCESS, {
@@ -119,7 +126,12 @@ const authController = {
   //  Lấy quyền của user
   permissions: asyncWrapper(async (req, res) => {
     const { id } = req.user || {};
+    console.log("=== Auth Permissions Debug ===");
+    console.log("Request user id:", id);
+    
     const { user, permissions } = await AuthService.getPremiss(id);
+    console.log("User from service:", user);
+    console.log("User role_id:", user?.role_id);
 
     const userData = {
       id: user.id,
@@ -127,7 +139,11 @@ const authController = {
       email: user.email,
       avatar: user.avatar_url,
       role: user.role_name || 'Guest',
+      role_id: user.role_id || null,
     };
+    
+    console.log("userData to send:", userData);
+    console.log("userData.role_id:", userData.role_id);
 
     return utils.success(res, message.Auth.GET_PERMISSIONS, {
       permissions,

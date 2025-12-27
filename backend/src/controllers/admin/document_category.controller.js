@@ -27,7 +27,7 @@ const documentCategoryController = {
   }),
 
   create: asyncWrapper(async (req, res) => {
-    const { name, parent_id } = await DocumentCategorySchema.create.validate(
+    const { name } = await DocumentCategorySchema.create.validate(
       req.body,
       { abortEarly: false },
     );
@@ -35,8 +35,7 @@ const documentCategoryController = {
     const dataToCreate = {
       name,
       slug,
-      parent_id: parent_id ?? null,
-      created_by: null,
+      created_by: req.user?.id || null,
     };
     const result = await documentCategoryService.create(dataToCreate);
     success(res, message.DOCCA.DOC_CATEGORY_CREATE_SUCCESS, {
@@ -52,7 +51,7 @@ const documentCategoryController = {
       abortEarly: false,
     });
 
-    const dataToUpdate = { ...body, updated_by: null };
+    const dataToUpdate = { ...body, updated_by: req.user?.id || null };
     if (body.name) {
       dataToUpdate.slug = slugify(body.name);
     }

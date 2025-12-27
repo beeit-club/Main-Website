@@ -70,8 +70,6 @@ function AddPost() {
           postServices.getAllcategory(),
           postServices.getAlltags(),
         ]);
-        console.log("🚀 ~ fetchData ~ tagRes:", tagRes);
-        console.log("🚀 ~ fetchData ~ catRes:", catRes);
         setCategories(catRes?.data?.data.categories.data || []);
         setTags(tagRes?.data?.data.data || []);
       } catch (error) {
@@ -85,7 +83,6 @@ function AddPost() {
   // 3. Hàm xử lý khi submit form
   const onSubmit = async (data) => {
     setIsSubmitting(true);
-    console.log("Form Data:", data);
     const editorContent = editorRef.current
       ? editorRef.current.getContent()
       : "";

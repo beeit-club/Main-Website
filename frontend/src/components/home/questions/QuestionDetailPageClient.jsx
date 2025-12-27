@@ -13,9 +13,7 @@ export function QuestionDetailPageClient({ question, initialAnswers }) {
     try {
       const { revalidateQuestions } = await import("@/utils/revalidateCache");
       await revalidateQuestions(question.slug);
-      console.log(`✅ Cache revalidated for question and ${question.slug}`);
     } catch (revalidateError) {
-      console.error("⚠️ Failed to revalidate cache:", revalidateError);
     }
 
     // Refresh page để lấy dữ liệu mới

@@ -64,9 +64,12 @@ class documentModel {
   static async getOneDocument(id) {
     const sql = `SELECT
     d.*,
+    dc.name AS category_name,
+    dc.slug AS category_slug,
     COALESCE(assigned_data.assigned_users, JSON_ARRAY()) AS assigned_users
 FROM
     documents d
+LEFT JOIN document_categories dc ON d.category_id = dc.id
 LEFT JOIN (
     SELECT
         dru.document_id,

@@ -11,7 +11,6 @@ import { ArrowLeft } from "lucide-react";
 
 export default function DeletedDocuments() {
   const [data, setData] = useState([]);
-  console.log("🚀 ~ DeletedDocuments ~ data:", data);
   const [isLoading, setIsLoading] = useState(true);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [pageCount, setPageCount] = useState(0);
@@ -24,7 +23,6 @@ export default function DeletedDocuments() {
         limit: pagination.pageSize,
       };
       const res = await documentServices.getDeletedDocuments(options);
-      console.log("🚀 ~ loadData ~ res:", res);
 
       setData(res?.data?.data?.documents?.data || []);
       setPageCount(res?.data?.data?.documents?.pagination.totalPages || 0);

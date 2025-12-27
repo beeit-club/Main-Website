@@ -2,7 +2,8 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { API_BACKEND } from '../../config/server.config.js';
+import { config } from '../../config/index.js';
+const { API_BACKEND } = config;
 import fs from 'fs';
 
 const Router = express.Router();
@@ -14,7 +15,6 @@ const uploadPath = path.join(__dirname, '..', 'uploads', 'posts');
 
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
-  console.log('Đã tạo thư mục upload:', uploadPath);
 }
 
 // 1. Cấu hình nơi lưu trữ và tên file
@@ -111,14 +111,9 @@ export const handleDeleteImage = (fileUrl) => {
     if (fs.existsSync(filePath)) {
       // 4. Nếu có, thực hiện xóa file
       fs.unlinkSync(filePath);
-      console.log('Đã xóa file:', filePath);
       return true; // Trả về true khi xóa thành công
     } else {
       // 5. Nếu file không tồn tại, coi như đã "xóa" thành công
-      console.warn(
-        'Yêu cầu xóa file không tồn tại (coi như thành công):',
-        filePath,
-      );
       return true; // Vẫn trả về true vì file không còn
     }
   } catch (error) {

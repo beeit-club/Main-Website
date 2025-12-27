@@ -113,13 +113,13 @@ export async function selectWithPagination(baseSql, params = [], options = {}) {
     if (!field || typeof field !== 'string') {
       throw new Error('orderBy.field phải là chuỗi hợp lệ');
     }
-    
+
     // Whitelist để tránh SQL Injection - chỉ cho phép alphanumeric, underscore, dot
     const isValidField = /^[a-zA-Z0-9_.]+$/.test(field);
     if (!isValidField) {
       throw new Error('orderBy.field chứa ký tự không hợp lệ');
     }
-    
+
     const dir = direction.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
     // Nếu field có dấu chấm (alias.table.column), validate từng phần
     if (field.includes('.')) {
@@ -139,8 +139,14 @@ export async function selectWithPagination(baseSql, params = [], options = {}) {
   dataSql += ` LIMIT ${perPage} OFFSET ${offset}`;
 
   // --- Câu lệnh đếm tổng số bản ghi ---
-  // Bỏ ORDER BY nếu có (vì không cần thiết trong COUNT)
-  const countSql = `SELECT COUNT(*) as total FROM (${baseSql}) AS subquery`;
+  // Bỏ ORDER BY và LIMIT nếu có (vì không cần thiết trong COUNT)
+  let countBaseSql = baseSql.trim();
+  // Loại bỏ ORDER BY ... (có thể có nhiều ORDER BY)
+  countBaseSql = countBaseSql.replace(/\s+ORDER\s+BY\s+[^;]+/gi, '');
+  // Loại bỏ LIMIT nếu có
+  countBaseSql = countBaseSql.replace(/\s+LIMIT\s+\d+(\s+OFFSET\s+\d+)?/gi, '');
+
+  const countSql = `SELECT COUNT(*) as total FROM (${countBaseSql}) AS subquery`;
 
   // --- Chạy truy vấn ---
   const [[{ total }]] = await pool.query(countSql, params);
@@ -170,8 +176,41 @@ export async function findOne(sql, params = []) {
     throw new Error('Phải truyền vào câu SQL dạng chuỗi');
   }
 
-  const [rows] = await pool.query(sql, params);
+  console.log('🔍 [DATABASE] Executing findOne query...');
+  console.log('📝 [DATABASE] SQL:', sql);
+  console.log('📝 [DATABASE] Params:', params);
 
-  // Nếu có ít nhất 1 dòng thì trả dòng đầu tiên, ngược lại trả false
-  return rows.length > 0 ? rows[0] : false;
+  try {
+    const [rows] = await pool.query(sql, params);
+
+    console.log('📊 [DATABASE] Query executed successfully');
+    console.log('📊 [DATABASE] Rows returned:', rows.length);
+
+    if (rows.length > 0) {
+      console.log('✅ [DATABASE] Found record:', {
+        keys: Object.keys(rows[0]),
+        sample: Object.keys(rows[0]).reduce((acc, key) => {
+          const value = rows[0][key];
+          acc[key] =
+            typeof value === 'string' && value.length > 50
+              ? value.substring(0, 50) + '...'
+              : value;
+          return acc;
+        }, {}),
+      });
+    } else {
+      console.log('⚠️  [DATABASE] No records found');
+    }
+
+    // Nếu có ít nhất 1 dòng thì trả dòng đầu tiên, ngược lại trả false
+    return rows.length > 0 ? rows[0] : false;
+  } catch (error) {
+    console.error('❌ [DATABASE] Error executing findOne:');
+    console.error('  💥 Error Message:', error.message);
+    console.error('  💥 Error Code:', error.code);
+    console.error('  💥 Error SQL State:', error.sqlState);
+    console.error('  💥 SQL:', sql);
+    console.error('  💥 Params:', params);
+    throw error;
+  }
 }

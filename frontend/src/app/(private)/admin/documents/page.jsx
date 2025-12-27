@@ -55,7 +55,7 @@ export default function ListDocuments() {
 
   const [sorting, setSorting] = useState([]); // BE chưa hỗ trợ, nhưng để đây
   const [globalFilter, setGlobalFilter] = useState(""); // Lọc theo 'title'
-  const [categoryFilter, setCategoryFilter] = useState(""); // Lọc theo 'category_id'
+  const [categoryFilter, setCategoryFilter] = useState("all"); // Lọc theo 'category_id'
 
   const debouncedSearch = useDebounce(globalFilter, 500);
 
@@ -69,8 +69,10 @@ export default function ListDocuments() {
       // res.data.data = { documentCategories: { data: [...], pagination: {...} } }
       // res.data.data.documentCategories = { data: [...], pagination: {...} }
       // res.data.data.documentCategories.data = [...]
-      const categories = res?.data?.data?.documentCategories?.data || res?.data?.data?.data || [];
-      console.log("📋 Categories loaded:", categories.length);
+      const categories =
+        res?.data?.data?.documentCategories?.data ||
+        res?.data?.data?.data ||
+        [];
       setCategories(categories);
     } catch (error) {
       console.error("❌ Error loading categories:", error);
@@ -86,7 +88,10 @@ export default function ListDocuments() {
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
         search: debouncedSearch,
-        category_id: categoryFilter || undefined,
+        category_id:
+          categoryFilter && categoryFilter !== "all"
+            ? categoryFilter
+            : undefined,
         // (BE chưa hỗ trợ sort)
       };
 
@@ -194,7 +199,7 @@ export default function ListDocuments() {
               <SelectValue placeholder="Lọc theo danh mục..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tất cả danh mục</SelectItem>
+              <SelectItem value="all">Tất cả danh mục</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={String(cat.id)}>
                   {cat.name}

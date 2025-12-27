@@ -7,8 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-  "build": "mkdir -p dist && cp -r src/* dist"
-  
+    "build": "mkdir -p dist && cp -r src/* dist"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +18,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "esm-module-alias": "^2.2.1",
+    "expr-eval": "^2.0.2",
     "express": "^5.1.0",
     "google-auth-library": "^10.3.1",
     "handlebars": "^4.7.8",

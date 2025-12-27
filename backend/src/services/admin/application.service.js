@@ -1,7 +1,7 @@
 import { code, message } from '../../common/message/index.js';
 import ServiceError from '../../error/service.error.js';
 import { applicationModel, InterviewModel } from '../../models/admin/index.js';
-import { emailService } from '../email/emailService.js';
+import emailService from '../email/emailService.js';
 
 // Tái sử dụng hàm kiểm tra đơn
 async function checkApplication(id, expectedStatus) {

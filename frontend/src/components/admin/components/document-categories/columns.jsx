@@ -32,12 +32,6 @@ export const columns = [
     cell: ({ row }) => <span className="italic">{row.getValue("slug")}</span>,
   },
   {
-    // Dùng key 'parent_name' đã được map ở page.jsx
-    accessorKey: "parent_name",
-    header: "Danh mục cha",
-    cell: ({ row }) => <span>{row.getValue("parent_name")}</span>,
-  },
-  {
     accessorKey: "created_at",
     header: "Ngày tạo",
     cell: ({ row }) => <span>{formatDate(row.getValue("created_at"))}</span>,

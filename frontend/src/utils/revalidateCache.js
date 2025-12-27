@@ -7,7 +7,9 @@ const getRevalidateSecret = () => {
   // Try to get from environment variable (only available server-side)
   // For client-side, we'll use a different approach
   if (typeof window === "undefined") {
-    return process.env.REVALIDATE_SECRET || process.env.NEXT_PUBLIC_REVALIDATE_SECRET;
+    return (
+      process.env.REVALIDATE_SECRET || process.env.NEXT_PUBLIC_REVALIDATE_SECRET
+    );
   }
   // Client-side: use public env var or skip auth if not set
   return process.env.NEXT_PUBLIC_REVALIDATE_SECRET;
@@ -19,13 +21,13 @@ const getRevalidateSecret = () => {
 async function callRevalidateAPI(tag) {
   const secret = getRevalidateSecret();
   const url = `/api/revalidate?tag=${tag}${secret ? `&secret=${secret}` : ""}`;
-  
+
   const headers = {};
   if (secret && typeof window === "undefined") {
     // Server-side: use Authorization header
     headers["Authorization"] = `Bearer ${secret}`;
   }
-  
+
   return fetch(url, {
     method: "POST",
     headers,
@@ -43,13 +45,8 @@ export async function revalidatePosts(slug = null) {
       tags.push(`post-${slug}`);
     }
 
-    await Promise.all(
-      tags.map((tag) => callRevalidateAPI(tag))
-    );
-
-    console.log(`✅ Cache revalidated for posts${slug ? ` and post-${slug}` : ""}`);
+    await Promise.all(tags.map((tag) => callRevalidateAPI(tag)));
   } catch (error) {
-    console.error("⚠️ Failed to revalidate posts cache:", error);
     // Không throw error để không block flow
   }
 }
@@ -65,25 +62,24 @@ export async function revalidateEvents(slug = null) {
       tags.push(`event-${slug}`);
     }
 
-    await Promise.all(
-      tags.map((tag) => callRevalidateAPI(tag))
-    );
-
-    console.log(`✅ Cache revalidated for events${slug ? ` and event-${slug}` : ""}`);
-  } catch (error) {
-    console.error("⚠️ Failed to revalidate events cache:", error);
-  }
+    await Promise.all(tags.map((tag) => callRevalidateAPI(tag)));
+  } catch (error) {}
 }
 
 /**
  * Revalidate cache cho documents
+ * @param {string} slug - Slug của document (optional, nếu có sẽ revalidate cả detail page)
  */
-export async function revalidateDocuments() {
+export async function revalidateDocuments(slug = null) {
   try {
-    await callRevalidateAPI("documents-list");
-    console.log("✅ Cache revalidated for documents-list");
+    const tags = ["documents-list", "documents"];
+    if (slug) {
+      tags.push(`document-${slug}`);
+    }
+
+    await Promise.all(tags.map((tag) => callRevalidateAPI(tag)));
   } catch (error) {
-    console.error("⚠️ Failed to revalidate documents cache:", error);
+    // Không throw error để không block flow
   }
 }
 
@@ -98,14 +94,8 @@ export async function revalidateQuestions(slug = null) {
       tags.push(slug);
     }
 
-    await Promise.all(
-      tags.map((tag) => callRevalidateAPI(tag))
-    );
-
-    console.log(`✅ Cache revalidated for questions${slug ? ` and ${slug}` : ""}`);
-  } catch (error) {
-    console.error("⚠️ Failed to revalidate questions cache:", error);
-  }
+    await Promise.all(tags.map((tag) => callRevalidateAPI(tag)));
+  } catch (error) {}
 }
 
 /**
@@ -114,10 +104,7 @@ export async function revalidateQuestions(slug = null) {
 export async function revalidateHome() {
   try {
     await callRevalidateAPI("home");
-    console.log("✅ Cache revalidated for home");
-  } catch (error) {
-    console.error("⚠️ Failed to revalidate home cache:", error);
-  }
+  } catch (error) {}
 }
 
 /**
@@ -126,10 +113,7 @@ export async function revalidateHome() {
 export async function revalidateCategories() {
   try {
     await callRevalidateAPI("categories");
-    console.log("✅ Cache revalidated for categories");
-  } catch (error) {
-    console.error("⚠️ Failed to revalidate categories cache:", error);
-  }
+  } catch (error) {}
 }
 
 /**
@@ -138,8 +122,39 @@ export async function revalidateCategories() {
 export async function revalidateTags() {
   try {
     await callRevalidateAPI("tags");
-    console.log("✅ Cache revalidated for tags");
+  } catch (error) {}
+}
+
+/**
+ * Revalidate cache cho landing page content
+ */
+export async function revalidateLanding() {
+  try {
+    await Promise.all([
+      callRevalidateAPI("landing-memory-flow"),
+      callRevalidateAPI("landing-founders"),
+      callRevalidateAPI("landing"),
+    ]);
   } catch (error) {
-    console.error("⚠️ Failed to revalidate tags cache:", error);
+    // Không throw error để không block flow
+  }
+}
+
+/**
+ * Revalidate cache cho BeeIT landing page
+ * Gọi sau khi admin update Hero, Stats, Footer, Leaders
+ */
+export async function revalidateBeeit() {
+  try {
+    await Promise.all([
+      callRevalidateAPI("beeit"),
+      callRevalidateAPI("beeit-hero"),
+      callRevalidateAPI("beeit-stats"),
+      callRevalidateAPI("beeit-footer"),
+      callRevalidateAPI("beeit-leaders"),
+    ]);
+  } catch (error) {
+    // Không throw error để không block flow
+    console.error("Error revalidating BeeIT cache:", error);
   }
 }

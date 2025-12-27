@@ -3,7 +3,7 @@
 import { code, message } from '../../common/message/index.js';
 import ServiceError from '../../error/service.error.js';
 import { documentModel } from '../../models/admin/index.js';
-import { emailService } from '../email/emailService.js';
+import emailService from '../email/emailService.js';
 import { AuthModel } from '../../models/auth/index.js';
 
 const documentService = {

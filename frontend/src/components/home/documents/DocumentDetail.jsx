@@ -13,6 +13,7 @@ import {
   Users,
   Lock,
   Loader2,
+  ArrowLeft,
 } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -35,6 +36,7 @@ export function DocumentDetail({ document }) {
     file_url,
     preview_url,
     category,
+    category_name,
     access_level,
     download_count,
     created_at,
@@ -113,6 +115,14 @@ export function DocumentDetail({ document }) {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
+      {/* Back Button */}
+      <div className="mb-6">
+        <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Quay lại
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between mb-4">
@@ -139,10 +149,12 @@ export function DocumentDetail({ document }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {category && (
+            {(category || category_name) && (
               <div>
                 <p className="text-sm text-muted-foreground">Danh mục</p>
-                <Badge variant="outline">{category.name}</Badge>
+                <Badge variant="outline">
+                  {category?.name || category_name || category}
+                </Badge>
               </div>
             )}
             <div>
@@ -154,7 +166,9 @@ export function DocumentDetail({ document }) {
             </div>
             {updated_at && updated_at !== created_at && (
               <div>
-                <p className="text-sm text-muted-foreground">Cập nhật lần cuối</p>
+                <p className="text-sm text-muted-foreground">
+                  Cập nhật lần cuối
+                </p>
                 <p className="font-semibold">
                   {format(new Date(updated_at), "dd MMMM yyyy", { locale: vi })}
                 </p>
@@ -214,7 +228,9 @@ export function DocumentDetail({ document }) {
             <CardTitle>Mô tả</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground whitespace-pre-wrap">{description}</p>
+            <p className="text-muted-foreground whitespace-pre-wrap">
+              {description}
+            </p>
           </CardContent>
         </Card>
       )}
@@ -237,4 +253,3 @@ export function DocumentDetail({ document }) {
     </div>
   );
 }
-

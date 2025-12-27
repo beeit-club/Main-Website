@@ -1,5 +1,17 @@
-export const formatDate = (dateString) => {
+export const formatDate = (dateString, includeTime = false) => {
+  if (!dateString) return "-";
   const date = new Date(dateString);
+
+  if (includeTime) {
+    return date.toLocaleString("vi-VN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
   return date.toLocaleDateString("vi-VN", {
     year: "numeric",
     month: "long",
