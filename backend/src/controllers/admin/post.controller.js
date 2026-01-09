@@ -114,7 +114,7 @@ const postController = {
     const post = await postService.updatePost(id, data);
 
     utils.success(res, 'Cập nhật bài viết thành công', {
-      id: post.insertId,
+      id: id,
       title,
       slug,
     });

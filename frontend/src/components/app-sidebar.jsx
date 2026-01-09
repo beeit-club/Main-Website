@@ -60,6 +60,11 @@ const data = {
       icon: IconUsers,
     },
     {
+      title: "Duyệt thành viên",
+      url: "/admin/members/requests",
+      icon: IconListDetails,
+    },
+    {
       title: "Vai trò & Quyền",
       url: "/admin/roles-permissions",
       icon: IconSettings,
@@ -122,6 +127,11 @@ const data = {
       title: "Mẫu email",
       url: "/admin/email-templates",
       icon: IconMail,
+    },
+    {
+      title: "Ánh xạ Email",
+      url: "/admin/email-mappings",
+      icon: IconSettings,
     },
     // 7. BeeIT Landing Page Management
     {

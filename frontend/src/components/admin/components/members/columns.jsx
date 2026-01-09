@@ -83,17 +83,7 @@ export const columns = [
     },
   },
 
-  // 4. Cột Khóa học
-  {
-    accessorKey: "course",
-    header: "Khóa học",
-    cell: ({ row }) => {
-      const course = row.getValue("course");
-      return <span>{course || "N/A"}</span>;
-    },
-  },
-
-  // 5. Cột Năm học
+  // 4. Cột Năm học
   {
     accessorKey: "academic_year",
     header: "Năm học",

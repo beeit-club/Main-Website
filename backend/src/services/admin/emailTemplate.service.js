@@ -39,56 +39,16 @@ class EmailTemplateService {
     return template;
   }
 
-  // Lấy template theo slug
-  async getTemplateBySlug(slug) {
-    const template = await EmailTemplateModel.getTemplateBySlug(slug);
-    if (!template) {
-      throw new ServiceError(
-        'Template không tồn tại',
-        'TEMPLATE_NOT_FOUND',
-        null,
-        404,
-      );
-    }
-
-    // Parse JSON fields
-    if (template.variables && typeof template.variables === 'string') {
-      template.variables = JSON.parse(template.variables);
-    }
-    if (
-      template.default_variables &&
-      typeof template.default_variables === 'string'
-    ) {
-      template.default_variables = JSON.parse(template.default_variables);
-    }
-
-    return template;
-  }
-
   // Tạo template mới
   async createTemplate(data, userId) {
     // Validate required fields
-    if (!data.name || !data.subject || !data.html_content) {
+    if (!data.name || !data.subject || !data.body) {
       throw new ServiceError(
         'Thiếu thông tin bắt buộc',
         'MISSING_REQUIRED_FIELDS',
-        'name, subject, html_content là bắt buộc',
+        'name, subject, body là bắt buộc',
         400,
       );
-    }
-
-    // Slug không còn tự động generate
-    // Nếu có slug, validate unique
-    if (data.slug) {
-      const slugExists = await EmailTemplateModel.checkSlugExists(data.slug);
-      if (slugExists) {
-        throw new ServiceError(
-          'Slug đã tồn tại',
-          'SLUG_EXISTS',
-          `Slug "${data.slug}" đã được sử dụng`,
-          409,
-        );
-      }
     }
 
     // Validate name unique
@@ -145,7 +105,7 @@ class EmailTemplateService {
 
     // Validate template syntax
     const syntaxCheck = templateRenderer.validateTemplateSyntax(
-      data.html_content,
+      data.body,
     );
     if (!syntaxCheck.valid) {
       throw new ServiceError(
@@ -174,32 +134,6 @@ class EmailTemplateService {
         null,
         404,
       );
-    }
-
-    // Check is_system - không cho update
-    if (existingTemplate.is_system) {
-      throw new ServiceError(
-        'Không thể cập nhật template hệ thống',
-        'CANNOT_UPDATE_SYSTEM_TEMPLATE',
-        null,
-        403,
-      );
-    }
-
-    // Validate slug unique (nếu có thay đổi)
-    if (data.slug && data.slug !== existingTemplate.slug) {
-      const slugExists = await EmailTemplateModel.checkSlugExists(
-        data.slug,
-        id,
-      );
-      if (slugExists) {
-        throw new ServiceError(
-          'Slug đã tồn tại',
-          'SLUG_EXISTS',
-          `Slug "${data.slug}" đã được sử dụng`,
-          409,
-        );
-      }
     }
 
     // Validate name unique (nếu có thay đổi)
@@ -259,10 +193,11 @@ class EmailTemplateService {
       }
     }
 
-    // Validate template syntax (nếu có thay đổi html_content)
-    if (data.html_content) {
+    // Validate template syntax (nếu có thay đổi html_content/body)
+    const contentToCheck = data.body || data.html_content;
+    if (contentToCheck) {
       const syntaxCheck = templateRenderer.validateTemplateSyntax(
-        data.html_content,
+        contentToCheck,
       );
       if (!syntaxCheck.valid) {
         throw new ServiceError(

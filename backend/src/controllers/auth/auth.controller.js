@@ -15,7 +15,6 @@ const authController = {
     await AuthSchema.register.validate(req.body, { abortEarly: false });
 
     const { fullname, email } = req.body;
-    // Sanitize fullname để tránh XSS
     const sanitizedFullname = sanitizeText(fullname);
     const result = await AuthService.registerUser(sanitizedFullname, email);
 
@@ -31,18 +30,17 @@ const authController = {
     await AuthSchema.login.validate(req.body, { abortEarly: false });
 
     const { email } = req.body;
-    const { TokenOTP } = await AuthService.loginUser(email);
+    const { otpToken } = await AuthService.loginUser(email);
 
-    return utils.success(res, message.Auth.SEND_EMAIL_SUCCESS, { TokenOTP });
+    return utils.success(res, message.Auth.SEND_EMAIL_SUCCESS, { TokenOTP: otpToken }); // Keep TokenOTP key for frontend compatibility if needed, or better ask frontend to change
   }),
 
-  //  Gửi OTP để xác minh
+  //  Xác minh OTP -> Login
   sendotp: asyncWrapper(async (req, res) => {
     await AuthSchema.sendOtp.validate(req.body, { abortEarly: false });
 
     const { email, pin } = req.body;
-    const { valid, refreshToken, accessToken, user } =
-      await AuthService.isVerryOTP(email, pin);
+    const { accessToken, refreshToken, user } = await AuthService.verifyOtp(email, pin);
 
     res.cookie('refreshToken', refreshToken, {
       maxAge: Number(config.JWT_REFRESH_EXPIRES_IN),
@@ -51,7 +49,6 @@ const authController = {
       sameSite: 'lax',
     });
 
-    // Lấy đầy đủ thông tin user kèm role_id
     const fullUser = await AuthModel.getUserById(user.id);
     const userData = {
       id: user.id,
@@ -85,7 +82,6 @@ const authController = {
       sameSite: 'lax',
     });
 
-    // Lấy đầy đủ thông tin user kèm role_id
     const fullUser = await AuthModel.getUserById(user.id);
     const userData = {
       id: user.id,
@@ -126,12 +122,8 @@ const authController = {
   //  Lấy quyền của user
   permissions: asyncWrapper(async (req, res) => {
     const { id } = req.user || {};
-    console.log("=== Auth Permissions Debug ===");
-    console.log("Request user id:", id);
     
-    const { user, permissions } = await AuthService.getPremiss(id);
-    console.log("User from service:", user);
-    console.log("User role_id:", user?.role_id);
+    const { user, permissions } = await AuthService.getUserPermissions(id);
 
     const userData = {
       id: user.id,
@@ -141,9 +133,6 @@ const authController = {
       role: user.role_name || 'Guest',
       role_id: user.role_id || null,
     };
-    
-    console.log("userData to send:", userData);
-    console.log("userData.role_id:", userData.role_id);
 
     return utils.success(res, message.Auth.GET_PERMISSIONS, {
       permissions,
@@ -169,10 +158,8 @@ const authController = {
         accessToken,
       });
     } catch (error) {
-      // ✅ FIX #5: Xóa cookie khi refresh thất bại
-      // Điều này đảm bảo không còn refresh token cũ/hết hạn trong cookie
       res.clearCookie('refreshToken');
-      throw error; // Re-throw để error handler middleware xử lý
+      throw error;
     }
   }),
 
@@ -190,7 +177,7 @@ const authController = {
     await AuthSchema.updateProfile.validate(req.body, { abortEarly: false });
     const { id } = req.user;
     const { fullname, bio, ...rest } = req.body;
-    // Sanitize text fields để tránh XSS
+    
     const sanitizedData = {
       ...(fullname && { fullname: sanitizeText(fullname) }),
       ...(bio && { bio: sanitizeText(bio) }),
@@ -198,38 +185,9 @@ const authController = {
     };
     const updatedUser = await AuthService.updateProfile(id, sanitizedData);
 
-    // Query không có password_hash nên không cần destructure
     return utils.success(res, message.Auth.UPDATE_PROFILE_SUCCESS, {
       user: updatedUser,
     });
-  }),
-
-  // Yêu cầu đặt lại mật khẩu
-  requestPasswordReset: asyncWrapper(async (req, res) => {
-    await AuthSchema.requestPasswordReset.validate(req.body, {
-      abortEarly: false,
-    });
-
-    const { email } = req.body;
-    const result = await AuthService.requestPasswordReset(email);
-
-    return utils.success(res, 'Nếu email tồn tại, bạn sẽ nhận được mã OTP', {
-      result,
-    });
-  }),
-
-  // Đặt lại mật khẩu
-  resetPassword: asyncWrapper(async (req, res) => {
-    await AuthSchema.resetPassword.validate(req.body, { abortEarly: false });
-
-    const { email, reset_code, new_password } = req.body;
-    const result = await AuthService.resetPassword(
-      email,
-      reset_code,
-      new_password,
-    );
-
-    return utils.success(res, 'Đặt lại mật khẩu thành công', { result });
   }),
 };
 

@@ -153,13 +153,19 @@ const HomeControler = {
 
   // [PUBLIC] Nộp đơn đăng ký thành viên CLB
   createApplication: asyncWrapper(async (req, res) => {
-    await ApplicationSchema.create.validate(req.body, {
+    const validatedData = await ApplicationSchema.create.validate(req.body, {
       abortEarly: false,
       stripUnknown: true,
     });
 
+    // Chuẩn hóa ngày tháng về định dạng YYYY-MM-DD cho MySQL
+    if (validatedData.student_year) {
+      const date = new Date(validatedData.student_year);
+      validatedData.student_year = date.toISOString().split('T')[0];
+    }
+
     // Mặc định status là 0 (Chờ xử lý)
-    const applicationData = { ...req.body, status: 0 };
+    const applicationData = { ...validatedData, status: 0 };
 
     const application = await applicationService.createApplication(
       applicationData,

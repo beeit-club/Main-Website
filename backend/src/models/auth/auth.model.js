@@ -127,7 +127,7 @@ class AuthModel {
   }
 
   // Lấy danh sách quyền người dùng
-  static async getPremiss(user_id) {
+  static async getUserPermissions(user_id) {
     try {
       const query = `
         SELECT p.name
@@ -135,8 +135,9 @@ class AuthModel {
         JOIN permissions AS p ON up.permission_id = p.id
         WHERE up.user_id = ?
       `;
-      const result = await findOne(query, [user_id]);
-      return result;
+      // Sử dụng pool.query trực tiếp để lấy mảng results thay vì findOne (chỉ trả về 1 row)
+      const [rows] = await pool.query(query, [user_id]);
+      return rows.map(row => row.name);
     } catch (error) {
       throw error;
     }
@@ -172,30 +173,16 @@ class AuthModel {
     }
   }
 
-  // Cập nhật OTP
-  static async updateOtp(email, otp, check = true) {
+  // Xóa OTP (reset về NULL)
+  static async clearOtp(email) {
     try {
-      if (check) {
-        const query = `
-          UPDATE users
-          SET otp_code = ?, otp_expires_at = DATE_ADD(NOW(), INTERVAL ? SECOND), otp_attempts = 0
-          WHERE email = ?
-        `;
-        const [result] = await pool.query(query, [
-          otp,
-          config.JWT_OTP_EXPIRES_IN,
-          email,
-        ]);
-        return result.affectedRows > 0;
-      } else {
-        const query = `
-          UPDATE users
-          SET otp_code = ?, otp_expires_at = NULL, otp_attempts = 0
-          WHERE email = ?
-        `;
-        const [result] = await pool.query(query, [otp, email]);
-        return result.affectedRows > 0;
-      }
+      const query = `
+        UPDATE users
+        SET otp_code = NULL, otp_expires_at = NULL, otp_attempts = 0
+        WHERE email = ?
+      `;
+      const [result] = await pool.query(query, [email]);
+      return result.affectedRows > 0;
     } catch (error) {
       throw error;
     }
@@ -204,13 +191,32 @@ class AuthModel {
   // Xác minh OTP
   static async verifyOtp(email, otp) {
     try {
-      const query = `SELECT otp_code, otp_expires_at, otp_attempts FROM users WHERE email = ?`;
+      // Check expiration directly in SQL
+      const query = `
+        SELECT otp_code, otp_expires_at, otp_attempts 
+        FROM users 
+        WHERE email = ? 
+          AND otp_expires_at > NOW()
+      `;
       const result = await findOne(query, [email]);
+      
+      // Nếu không tìm thấy record (hoặc đã hết hạn do điều kiện WHERE)
       if (!result) {
+        // Check xem user có tồn tại không để báo lỗi chính xác hơn
+        const userCheck = await findOne(`SELECT id, otp_expires_at FROM users WHERE email = ?`, [email]);
+        if (!userCheck) {
+             return {
+              valid: false,
+              code: code.Auth.USER_NOT_FOUND_CODE,
+              msg: message.Auth.USER_NOT_FOUND,
+            };
+        }
+        
+        // Nếu user tồn tại nhưng query trên không ra -> Tức là OTP hết hạn
         return {
           valid: false,
-          code: code.Auth.USER_NOT_FOUND_CODE,
-          msg: message.Auth.USER_NOT_FOUND,
+          code: code.Auth.OTP_EXPIRED_CODE,
+          msg: message.Auth.OTP_EXPIRED,
         };
       }
 
@@ -221,14 +227,6 @@ class AuthModel {
           valid: false,
           code: code.Auth.OTP_ATTEMPTS_EXCEEDED_CODE,
           msg: message.Auth.OTP_ATTEMPTS_EXCEEDED,
-        };
-      }
-
-      if (!user.otp_expires_at || new Date(user.otp_expires_at) < new Date()) {
-        return {
-          valid: false,
-          code: code.Auth.OTP_EXPIRED_CODE,
-          msg: message.Auth.OTP_EXPIRED,
         };
       }
 
@@ -245,6 +243,7 @@ class AuthModel {
         };
       }
 
+      // Reset attempts và OTP sau khi thành công
       await update(
         'users',
         { otp_attempts: 0, otp_code: null, otp_expires_at: null },
@@ -288,6 +287,7 @@ class AuthModel {
         email,
         google_id: googleId,
         avatar_url: picture,
+        role_id: 5,
         is_active: true,
         email_verified_at: new Date(),
       };
@@ -298,6 +298,55 @@ class AuthModel {
         throw new Error('Failed to get insertId from insert result');
       }
       return await findOne('SELECT * FROM users WHERE id = ?', [insertId]);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Lấy thông tin member profile
+  static async getMemberProfile(user_id) {
+    try {
+      const query = `SELECT * FROM member_profiles WHERE user_id = ?`;
+      const result = await findOne(query, [user_id]);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Lấy yêu cầu chỉnh sửa gần nhất
+  static async getEditRequest(user_id) {
+    try {
+      const query = `SELECT * FROM member_edit_requests WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`;
+      const result = await findOne(query, [user_id]);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Tạo yêu cầu chỉnh sửa
+  static async createEditRequest(data) {
+    try {
+      const result = await insert('member_edit_requests', data);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Lấy danh sách câu hỏi của user
+  static async getQuestions(user_id) {
+    try {
+      const query = `
+        SELECT id, title, slug, created_at, view_count, status 
+        FROM questions 
+        WHERE created_by = ? 
+        ORDER BY created_at DESC 
+        LIMIT 5
+      `;
+      const [rows] = await pool.query(query, [user_id]);
+      return rows;
     } catch (error) {
       throw error;
     }

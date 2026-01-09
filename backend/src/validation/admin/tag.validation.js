@@ -12,7 +12,6 @@ const TagSchema = {
     meta_description: yup
       .string()
       .trim()
-      .required('Mô tả meta là bắt buộc')
       .max(160, 'Mô tả meta không được vượt quá 160 ký tự'),
   }),
 

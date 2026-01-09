@@ -1,13 +1,13 @@
 import { code, message } from '../../common/message/index.js';
 import ServiceError from '../../error/service.error.js';
-import { tagModel } from '../../models/admin/index.js'; // Giả sử bạn có file index export model
-import postModel from '../../models/admin/post.model.js';
+import { tagModel } from '../../models/admin/index.js'; 
+import PostModel from '../../models/admin/post.model.js';
 
 const postService = {
   // lấy toàn bộ
   getAllPosts: async (option) => {
     try {
-      const posts = await postModel.getAllPosts(option);
+      const posts = await PostModel.getAllPosts(option);
       return posts;
     } catch (error) {
       throw error;
@@ -16,11 +16,11 @@ const postService = {
   //   lấy 1
   getPostBySlug: async (slug) => {
     try {
-      const post = await postModel.getPostBySlug(slug);
+      const post = await PostModel.getPostBySlug(slug);
       if (!post) {
         throw new ServiceError(
-          'Bài viết không tồn tại', // Bạn cần định nghĩa message này
-          'NO_POST', // và code này
+          'Bài viết không tồn tại', 
+          'NO_POST', 
           'Bài viết không tồn tại',
           404,
         );
@@ -32,11 +32,11 @@ const postService = {
   },
   getPostById: async (id) => {
     try {
-      const post = await postModel.getPostById(id);
+      const post = await PostModel.getPostById(id);
       if (!post) {
         throw new ServiceError(
-          'Bài viết không tồn tại', // Bạn cần định nghĩa message này
-          'NO_POST', // và code này
+          'Bài viết không tồn tại', 
+          'NO_POST', 
           'Bài viết không tồn tại',
           404,
         );
@@ -50,19 +50,19 @@ const postService = {
   createPost: async (data) => {
     try {
       // check xem đã có bài này chưa
-      const isCheck = await postModel.checkIsPost(data?.slug);
+      const isCheck = await PostModel.checkIsPost(data?.slug);
       if (isCheck) {
         throw new ServiceError(
-          'Bài viết đã tồn tại', // Bạn cần định nghĩa message này
-          'POST_EXISTS_CODE', // và code này
+          'Bài viết đã tồn tại', 
+          'POST_EXISTS_CODE', 
           'Bài đã tồn tại',
           409,
         );
       }
       // thêm thẻ
       const { tags, ...files } = data;
-      const post = await postModel.createPost(files);
-      await postModel.addTagsPost(tags, post.insertId);
+      const post = await PostModel.createPost(files);
+      await PostModel.addTagsPost(tags, post.insertId);
       return post;
     } catch (error) {
       throw error;
@@ -71,23 +71,9 @@ const postService = {
   // update
   updatePost: async (id, data) => {
     try {
-      // check slug mới (nếu có) đã tồn tại chưa
-      // if (data.slug) {
-      //   const isCheck = await postModel.checkIsPost(data.slug);
-      //   // Nếu slug đã tồn tại và không phải là của chính tag đang update
-      //   if (isCheck) {
-      //     throw new ServiceError(
-      //       'Conflict',
-      //       'Bài viết đã có',
-      //       'Bài viết đã tồn tại',
-      //       409,
-      //     );
-      //   }
-      // }
-      // cập nhật thẻ
       const { tags, ...files } = data;
-      const post = await postModel.updatePost(id, files);
-      await postModel.updateTagsPost(tags, id);
+      const post = await PostModel.updatePost(id, files);
+      await PostModel.updateTagsPost(tags, id);
       return post;
     } catch (error) {
       throw error;
@@ -96,7 +82,7 @@ const postService = {
   // xóa mềm
   deletePost: async (id) => {
     try {
-      const post = await postModel.deletePost(id);
+      const post = await PostModel.deletePost(id);
       return post;
     } catch (error) {
       throw error;
@@ -105,7 +91,7 @@ const postService = {
   // khôi phục
   restorePost: async (id) => {
     try {
-      const post = await postModel.restorePost(id);
+      const post = await PostModel.restorePost(id);
       return post;
     } catch (error) {
       throw error;
@@ -114,7 +100,7 @@ const postService = {
   // toggle status
   changePostStatus: async (id, status) => {
     try {
-      const post = await postModel.changePostStatus(id, status);
+      const post = await PostModel.changePostStatus(id, status);
       return post;
     } catch (error) {
       throw error;
@@ -124,7 +110,7 @@ const postService = {
 
   getDeletedPosts: async (option) => {
     try {
-      const post = await postModel.getDeletedPosts(option);
+      const post = await PostModel.getDeletedPosts(option);
       return post;
     } catch (error) {
       throw error;
@@ -133,7 +119,7 @@ const postService = {
   // xóa vĩnh viễn
   permanentDeletePost: async (id) => {
     try {
-      const post = await postModel.permanentDeletePost(id);
+      const post = await PostModel.permanentDeletePost(id);
       return post;
     } catch (error) {
       throw error;

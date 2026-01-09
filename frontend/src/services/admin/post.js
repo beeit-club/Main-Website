@@ -12,7 +12,7 @@ export const postServices = {
   },
   getAllcategory: async () => {
     try {
-      const res = await axiosClient.get("client/category");
+      const res = await axiosClient.get("admin/categories");
       return res;
     } catch (error) {
       throw error?.response?.data || error;
@@ -28,7 +28,7 @@ export const postServices = {
   },
   getAlltags: async () => {
     try {
-      const res = await axiosClient.get("client/tags");
+      const res = await axiosClient.get("admin/tags");
       return res;
     } catch (error) {
       throw error?.response?.data || error;
@@ -92,6 +92,22 @@ export const postServices = {
       throw error?.response?.data || error;
     }
   },
+  createCategory: async (data) => {
+    try {
+      const res = await axiosClient.post("admin/categories", data);
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+  createTag: async (data) => {
+    try {
+      const res = await axiosClient.post("admin/tags", data);
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
 };
 // Quay trở lại dùng hàm uploadImage gốc của bạn
 export async function uploadImage(blobInfo) {
@@ -112,7 +128,7 @@ export async function uploadImage(blobInfo) {
       }
     );
 
-    const data = response;
+    const data = response.data;
     if (!data || !data.location) {
       throw new Error("Upload ảnh thất bại");
     }

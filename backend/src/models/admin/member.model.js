@@ -1,219 +1,197 @@
-import {
-  insert,
-  update,
-  remove,
-  findOne,
-  selectWithPagination,
-} from '../../utils/database.js';
 import pool from '../../db.js';
+import { findOne, insert, update, remove } from '../../utils/database.js';
 
-const TABLE = 'member_profiles';
-
-class MemberModel {
-  /**
-   * Lấy danh sách thành viên với phân trang
-   * @param {Object} options - Tùy chọn phân trang và filter
-   */
-  static async getAllMembers(option) {
-    let baseSql = `
-      SELECT 
-        mp.user_id,
-        mp.student_id,
-        mp.academic_year,
-        mp.course,
-        mp.join_date,
-        mp.created_by,
-        mp.updated_by,
-        mp.created_at,
-        mp.updated_at,
-        u.id,
-        u.fullname,
-        u.email,
-        u.phone,
-        u.avatar_url,
-        u.bio,
-        u.is_active,
-        u.role_id
-      FROM ${TABLE} mp
-      INNER JOIN users u ON mp.user_id = u.id
-      WHERE mp.deleted_at IS NULL
-        AND u.deleted_at IS NULL
-    `;
-    let params = [];
-
-    // Filter theo search (tên, email, MSSV)
-    if (option?.filters?.search) {
-      baseSql += ` AND (u.fullname LIKE ? OR u.email LIKE ? OR mp.student_id LIKE ?)`;
-      const searchTerm = `%${option.filters.search}%`;
-      params.push(searchTerm, searchTerm, searchTerm);
-    }
-
-    // Sắp xếp
-    if (option?.filters?.sortBy && option?.filters?.sortDirection) {
-      option.orderBy = {
-        field: option.filters.sortBy,
-        direction: option.filters.sortDirection || 'DESC',
-      };
-    } else if (!option?.orderBy) {
-      // Sắp xếp mặc định: ngày tham gia mới nhất
-      option.orderBy = {
-        field: 'mp.join_date',
-        direction: 'DESC',
-      };
-    }
-
-    return await selectWithPagination(baseSql, params, option);
-  }
-
-  /**
-   * Lấy thông tin chi tiết 1 thành viên theo user_id
-   */
-  static async getMemberByUserId(userId) {
+const MemberModel = {
+  // Lấy danh sách thành viên
+  getAllMembers: async ({ search, sortBy, sortDirection, limit, offset }) => {
     try {
-      const sql = `
-        SELECT 
-          mp.*,
-          u.id as user_id,
-          u.fullname,
-          u.email,
-          u.phone,
-          u.avatar_url,
-          u.bio,
-          u.is_active,
-          u.role_id
-        FROM ${TABLE} mp
-        INNER JOIN users u ON mp.user_id = u.id
-        WHERE mp.user_id = ? 
-          AND mp.deleted_at IS NULL
-          AND u.deleted_at IS NULL
-      `;
-      return await findOne(sql, [userId]);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Tạo hồ sơ thành viên mới
-   */
-  static async createMember(data) {
-    try {
-      return await insert(TABLE, data);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Cập nhật thông tin thành viên
-   */
-  static async updateMember(userId, data) {
-    try {
-      return await update(TABLE, data, { user_id: userId });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Xóa mềm thành viên
-   */
-  static async deleteMember(userId) {
-    try {
-      return await update(TABLE, { deleted_at: new Date() }, { user_id: userId });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Kiểm tra user_id đã có member profile chưa
-   */
-  static async checkMemberExists(userId) {
-    try {
-      const sql = `
-        SELECT user_id 
-        FROM ${TABLE} 
-        WHERE user_id = ? 
-          AND deleted_at IS NULL
-      `;
-      return await findOne(sql, [userId]);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Kiểm tra student_id đã tồn tại chưa
-   */
-  static async checkStudentIdExists(studentId, excludeUserId = null) {
-    try {
-      let sql = `
-        SELECT user_id, student_id 
-        FROM ${TABLE} 
-        WHERE student_id = ? 
-          AND deleted_at IS NULL
-      `;
-      const params = [studentId];
-      
-      if (excludeUserId) {
-        sql += ` AND user_id != ?`;
-        params.push(excludeUserId);
-      }
-      
-      return await findOne(sql, params);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Lấy danh sách users chưa có member profile (để chọn khi thêm)
-   */
-  static async getAvailableUsers(options = {}) {
-    try {
-      let sql = `
-        SELECT 
-          u.id,
-          u.fullname,
-          u.email,
-          u.phone,
-          u.avatar_url,
-          u.is_active,
-          r.name as role_name
-        FROM users u
-        LEFT JOIN roles r ON u.role_id = r.id
+      let query = `
+        SELECT mp.*, u.fullname, u.email, u.phone, u.avatar_url
+        FROM member_profiles mp
+        JOIN users u ON mp.user_id = u.id
         WHERE u.deleted_at IS NULL
-          AND u.is_active = 1
-          AND u.id NOT IN (
-            SELECT user_id 
-            FROM ${TABLE} 
-            WHERE deleted_at IS NULL
-          )
       `;
-      let params = [];
+      const params = [];
 
-      // Filter theo search
-      if (options?.filters?.search) {
-        sql += ` AND (u.fullname LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)`;
-        const searchTerm = `%${options.filters.search}%`;
-        params.push(searchTerm, searchTerm, searchTerm);
+      if (search) {
+        query += ` AND (u.fullname LIKE ? OR u.email LIKE ? OR mp.student_id LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
       }
 
-      // Phân trang
-      if (options?.page && options?.limit) {
-        const offset = (options.page - 1) * options.limit;
-        sql += ` LIMIT ? OFFSET ?`;
-        params.push(options.limit, offset);
+      // Sorting
+      if (sortBy) {
+        // Map sortBy to actual columns if needed, or assume safe
+        query += ` ORDER BY ${sortBy} ${sortDirection === 'desc' ? 'DESC' : 'ASC'}`;
+      } else {
+        query += ` ORDER BY mp.created_at DESC`;
       }
 
-      const [rows] = await pool.query(sql, params);
-      return rows;
+      // Pagination
+      query += ` LIMIT ? OFFSET ?`;
+      params.push(limit, offset);
+
+      const [rows] = await pool.query(query, params);
+
+      // Count total
+      let countQuery = `
+        SELECT COUNT(*) as total
+        FROM member_profiles mp
+        JOIN users u ON mp.user_id = u.id
+        WHERE u.deleted_at IS NULL
+      `;
+      const countParams = [];
+      if (search) {
+        countQuery += ` AND (u.fullname LIKE ? OR u.email LIKE ? OR mp.student_id LIKE ?)`;
+        countParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      }
+      const [countResult] = await pool.query(countQuery, countParams);
+
+      return {
+        data: rows,
+        total: countResult[0].total,
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy chi tiết thành viên
+  getMemberByUserId: async (user_id) => {
+    try {
+      const query = `
+        SELECT mp.*, u.fullname, u.email, u.phone, u.avatar_url
+        FROM member_profiles mp
+        JOIN users u ON mp.user_id = u.id
+        WHERE mp.user_id = ?
+      `;
+      return await findOne(query, [user_id]);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy thành viên theo student_id
+  getMemberByStudentId: async (student_id) => {
+    try {
+      const query = `SELECT * FROM member_profiles WHERE student_id = ?`;
+      return await findOne(query, [student_id]);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Tạo thành viên
+  createMember: async (data) => {
+    try {
+      return await insert('member_profiles', data);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Cập nhật thành viên
+  updateMember: async (user_id, data) => {
+    try {
+      return await update('member_profiles', data, { user_id });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Xóa thành viên
+  deleteMember: async (user_id) => {
+    try {
+      return await remove('member_profiles', { user_id });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy user chưa là thành viên
+  getAvailableUsers: async ({ search, limit, offset }) => {
+    try {
+      let query = `
+        SELECT u.id, u.fullname, u.email, u.avatar_url
+        FROM users u
+        LEFT JOIN member_profiles mp ON u.id = mp.user_id
+        WHERE u.deleted_at IS NULL AND mp.user_id IS NULL
+      `;
+      const params = [];
+
+      if (search) {
+        query += ` AND (u.fullname LIKE ? OR u.email LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`);
+      }
+
+      query += ` LIMIT ? OFFSET ?`;
+      params.push(limit, offset);
+
+      const [rows] = await pool.query(query, params);
+      
+      let countQuery = `
+        SELECT COUNT(*) as total
+        FROM users u
+        LEFT JOIN member_profiles mp ON u.id = mp.user_id
+        WHERE u.deleted_at IS NULL AND mp.user_id IS NULL
+      `;
+      const countParams = [];
+      if (search) {
+        countQuery += ` AND (u.fullname LIKE ? OR u.email LIKE ?)`;
+        countParams.push(`%${search}%`, `%${search}%`);
+      }
+      const [countResult] = await pool.query(countQuery, countParams);
+
+      return { data: rows, total: countResult[0].total };
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // --- REQUESTS HANDLING ---
+
+  // Lấy danh sách yêu cầu (pending)
+  getPendingRequests: async ({ limit, offset }) => {
+    try {
+      const query = `
+        SELECT r.*, u.fullname, u.email, u.avatar_url
+        FROM member_edit_requests r
+        JOIN users u ON r.user_id = u.id
+        WHERE r.status = 'pending'
+        ORDER BY r.created_at ASC
+        LIMIT ? OFFSET ?
+      `;
+      const [rows] = await pool.query(query, [limit, offset]);
+      
+      const countQuery = `SELECT COUNT(*) as total FROM member_edit_requests WHERE status = 'pending'`;
+      const [countResult] = await pool.query(countQuery);
+
+      return { data: rows, total: countResult[0].total };
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getRequestById: async (id) => {
+    try {
+      return await findOne(`SELECT * FROM member_edit_requests WHERE id = ?`, [id]);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateRequestStatus: async (id, status, admin_note, processed_by) => {
+    try {
+      const query = `
+        UPDATE member_edit_requests
+        SET status = ?, admin_note = ?, processed_by = ?, processed_at = NOW()
+        WHERE id = ?
+      `;
+      const [result] = await pool.query(query, [status, admin_note, processed_by, id]);
+      return result;
     } catch (error) {
       throw error;
     }
   }
-}
+};
 
 export default MemberModel;
-

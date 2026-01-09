@@ -9,7 +9,7 @@ import {
 import { dateTime } from '../../utils/datetime.js';
 import pool from '../../db.js';
 const table = 'posts';
-class postModel {
+class PostModel {
   // lấy toàn bộ
   static async getAllPosts(options = {}) {
     try {
@@ -254,8 +254,7 @@ WHERE
   // khôi phục
   static async restorePost(id) {
     try {
-      const sql = `UPDATE ${table} SET deleted_at = NULL WHERE id = ?`;
-      const result = await findOne(sql, [id]);
+      const result = await update(table, { deleted_at: null }, { id: id });
       return result;
     } catch (error) {
       throw error;
@@ -264,8 +263,7 @@ WHERE
   // toggle
   static async changePostStatus(id, status) {
     try {
-      const sql = `UPDATE ${table} SET status = ? WHERE id = ?`;
-      const result = await findOne(sql, [, status, id]);
+      const result = await update(table, { status }, { id });
       return result;
     } catch (error) {
       throw error;
@@ -347,4 +345,4 @@ WHERE
     }
   }
 }
-export default postModel;
+export default PostModel;

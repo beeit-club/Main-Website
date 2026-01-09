@@ -47,9 +47,6 @@ const createMemberSchema = yup.object({
     .date()
     .nullable()
     .typeError("Năm học phải là định dạng ngày hợp lệ"),
-  course: yup
-    .string()
-    .max(50, "Khóa học tối đa 50 ký tự"),
   join_date: yup
     .date()
     .nullable()
@@ -66,9 +63,6 @@ const updateMemberSchema = yup.object({
     .date()
     .nullable()
     .typeError("Năm học phải là định dạng ngày hợp lệ"),
-  course: yup
-    .string()
-    .max(50, "Khóa học tối đa 50 ký tự"),
   join_date: yup
     .date()
     .nullable()
@@ -96,7 +90,6 @@ export function MemberDialog({ open, onOpenChange, member, onSave }) {
       user_id: null,
       student_id: "",
       academic_year: "",
-      course: "",
       join_date: "",
     },
   });
@@ -121,7 +114,6 @@ export function MemberDialog({ open, onOpenChange, member, onSave }) {
       form.reset({
         student_id: member.student_id || "",
         academic_year: formatDateForInput(member.academic_year),
-        course: member.course || "",
         join_date: formatDateForInput(member.join_date),
       });
       setSelectedUser({
@@ -135,7 +127,6 @@ export function MemberDialog({ open, onOpenChange, member, onSave }) {
         user_id: null,
         student_id: "",
         academic_year: null,
-        course: "",
         join_date: null,
       });
       setSelectedUser(null);
@@ -352,25 +343,6 @@ export function MemberDialog({ open, onOpenChange, member, onSave }) {
                   <FormControl>
                     <Input
                       placeholder="VD: 20210001"
-                      {...field}
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Khóa học */}
-            <FormField
-              control={form.control}
-              name="course"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Khóa học</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="VD: K21, K22..."
                       {...field}
                       disabled={isSubmitting}
                     />

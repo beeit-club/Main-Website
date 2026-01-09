@@ -51,24 +51,25 @@ import { EmailEditor } from "@/components/admin/email-templates/EmailEditor";
 // Validation Schema
 const emailTemplateSchema = yup.object({
   name: yup.string().required("Tên template là bắt buộc").max(255),
-  slug: yup.string().max(255).optional(),
   subject: yup.string().required("Subject là bắt buộc").max(500),
-  html_content: yup.string().required("Nội dung HTML là bắt buộc").min(10),
+  body: yup.string().required("Nội dung Body là bắt buộc").min(10), // Renamed from html_content
+  header: yup.string().optional(),
+  footer: yup.string().optional(),
   category: yup
     .string()
     .oneOf(
       [
-        "authentication",
-        "application",
-        "event",
-        "document",
-        "system",
+        "Authentication",
+        "Recruitment",
+        "Events",
+        "Documents",
+        "System",
+        "Finance",
         "custom",
       ],
       "Category không hợp lệ"
     )
     .optional(),
-  description: yup.string().max(1000).optional(),
   is_active: yup.boolean().optional(),
 });
 
@@ -105,11 +106,11 @@ export default function EmailTemplatesPage() {
     resolver: yupResolver(emailTemplateSchema),
     defaultValues: {
       name: "",
-      slug: "",
       subject: "",
-      html_content: "",
+      body: "", // Renamed
+      header: "",
+      footer: "",
       category: "custom",
-      description: "",
       is_active: true,
     },
   });
@@ -204,18 +205,31 @@ export default function EmailTemplatesPage() {
   }
 
   // Handle Edit
-  function handleOpenEdit(template) {
-    setSelectedTemplate(template);
-    formEdit.reset({
-      name: template.name,
-      slug: template.slug,
-      subject: template.subject,
-      html_content: template.html_content,
-      category: template.category || "custom",
-      description: template.description || "",
-      is_active: template.is_active,
-    });
-    setOpenEdit(true);
+  async function handleOpenEdit(template) {
+    try {
+      // Fetch full details (including html_content) because list view omits it
+      const res = await emailTemplateServices.getTemplateById(template.id);
+      const fullTemplate = res.data?.template;
+
+      if (fullTemplate) {
+        setSelectedTemplate(fullTemplate);
+        formEdit.reset({
+          name: fullTemplate.name,
+          subject: fullTemplate.subject,
+          body: fullTemplate.body || "",
+          header: fullTemplate.header || "",
+          footer: fullTemplate.footer || "",
+          category: fullTemplate.category || "custom",
+          is_active: fullTemplate.is_active,
+        });
+        setOpenEdit(true);
+      } else {
+        toast.error("Không tìm thấy thông tin template");
+      }
+    } catch (error) {
+      toast.error("Lỗi khi tải thông tin template");
+      console.error(error);
+    }
   }
 
   async function handleUpdate(data) {
@@ -379,7 +393,6 @@ export default function EmailTemplatesPage() {
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>Tên</TableHead>
-              <TableHead>Slug</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -403,9 +416,6 @@ export default function EmailTemplatesPage() {
                 <TableRow key={template.id}>
                   <TableCell>{template.id}</TableCell>
                   <TableCell className="font-medium">{template.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {template.slug}
-                  </TableCell>
                   <TableCell>
                     <span className="rounded-full bg-secondary px-2 py-1 text-xs">
                       {template.category || "N/A"}
@@ -505,25 +515,6 @@ export default function EmailTemplatesPage() {
                     />
                     <FormField
                       control={formAdd.control}
-                      name="slug"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Slug (Tự động tạo nếu để trống)</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="event-notification"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={formAdd.control}
                       name="category"
                       render={({ field }) => (
                         <FormItem>
@@ -538,15 +529,16 @@ export default function EmailTemplatesPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="authentication">
+                              <SelectItem value="Authentication">
                                 Authentication
                               </SelectItem>
-                              <SelectItem value="application">
-                                Application
+                              <SelectItem value="Recruitment">
+                                Recruitment
                               </SelectItem>
-                              <SelectItem value="event">Event</SelectItem>
-                              <SelectItem value="document">Document</SelectItem>
-                              <SelectItem value="system">System</SelectItem>
+                              <SelectItem value="Events">Event</SelectItem>
+                              <SelectItem value="Documents">Document</SelectItem>
+                              <SelectItem value="System">System</SelectItem>
+                              <SelectItem value="Finance">Finance</SelectItem>
                               <SelectItem value="custom">Custom</SelectItem>
                             </SelectContent>
                           </Select>
@@ -584,24 +576,6 @@ export default function EmailTemplatesPage() {
 
                   <FormField
                     control={formAdd.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Mô tả</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            rows={2}
-                            placeholder="Mô tả template..."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={formAdd.control}
                     name="subject"
                     render={({ field }) => (
                       <FormItem>
@@ -619,10 +593,29 @@ export default function EmailTemplatesPage() {
 
                   <FormField
                     control={formAdd.control}
-                    name="html_content"
+                    name="header"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nội dung HTML *</FormLabel>
+                        <FormLabel>Header HTML (Optional)</FormLabel>
+                        <FormControl>
+                          <EmailEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                            label=""
+                            rows={5}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={formAdd.control}
+                    name="body"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Body HTML *</FormLabel>
                         <FormControl>
                           <EmailEditor
                             value={field.value}
@@ -638,6 +631,25 @@ export default function EmailTemplatesPage() {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={formAdd.control}
+                    name="footer"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Footer HTML (Optional)</FormLabel>
+                        <FormControl>
+                          <EmailEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                            label=""
+                            rows={5}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 {/* Right Column: Variable List */}
@@ -646,9 +658,9 @@ export default function EmailTemplatesPage() {
                     templateId={null}
                     onInsertVariable={(variable) => {
                       const currentContent =
-                        formAdd.getValues("html_content") || "";
+                        formAdd.getValues("body") || "";
                       formAdd.setValue(
-                        "html_content",
+                        "body",
                         currentContent + variable
                       );
                     }}
@@ -707,22 +719,6 @@ export default function EmailTemplatesPage() {
                     />
                     <FormField
                       control={formEdit.control}
-                      name="slug"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Slug</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={formEdit.control}
                       name="category"
                       render={({ field }) => (
                         <FormItem>
@@ -737,15 +733,16 @@ export default function EmailTemplatesPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="authentication">
+                              <SelectItem value="Authentication">
                                 Authentication
                               </SelectItem>
-                              <SelectItem value="application">
-                                Application
+                              <SelectItem value="Recruitment">
+                                Recruitment
                               </SelectItem>
-                              <SelectItem value="event">Event</SelectItem>
-                              <SelectItem value="document">Document</SelectItem>
-                              <SelectItem value="system">System</SelectItem>
+                              <SelectItem value="Events">Event</SelectItem>
+                              <SelectItem value="Documents">Document</SelectItem>
+                              <SelectItem value="System">System</SelectItem>
+                              <SelectItem value="Finance">Finance</SelectItem>
                               <SelectItem value="custom">Custom</SelectItem>
                             </SelectContent>
                           </Select>
@@ -783,20 +780,6 @@ export default function EmailTemplatesPage() {
 
                   <FormField
                     control={formEdit.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Mô tả</FormLabel>
-                        <FormControl>
-                          <Textarea rows={2} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={formEdit.control}
                     name="subject"
                     render={({ field }) => (
                       <FormItem>
@@ -811,10 +794,26 @@ export default function EmailTemplatesPage() {
 
                   <FormField
                     control={formEdit.control}
-                    name="html_content"
+                    name="header"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nội dung HTML *</FormLabel>
+                          <EmailEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                            label=""
+                            rows={5}
+                          />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={formEdit.control}
+                    name="body"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Body HTML *</FormLabel>
                         <FormControl>
                           <EmailEditor
                             value={field.value}
@@ -830,6 +829,25 @@ export default function EmailTemplatesPage() {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={formEdit.control}
+                    name="footer"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Footer HTML</FormLabel>
+                        <FormControl>
+                          <EmailEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                            label=""
+                            rows={5}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 {/* Right Column: Variable List */}
@@ -838,9 +856,9 @@ export default function EmailTemplatesPage() {
                     templateId={selectedTemplate?.id || null}
                     onInsertVariable={(variable) => {
                       const currentContent =
-                        formEdit.getValues("html_content") || "";
+                        formEdit.getValues("body") || "";
                       formEdit.setValue(
-                        "html_content",
+                        "body",
                         currentContent + variable
                       );
                     }}
@@ -931,23 +949,38 @@ export default function EmailTemplatesPage() {
               />
 
               <div>
-                <Label className="mb-2 block">Variables (Optional)</Label>
-                <Textarea
-                  rows={5}
-                  placeholder='{"fullname": "Nguyễn Văn A", "event_title": "Workshop"}'
-                  className="font-mono text-sm"
-                  onChange={(e) => {
-                    try {
-                      const vars = JSON.parse(e.target.value || "{}");
-                      formTestSend.setValue("variables", vars);
-                    } catch {
-                      // Invalid JSON, ignore
-                    }
-                  }}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Nhập JSON object cho variables
-                </p>
+                <Label className="mb-2 block">Nhập giá trị cho biến:</Label>
+                {selectedTemplate?.variables ? (
+                  <div className="grid gap-4 border rounded-md p-4 bg-gray-50 max-h-[300px] overflow-y-auto">
+                    {(typeof selectedTemplate.variables === "string"
+                      ? JSON.parse(selectedTemplate.variables)
+                      : selectedTemplate.variables
+                    ).map((variable, index) => (
+                      <div key={index} className="grid grid-cols-3 items-center gap-4">
+                        <Label htmlFor={`var-${variable.name}`} className="text-right text-xs uppercase text-muted-foreground">
+                          {variable.name}
+                          {variable.required && <span className="text-red-500">*</span>}
+                        </Label>
+                        <Input
+                          id={`var-${variable.name}`}
+                          className="col-span-2 bg-white"
+                          placeholder={`Nhập giá trị cho ${variable.name}...`}
+                          onChange={(e) => {
+                            const currentVars = formTestSend.getValues("variables") || {};
+                            formTestSend.setValue("variables", {
+                              ...currentVars,
+                              [variable.name]: e.target.value
+                            });
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground italic p-4 border rounded-md bg-gray-50 text-center">
+                    Template này không yêu cầu biến nào.
+                  </div>
+                )}
               </div>
 
               <DialogFooter>

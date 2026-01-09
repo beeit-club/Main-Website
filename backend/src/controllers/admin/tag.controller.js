@@ -51,7 +51,8 @@ const tagController = {
     const { id } = user;
     // Sanitize text để tránh XSS
     const sanitizedName = sanitizeText(name);
-    const sanitizedMetaDescription = meta_description ? sanitizeText(meta_description) : null;
+    // Nếu không có meta_description thì lấy name làm mặc định
+    const sanitizedMetaDescription = meta_description ? sanitizeText(meta_description) : sanitizedName;
     const tagData = {
       name: sanitizedName,
       slug,

@@ -1,17 +1,14 @@
-// src/services/admin/bulkEmailServices.js
 import axiosClient from "../api";
 
 export const bulkEmailServices = {
   /**
-   * 📧 Gửi bulk email từ user IDs
-   * POST /admin/email-templates/:id/send-bulk-from-users
+   * Tạo chiến dịch mới
+   * POST /admin/campaigns
+   * data: { name, template_id, recipients, common_variables }
    */
-  sendBulkEmailFromUsers: async (templateId, data) => {
+  createCampaign: async (data) => {
     try {
-      const res = await axiosClient.post(
-        `admin/email-templates/${templateId}/send-bulk-from-users`,
-        data
-      );
+      const res = await axiosClient.post("admin/campaigns", data);
       return res.data;
     } catch (error) {
       throw error?.response?.data || error;
@@ -19,15 +16,12 @@ export const bulkEmailServices = {
   },
 
   /**
-   * 📧 Gửi bulk email từ filters
-   * POST /admin/email-templates/:id/send-bulk-from-filters
+   * Lấy danh sách chiến dịch
+   * GET /admin/campaigns
    */
-  sendBulkEmailFromFilters: async (templateId, data) => {
+  getCampaigns: async (params) => {
     try {
-      const res = await axiosClient.post(
-        `admin/email-templates/${templateId}/send-bulk-from-filters`,
-        data
-      );
+      const res = await axiosClient.get("admin/campaigns", { params });
       return res.data;
     } catch (error) {
       throw error?.response?.data || error;
@@ -35,79 +29,15 @@ export const bulkEmailServices = {
   },
 
   /**
-   * 📋 Lấy danh sách batch jobs
-   * GET /admin/email-templates/bulk-jobs
+   * Lấy chi tiết chiến dịch
+   * GET /admin/campaigns/:id
    */
-  getAllBatchJobs: async (params) => {
+  getCampaignDetail: async (id) => {
     try {
-      const res = await axiosClient.get("admin/email-templates/bulk-jobs", {
-        params,
-      });
+      const res = await axiosClient.get(`admin/campaigns/${id}`);
       return res.data;
     } catch (error) {
       throw error?.response?.data || error;
     }
-  },
-
-  /**
-   * 🔹 Lấy batch job theo ID
-   * GET /admin/email-templates/bulk-jobs/:id
-   */
-  getBatchJobById: async (jobId) => {
-    try {
-      const res = await axiosClient.get(
-        `admin/email-templates/bulk-jobs/${jobId}`
-      );
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
-  },
-
-  /**
-   * 📋 Lấy danh sách recipients của batch job
-   * GET /admin/email-templates/bulk-jobs/:id/recipients
-   */
-  getBatchJobRecipients: async (jobId, params) => {
-    try {
-      const res = await axiosClient.get(
-        `admin/email-templates/bulk-jobs/${jobId}/recipients`,
-        { params }
-      );
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
-  },
-
-  /**
-   * 🔄 Retry failed emails
-   * POST /admin/email-templates/bulk-jobs/:id/retry
-   */
-  retryFailedEmails: async (jobId) => {
-    try {
-      const res = await axiosClient.post(
-        `admin/email-templates/bulk-jobs/${jobId}/retry`
-      );
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
-  },
-
-  /**
-   * ❌ Cancel batch job
-   * POST /admin/email-templates/bulk-jobs/:id/cancel
-   */
-  cancelBatchJob: async (jobId) => {
-    try {
-      const res = await axiosClient.post(
-        `admin/email-templates/bulk-jobs/${jobId}/cancel`
-      );
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
-  },
+  }
 };
-

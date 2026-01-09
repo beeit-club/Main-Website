@@ -5,64 +5,34 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { User, Mail, Phone, Image, FileText, Calendar, Award, GraduationCap, Sparkles } from "lucide-react";
+import { User, Sparkles, Loader2, Database } from "lucide-react";
 import { emailCustomVariableServices } from "@/services/admin/emailCustomVariableServices";
-
-// Danh sách các biến có sẵn từ UserDataMapper
-const AVAILABLE_VARIABLES = [
-  {
-    category: "Thông tin cơ bản",
-    icon: User,
-    variables: [
-      { name: "fullname", type: "string", description: "Họ và tên đầy đủ", example: "Nguyễn Văn A" },
-      { name: "email", type: "string", description: "Email", example: "user@example.com" },
-      { name: "phone", type: "string", description: "Số điện thoại", example: "0123456789" },
-      { name: "avatar_url", type: "string", description: "URL ảnh đại diện", example: "https://..." },
-      { name: "bio", type: "string", description: "Tiểu sử", example: "Sinh viên CNTT" },
-    ],
-  },
-  {
-    category: "Vai trò",
-    icon: Award,
-    variables: [
-      { name: "role_name", type: "string", description: "Tên vai trò", example: "Thành viên" },
-      { name: "role_description", type: "string", description: "Mô tả vai trò", example: "Thành viên chính thức" },
-    ],
-  },
-  {
-    category: "Thông tin thành viên",
-    icon: GraduationCap,
-    variables: [
-      { name: "student_id", type: "string", description: "Mã sinh viên", example: "SV001" },
-      { name: "academic_year", type: "string", description: "Khóa học", example: "2024" },
-      { name: "course", type: "string", description: "Ngành học", example: "Công nghệ thông tin" },
-      { name: "join_date", type: "date", description: "Ngày tham gia (raw)", example: "2024-01-15" },
-      { name: "formatted_join_date", type: "string", description: "Ngày tham gia (đã format)", example: "Thứ Hai, 15 tháng 1, 2024" },
-      { name: "years_as_member", type: "number", description: "Số năm là thành viên", example: "2" },
-    ],
-  },
-];
+import { emailVariableServices } from "@/services/admin/emailVariableServices";
 
 export function EmailVariableList({ onInsertVariable, templateId = null }) {
+  const [systemVariables, setSystemVariables] = useState([]);
   const [customVariables, setCustomVariables] = useState([]);
-  const [isLoadingCustom, setIsLoadingCustom] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load custom variables
+  // Load All Variables
   useEffect(() => {
-    async function loadCustomVariables() {
-      setIsLoadingCustom(true);
+    async function loadData() {
+      setIsLoading(true);
       try {
-        const res = await emailCustomVariableServices.getAllVariables({
-          template_id: templateId,
-        });
-        setCustomVariables(res?.data?.data || []);
+        const [sysRes, custRes] = await Promise.all([
+          emailVariableServices.getAllVariables(),
+          emailCustomVariableServices.getAllVariables({ template_id: templateId })
+        ]);
+        
+        setSystemVariables(sysRes?.data?.variables || []);
+        setCustomVariables(custRes?.data?.data || []);
       } catch (error) {
-        console.error("Error loading custom variables:", error);
+        console.error("Error loading variables:", error);
       } finally {
-        setIsLoadingCustom(false);
+        setIsLoading(false);
       }
     }
-    loadCustomVariables();
+    loadData();
   }, [templateId]);
 
   const handleDragStart = (e, variableName) => {
@@ -77,106 +47,100 @@ export function EmailVariableList({ onInsertVariable, templateId = null }) {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-lg">Biến có sẵn</CardTitle>
+    <Card className="h-full border-l-0 rounded-none shadow-none">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Database className="h-5 w-5 text-primary" />
+          Danh sách Biến
+        </CardTitle>
         <CardDescription>
           Kéo thả hoặc click để chèn biến vào nội dung email
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[600px] pr-4">
-          <div className="space-y-6">
-            {/* Custom Variables */}
-            {customVariables.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                  <Sparkles className="h-4 w-4" />
-                  <span>Biến tùy biến</span>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <ScrollArea className="h-[calc(100vh-250px)] pr-4">
+            <div className="space-y-6">
+              
+              {/* System Variables */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <User className="h-3.5 w-3.5" />
+                  <span>Biến Hệ Thống</span>
                 </div>
-                <div className="space-y-1 pl-6">
-                  {customVariables.map((variable) => (
+                <div className="grid gap-2">
+                  {systemVariables.map((variable) => (
                     <div
                       key={variable.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, variable.name)}
                       onClick={() => handleClick(variable.name)}
-                      className="group cursor-pointer rounded-md border p-2 transition-colors hover:bg-accent hover:border-primary border-primary/20"
-                      title={variable.description || `Biến tùy biến: ${variable.name}`}
+                      className="group cursor-pointer rounded-lg border bg-card p-3 transition-all hover:border-primary hover:shadow-sm"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <code className="text-xs font-mono text-primary">
-                            {`{{${variable.name}}}`}
-                          </code>
-                          <Badge variant="outline" className="text-xs bg-primary/10">
-                            {variable.return_type || "string"}
+                      <div className="flex items-center justify-between mb-1">
+                        <code className="text-sm font-mono font-bold text-primary">
+                          {`{{${variable.name}}}`}
+                        </code>
+                        {variable.mapping_key && (
+                          <Badge variant="outline" className="text-[10px] px-1 h-4 bg-green-50 text-green-700 border-green-200">
+                            Auto
                           </Badge>
-                          {variable.template_id && (
-                            <Badge variant="secondary" className="text-xs">
-                              Template
-                            </Badge>
-                          )}
-                        </div>
+                        )}
                       </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {variable.description || "Biến tùy biến"}
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {variable.description || "Biến chuẩn"}
                       </p>
-                      {variable.expression && (
-                        <p className="mt-1 text-xs font-mono text-muted-foreground/70">
-                          {variable.expression.length > 50
-                            ? `${variable.expression.substring(0, 50)}...`
-                            : variable.expression}
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
               </div>
-            )}
 
-            {/* Built-in Variables */}
-            {AVAILABLE_VARIABLES.map((category) => {
-              const Icon = category.icon;
-              return (
-                <div key={category.category} className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                    <Icon className="h-4 w-4" />
-                    <span>{category.category}</span>
+              {/* Custom Variables (Expression based) */}
+              {customVariables.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Biến Tùy Biến (Logic)</span>
                   </div>
-                  <div className="space-y-1 pl-6">
-                    {category.variables.map((variable) => (
+                  <div className="grid gap-2">
+                    {customVariables.map((variable) => (
                       <div
-                        key={variable.name}
+                        key={variable.id}
                         draggable
                         onDragStart={(e) => handleDragStart(e, variable.name)}
                         onClick={() => handleClick(variable.name)}
-                        className="group cursor-pointer rounded-md border p-2 transition-colors hover:bg-accent hover:border-primary"
-                        title={`${variable.description} - Ví dụ: ${variable.example}`}
+                        className="group cursor-pointer rounded-lg border bg-blue-50/30 p-3 transition-all hover:border-blue-400 hover:shadow-sm"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <code className="text-xs font-mono text-primary">
-                              {`{{${variable.name}}}`}
-                            </code>
-                            <Badge variant="outline" className="text-xs">
-                              {variable.type}
-                            </Badge>
-                          </div>
+                        <div className="flex items-center justify-between mb-1">
+                          <code className="text-sm font-mono font-bold text-blue-600">
+                            {`{{${variable.name}}}`}
+                          </code>
+                          <Badge variant="secondary" className="text-[10px] px-1 h-4">
+                            {variable.return_type || "any"}
+                          </Badge>
                         </div>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {variable.description}
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {variable.description || "Biến tính toán"}
                         </p>
                       </div>
                     ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
+              )}
+
+              {systemVariables.length === 0 && customVariables.length === 0 && (
+                <div className="text-center py-10 text-muted-foreground text-sm italic">
+                  Không tìm thấy biến nào.
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );
 }
-

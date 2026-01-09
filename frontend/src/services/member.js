@@ -11,5 +11,14 @@ export const memberService = {
       throw error?.response?.data || error;
     }
   },
+
+  requestUpdate: async (data) => {
+    try {
+      const res = await axiosClient.post("/client/members/request-update", data);
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
 };
 

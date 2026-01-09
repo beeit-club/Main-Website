@@ -13,6 +13,7 @@ import cookieParser from 'cookie-parser';
 import pool from './db.js';
 import routers from './routers/index.js';
 import { initSocket } from './socket/index.js';
+import { startWorker } from './services/admin/queueWorker.js';
 
 // cấu hình đường dẫn thư mục
 const __filename = fileURLToPath(import.meta.url);
@@ -58,4 +59,6 @@ app.use('/', routers);
 const PORT = config.PORT || 8000;
 httpServer.listen(PORT, () => {
   console.log(`✅ Server đang chạy tại http://localhost:${PORT}`);
+  // Start Queue Worker
+  startWorker();
 });

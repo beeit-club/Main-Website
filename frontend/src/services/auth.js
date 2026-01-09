@@ -30,7 +30,7 @@ export const authServices = {
     }
   },
 
-  getPremiss: async () => {
+  getPermissions: async () => {
     try {
       const res = await axiosClient.get("/auth/permissions");
       return res.data;

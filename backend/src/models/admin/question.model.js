@@ -4,10 +4,19 @@ import {
   selectWithPagination,
   update,
 } from '../../utils/database.js';
+import pool from '../../db.js';
 
 class questionModel {
   static async getAllQuestions(options = {}) {
-    let sql = `SELECT q.id, q.title, q.slug, q.status, q.view_count, q.created_at, EXISTS(SELECT 1 FROM answers a WHERE a.question_id = q.id AND a.is_accepted = 1) as has_accepted_answer FROM questions q WHERE q.deleted_at IS NULL`;
+    let sql = `
+      SELECT 
+        q.id, q.title, q.slug, q.status, q.view_count, q.created_at, 
+        u.fullname as author_name, u.avatar_url as author_avatar,
+        EXISTS(SELECT 1 FROM answers a WHERE a.question_id = q.id AND a.is_accepted = 1) as has_accepted_answer 
+      FROM questions q 
+      LEFT JOIN users u ON q.created_by = u.id
+      WHERE q.deleted_at IS NULL
+    `;
     let params = [];
     const { q, status, created_by, has_accepted_answer } =
       options.filters || {};
@@ -40,8 +49,23 @@ class questionModel {
   }
 
   static async getOneQuestion(id) {
-    const sql = `SELECT * FROM questions WHERE id = ? AND deleted_at IS NULL`;
+    const sql = `
+      SELECT q.*, u.fullname as author_name, u.avatar_url as author_avatar
+      FROM questions q
+      LEFT JOIN users u ON q.created_by = u.id
+      WHERE q.id = ? AND q.deleted_at IS NULL
+    `;
     return findOne(sql, [id]);
+  }
+
+  static async getOneQuestionBySlug(slug) {
+    const sql = `
+      SELECT q.*, u.fullname as author_name, u.avatar_url as author_avatar
+      FROM questions q
+      LEFT JOIN users u ON q.created_by = u.id
+      WHERE q.slug = ? AND q.deleted_at IS NULL
+    `;
+    return findOne(sql, [slug]);
   }
 
   static async createQuestion(data) {
@@ -55,6 +79,16 @@ class questionModel {
   static async deleteQuestion(id) {
     const data = { deleted_at: new Date() };
     return update('questions', data, { id });
+  }
+
+  static async incrementViewCount(slug) {
+    try {
+      const sql = `UPDATE questions SET view_count = COALESCE(view_count, 0) + 1 WHERE slug = ? AND deleted_at IS NULL`;
+      const [result] = await pool.query(sql, [slug]);
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 }
 

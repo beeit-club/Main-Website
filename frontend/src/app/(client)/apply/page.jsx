@@ -70,7 +70,6 @@ const HeroSection = () => {
         "-=0.5"
       );
 
-      // Scroll indicator animation
       if (scrollIndicatorRef.current) {
         gsap.to(scrollIndicatorRef.current, {
           y: 10,
@@ -115,7 +114,7 @@ const HeroSection = () => {
         >
           Trở thành một phần của cộng đồng công nghệ năng động tại FPT
           Polytechnic. Cùng nhau học hỏi, phát triển và tạo nên những điều tuyệt
-          vời.
+           vời.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <a href="#application-form">
@@ -254,7 +253,6 @@ const ProcessSection = () => {
         </div>
 
         <div className="relative">
-          {/* Timeline line - positioned to go through the center of number badges */}
           <div className="hidden md:block absolute top-[2rem] left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary/50 to-primary/20 z-0" />
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
@@ -267,13 +265,11 @@ const ProcessSection = () => {
                   className="relative z-10"
                 >
                   <div className="flex flex-col items-center mb-6">
-                    {/* Step Number Badge - with background to cover the line */}
                     <div className="mb-4 relative z-20">
                       <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground text-lg font-bold shadow-lg">
                         {step.number}
                       </span>
                     </div>
-                    {/* Icon Circle */}
                     <div className="step-icon flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 border-4 border-primary/30 relative z-10">
                       <Icon className="w-10 h-10 text-primary" />
                     </div>
@@ -442,6 +438,8 @@ const ApplicationFormSection = () => {
   const sectionRef = useRef(null);
   const formCardRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const today = new Date().toISOString().split("T")[0];
 
   const form = useForm({
     resolver: yupResolver(applicationSchema),
@@ -645,17 +643,18 @@ const ApplicationFormSection = () => {
                       <FormItem>
                         <FormLabel>
                           <Calendar className="inline h-4 w-4 mr-2" />
-                          Năm học <span className="text-destructive">*</span>
+                          Ngày nhập học <span className="text-destructive">*</span>
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="VD: 2024-2025, K20, 2024"
+                            type="date"
+                            max={today}
                             {...field}
                             disabled={isSubmitting}
                           />
                         </FormControl>
                         <FormDescription>
-                          Năm học hoặc khóa học của bạn (VD: 2024-2025, K20)
+                          Ngày bạn bắt đầu nhập học tại trường
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -718,7 +717,6 @@ const ApplicationFormSection = () => {
           </CardContent>
         </Card>
 
-        {/* Additional info */}
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="text-lg">Lưu ý</CardTitle>

@@ -16,10 +16,11 @@ class EmailTemplateModel {
       SELECT 
         et.id,
         et.name,
-        et.slug,
         et.subject,
+        et.header,
+        et.body,
+        et.footer,
         et.category,
-        et.description,
         et.is_active,
         et.is_system,
         et.created_at,
@@ -45,10 +46,10 @@ class EmailTemplateModel {
       params.push(options.is_active === 'true' || options.is_active === 1 ? 1 : 0);
     }
 
-    // Search by name or slug
+    // Search by name
     if (options.q) {
-      sql += ` AND (et.name LIKE ? OR et.slug LIKE ?)`;
-      params.push(`%${options.q}%`, `%${options.q}%`);
+      sql += ` AND (et.name LIKE ?)`;
+      params.push(`%${options.q}%`);
     }
 
     // Sort
@@ -78,27 +79,13 @@ class EmailTemplateModel {
     return findOne(sql, [id]);
   }
 
-  // Lấy template theo slug
-  static async getTemplateBySlug(slug) {
+  // Lấy template theo name
+  static async getTemplateByName(name) {
     const sql = `
       SELECT * FROM email_templates 
-      WHERE slug = ? AND deleted_at IS NULL AND is_active = 1
+      WHERE name = ? AND deleted_at IS NULL AND is_active = 1
     `;
-    return findOne(sql, [slug]);
-  }
-
-  // Kiểm tra slug tồn tại
-  static async checkSlugExists(slug, excludeId = null) {
-    let sql = `SELECT id FROM email_templates WHERE slug = ? AND deleted_at IS NULL`;
-    const params = [slug];
-
-    if (excludeId) {
-      sql += ` AND id != ?`;
-      params.push(excludeId);
-    }
-
-    const result = await findOne(sql, params);
-    return !!result;
+    return findOne(sql, [name]);
   }
 
   // Kiểm tra name tồn tại
@@ -119,6 +106,12 @@ class EmailTemplateModel {
   static async createTemplate(data) {
     // Parse JSON fields nếu là string
     const templateData = { ...data };
+    // Map html_content to body if present (legacy support)
+    if (templateData.html_content && !templateData.body) {
+      templateData.body = templateData.html_content;
+      delete templateData.html_content;
+    }
+
     if (templateData.variables && typeof templateData.variables === 'string') {
       templateData.variables = JSON.parse(templateData.variables);
     }
@@ -142,6 +135,12 @@ class EmailTemplateModel {
   static async updateTemplate(id, data) {
     // Parse JSON fields nếu là string
     const templateData = { ...data };
+    // Map html_content to body if present (legacy support)
+    if (templateData.html_content && !templateData.body) {
+      templateData.body = templateData.html_content;
+      delete templateData.html_content;
+    }
+
     if (templateData.variables && typeof templateData.variables === 'string') {
       templateData.variables = JSON.parse(templateData.variables);
     }

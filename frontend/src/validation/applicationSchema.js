@@ -23,10 +23,10 @@ export const applicationSchema = yup.object().shape({
     .required("Mã số sinh viên là bắt buộc")
     .max(20, "MSSV không được vượt quá 20 ký tự"),
   student_year: yup
-    .string()
-    .trim()
-    .required("Năm học là bắt buộc")
-    .max(10, "Năm học không được vượt quá 10 ký tự"),
+    .date()
+    .required("Vui lòng chọn ngày nhập học")
+    .max(new Date(), "Ngày nhập học không được lớn hơn ngày hiện tại")
+    .typeError("Vui lòng nhập ngày hợp lệ"),
   major: yup
     .string()
     .trim()

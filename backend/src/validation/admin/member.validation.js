@@ -11,22 +11,10 @@ const Schema = {
       .integer('user_id phải là số nguyên')
       .required('user_id là bắt buộc'),
 
-    student_id: yup
-      .string()
-      .required('MSSV là bắt buộc')
-      .max(20, 'MSSV tối đa 20 ký tự')
-      .trim(),
-
     academic_year: yup
       .date()
       .nullable()
       .typeError('Năm học phải là định dạng ngày hợp lệ'),
-
-    course: yup
-      .string()
-      .nullable()
-      .max(50, 'Khóa học tối đa 50 ký tự')
-      .trim(),
 
     join_date: yup
       .date()

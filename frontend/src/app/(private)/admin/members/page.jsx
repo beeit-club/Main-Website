@@ -199,10 +199,15 @@ export default function ListMembers() {
             Quản lý danh sách các thành viên trong câu lạc bộ
           </p>
         </div>
-        <Button onClick={handleAdd}>
-          <Plus className="mr-2 h-4 w-4" />
-          Thêm thành viên
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => router.push("/admin/members/requests")}>
+            Xem yêu cầu duyệt
+          </Button>
+          <Button onClick={handleAdd}>
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm thành viên
+          </Button>
+        </div>
       </div>
 
       <DataTable

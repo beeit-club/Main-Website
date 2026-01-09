@@ -150,7 +150,7 @@ export const usersServices = {
   getAllRoles: async () => {
     try {
       // Giả định bạn có 1 endpoint để lấy list roles
-      const res = await axiosClient.get("admin/roles");
+      const res = await axiosClient.get("admin/roles-list");
       return res.data;
     } catch (error) {
       throw error?.response?.data || error;
@@ -230,6 +230,35 @@ export const usersServices = {
   getAvailableUsers: async (params) => {
     try {
       const res = await axiosClient.get("admin/members/available-users", { params });
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  // --- REQUESTS ---
+
+  getPendingRequests: async (params) => {
+    try {
+      const res = await axiosClient.get("admin/members/requests/pending", { params });
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  approveRequest: async (id, data) => {
+    try {
+      const res = await axiosClient.post(`admin/members/requests/${id}/approve`, data);
+      return res.data;
+    } catch (error) {
+      throw error?.response?.data || error;
+    }
+  },
+
+  rejectRequest: async (id, data) => {
+    try {
+      const res = await axiosClient.post(`admin/members/requests/${id}/reject`, data);
       return res.data;
     } catch (error) {
       throw error?.response?.data || error;

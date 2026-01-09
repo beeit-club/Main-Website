@@ -25,10 +25,9 @@ const ApplicationSchema = {
       .required('Mã số sinh viên là bắt buộc')
       .max(20, 'MSSV không được vượt quá 20 ký tự'),
     student_year: yup
-      .string()
-      .trim()
-      .required('Năm học là bắt buộc')
-      .max(10, 'Năm học không được vượt quá 10 ký tự'),
+      .date()
+      .required('Ngày nhập học là bắt buộc')
+      .typeError('Ngày nhập học không hợp lệ'),
     major: yup
       .string()
       .trim()

@@ -94,9 +94,24 @@ WHERE
     d.id = ? AND d.deleted_at IS NULL;`;
     return await findOne(sql, [id]);
   } // Lấy 1 tài liệu đã xóa (để kiểm tra)
+  // Lấy 1 tài liệu đã xóa (để kiểm tra)
   static async getOneDeletedDocument(id) {
     const sql = `SELECT id FROM documents WHERE id = ? AND deleted_at IS NOT NULL`;
     return await findOne(sql, [id]);
+  }
+
+  // Lấy 1 tài liệu theo slug
+  static async getDocumentBySlug(slug) {
+    const sql = `SELECT
+    d.*,
+    dc.name AS category_name,
+    dc.slug AS category_slug
+FROM
+    documents d
+LEFT JOIN document_categories dc ON d.category_id = dc.id
+WHERE
+    d.slug = ? AND d.deleted_at IS NULL`;
+    return await findOne(sql, [slug]);
   }
 
   // Check slug đã tồn tại chưa (trừ chính nó khi update)

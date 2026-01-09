@@ -19,7 +19,7 @@ export function useAuthInit() {
 
       try {
         // 2. Gọi /auth/me để lấy dữ liệu mới nhất
-        const res = await authServices.getPremiss();
+        const res = await authServices.getPermissions();
         console.log("=== useAuthInit Debug ===");
         console.log("Full response:", res);
         console.log("res.data:", res?.data);

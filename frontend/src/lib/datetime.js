@@ -35,7 +35,8 @@ export function getOtpLockStatus() {
   const lockUntil = parseInt(localStorage.getItem(OTP_LOCK_KEY) || "0", 10);
   const now = Date.now();
 
-  if (!lockUntil || lockUntil <= now) {
+  // Thêm vùng đệm 500ms để tránh hiển thị "0 giây" mà vẫn khóa
+  if (!lockUntil || lockUntil <= now + 500) {
     // Hết thời gian => xóa khóa
     localStorage.removeItem(OTP_LOCK_KEY);
     return { locked: false, remaining: 0 };

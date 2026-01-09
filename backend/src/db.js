@@ -10,11 +10,13 @@ try {
     user: config.DB_USER,
     password: config.DB_PASS,
     database: config.DB_NAME,
+    charset: 'utf8mb4', // Add this line to fix encoding
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
+    timezone: '+07:00', // Ép buộc múi giờ Việt Nam
   });
 
   // Test kết nối ngay khi khởi tạo

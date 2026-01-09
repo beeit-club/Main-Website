@@ -1,24 +1,26 @@
-// components/admin/email-templates/EmailEditor.jsx
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Code, Eye, Type } from "lucide-react";
+import { Code, Eye, Loader2 } from "lucide-react";
 
 export function EmailEditor({ 
   value, 
   onChange, 
   subject,
   onSubjectChange,
+  onPreview, // Hàm async trả về HTML preview từ server
   label = "Nội dung Email",
-  placeholder = "Nhập nội dung email HTML hoặc kéo thả biến từ danh sách bên cạnh..."
+  placeholder = "Nhập nội dung email HTML hoặc kéo thả biến từ danh sách bên cạnh...",
+  rows = 20
 }) {
   const textareaRef = useRef(null);
-  const previewRef = useRef(null);
+  const [activeTab, setActiveTab] = useState("editor");
+  const [previewHtml, setPreviewHtml] = useState("");
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
   // Handle drag and drop
   useEffect(() => {
@@ -60,44 +62,31 @@ export function EmailEditor({
     };
   }, [onChange]);
 
-  // Insert variable at cursor position
-  const insertVariable = (variable) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = value || "";
-    const newText = text.substring(0, start) + variable + text.substring(end);
-    
-    onChange(newText);
-    
-    // Set cursor position after inserted variable
-    setTimeout(() => {
-      textarea.focus();
-      const newPosition = start + variable.length;
-      textarea.setSelectionRange(newPosition, newPosition);
-    }, 0);
+  // Handle Tab Change
+  const handleTabChange = async (value) => {
+    setActiveTab(value);
+    if (value === "preview" && onPreview) {
+      setIsLoadingPreview(true);
+      try {
+        const html = await onPreview();
+        setPreviewHtml(html);
+      } catch (error) {
+        setPreviewHtml(`<p class="text-red-500">Lỗi tải preview: ${error.message}</p>`);
+      } finally {
+        setIsLoadingPreview(false);
+      }
+    } else if (value === "preview" && !onPreview) {
+      // Fallback local preview nếu không có API
+      setPreviewHtml(renderLocalPreview());
+    }
   };
 
-  // Preview HTML (simple preview, không render Handlebars)
-  const renderPreview = () => {
+  // Fallback local preview
+  const renderLocalPreview = () => {
     if (!value) return "<p class='text-muted-foreground'>Chưa có nội dung</p>";
-    
-    // Replace {{variable}} with example values for preview
-    let preview = value
+    return value
       .replace(/\{\{fullname\}\}/g, "<strong>Nguyễn Văn A</strong>")
-      .replace(/\{\{email\}\}/g, "user@example.com")
-      .replace(/\{\{phone\}\}/g, "0123456789")
-      .replace(/\{\{role_name\}\}/g, "Thành viên")
-      .replace(/\{\{student_id\}\}/g, "SV001")
-      .replace(/\{\{academic_year\}\}/g, "2024")
-      .replace(/\{\{course\}\}/g, "Công nghệ thông tin")
-      .replace(/\{\{formatted_join_date\}\}/g, "Thứ Hai, 15 tháng 1, 2024")
-      .replace(/\{\{years_as_member\}\}/g, "2")
       .replace(/\{\{(\w+)\}\}/g, "<span class='text-muted-foreground'>[{{$1}}]</span>");
-    
-    return preview;
   };
 
   return (
@@ -120,7 +109,7 @@ export function EmailEditor({
       {/* Content Editor */}
       <div className="space-y-2">
         <Label>{label}</Label>
-        <Tabs defaultValue="editor" className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList>
             <TabsTrigger value="editor">
               <Code className="h-4 w-4 mr-2" />
@@ -138,7 +127,7 @@ export function EmailEditor({
               value={value || ""}
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder}
-              rows={20}
+              rows={rows}
               className="font-mono text-sm"
             />
             <p className="mt-2 text-xs text-muted-foreground">
@@ -148,12 +137,18 @@ export function EmailEditor({
           
           <TabsContent value="preview" className="mt-4">
             <Card>
-              <CardContent className="p-4">
-                <div
-                  ref={previewRef}
-                  className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: renderPreview() }}
-                />
+              <CardContent className="p-4 bg-white rounded-md min-h-[400px] border shadow-inner overflow-auto">
+                {isLoadingPreview ? (
+                  <div className="flex items-center justify-center h-full py-20">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <span className="ml-2 text-muted-foreground">Đang tạo bản xem trước...</span>
+                  </div>
+                ) : (
+                  <div
+                    className="reset-style" // Class để tránh style của admin ảnh hưởng vào email
+                    dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -162,4 +157,3 @@ export function EmailEditor({
     </div>
   );
 }
-

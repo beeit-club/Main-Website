@@ -9,19 +9,21 @@ import { loginSchema } from "@/validation/authSchema";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Logo from "@/components/layout/Header/logo";
 import Loading from "@/app/(private)/loading";
 import GoogleAuthButton from "../GoogleAuthButton";
-import { useSearchParams } from "next/navigation";
 import InputOTPForm from "../otp";
+import { useRouter, useSearchParams } from "next/navigation";
+
 export default function LoginForm({ className, ...props }) {
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-  const [loading, setLoading] = useState(false);
+  const otpToken = searchParams.get("token");
+  
   const { login } = useAuthHook();
+  
   const {
     register,
     handleSubmit,
@@ -35,9 +37,12 @@ export default function LoginForm({ className, ...props }) {
     try {
       setLoading(true);
       const res = await login(data);
-      setLoading(false);
+      const { TokenOTP } = res?.data ?? {};
+      if (TokenOTP) {
+        // Cập nhật URL thay vì state
+        router.push(`/login?token=${TokenOTP}`);
+      }
     } catch (err) {
-      setLoading(false);
       const { error, message } = err ?? {};
       const { code, fields } = error ?? {};
       if (code === "VALIDATION_ERROR" && fields) {
@@ -45,60 +50,78 @@ export default function LoginForm({ className, ...props }) {
           setError(field, { type: "server", message: messages[0] });
         });
       } else {
-        const { code, details } = error ?? {};
-        if (details) {
-          toast.error(details);
-        } else {
-          toast.error(message);
-        }
+        toast.error(message || "Đã xảy ra lỗi");
       }
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleClearToken = () => {
+    router.push("/login");
+  };
+
   if (loading) return <Loading />;
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col items-center gap-2">
-            <Logo />
-            {/* <h1 className="text-xl font-bold">Chào mừng đến với Bee IT.</h1> */}
-            <div className="text-center text-sm mt-5">
-              Bạn chưa có tài khoản ?
-              <Link
-                href="/register"
-                className="underline underline-offset-4 ml-1"
-              >
-                Đăng Ký.
-              </Link>
-            </div>
-          </div>
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-3">
-              <Label htmlFor="email">Email</Label>
-              <Input {...register("email")} placeholder="m@example.com" />
-              {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email.message}</p>
-              )}
-            </div>
-            {!token && (
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col items-center gap-2">
+          <Logo />
+          <div className="text-center text-sm mt-5">
+            {otpToken ? (
+              <span className="font-semibold text-primary">Xác minh OTP</span>
+            ) : (
               <>
-                <Button type="submit" className="w-full">
-                  Đăng Nhập
-                </Button>
-                <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                  <span className="bg-background text-muted-foreground relative z-10 px-2">
-                    Or
-                  </span>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-1">
-                  <GoogleAuthButton />
-                </div>
+                Bạn chưa có tài khoản?
+                <Link
+                  href="/register"
+                  className="underline underline-offset-4 ml-1"
+                >
+                  Đăng Ký.
+                </Link>
               </>
             )}
           </div>
         </div>
-      </form>
-      {token && <InputOTPForm token={token} />}
+
+        {!otpToken ? (
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="flex flex-col gap-6">
+              <div className="grid gap-3">
+                <Label htmlFor="email">Email</Label>
+                <Input {...register("email")} placeholder="m@example.com" type="email" />
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email.message}</p>
+                )}
+              </div>
+              <Button type="submit" className="w-full">
+                Tiếp tục với Email
+              </Button>
+              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                <span className="bg-background text-muted-foreground relative z-10 px-2">
+                  Hoặc
+                </span>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-1">
+                <GoogleAuthButton />
+              </div>
+            </div>
+          </form>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <InputOTPForm token={otpToken} />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleClearToken}
+              className="text-xs"
+            >
+              Dùng email khác
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

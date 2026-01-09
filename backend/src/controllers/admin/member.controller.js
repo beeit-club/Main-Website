@@ -105,7 +105,42 @@ const memberController = {
     });
     return utils.success(res, 'Lấy danh sách users thành công', { users });
   }),
+
+  // --- REQUESTS ---
+
+  /**
+   * GET /api/admin/members/requests/pending
+   */
+  getPendingRequests: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const result = await memberService.getPendingRequests(valid);
+    return utils.success(res, 'Lấy danh sách yêu cầu thành công', result);
+  }),
+
+  /**
+   * POST /api/admin/members/requests/:id/approve
+   */
+  approveRequest: asyncWrapper(async (req, res) => {
+    const { id } = req.params;
+    const { note } = req.body;
+    const adminId = req.user?.id;
+    await memberService.approveRequest(id, adminId, note);
+    return utils.success(res, 'Đã phê duyệt yêu cầu');
+  }),
+
+  /**
+   * POST /api/admin/members/requests/:id/reject
+   */
+  rejectRequest: asyncWrapper(async (req, res) => {
+    const { id } = req.params;
+    const { note } = req.body;
+    const adminId = req.user?.id;
+    await memberService.rejectRequest(id, adminId, note);
+    return utils.success(res, 'Đã từ chối yêu cầu');
+  }),
 };
 
 export default memberController;
-

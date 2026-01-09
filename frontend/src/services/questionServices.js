@@ -2,99 +2,67 @@ import axiosClient from "./api";
 
 export const questionServices = {
   /**
-   * Lấy danh sách câu hỏi (cho admin)
-   * @param {Object} params - Tùy chọn phân trang (ví dụ: { page: 1, limit: 10, q: 'test' })
+   * Lấy danh sách câu hỏi (Public)
+   * @param {Object} params - Tùy chọn phân trang
    */
   getAllQuestions: async (params) => {
     try {
-      const response = await axiosClient.get("/admin/questions", { params });
-      return response.data; // { status: 'success', data: { data: [], pagination: {} } }
+      // Chuyển sang dùng endpoint client
+      const response = await axiosClient.get("/client/questions", { params });
+      return response.data;
     } catch (error) {
-      console.error(
-        "Error fetching all questions:",
-        error.response?.data || error.message
-      );
-      throw (
-        error.response?.data || new Error("Không thể tải danh sách câu hỏi")
-      );
+      throw error.response?.data || new Error("Không thể tải danh sách câu hỏi");
     }
   },
 
   /**
-   * Lấy chi tiết 1 câu hỏi
-   * @param {string|number} id - ID của câu hỏi
+   * Lấy chi tiết 1 câu hỏi theo Slug
+   * @param {string} slug - Slug của câu hỏi
    */
-  getQuestionById: async (id) => {
+  getQuestionBySlug: async (slug) => {
     try {
-      const response = await axiosClient.get(`/admin/questions/${id}`);
-      return response.data; // { status: 'success', data: { question: {...} } }
+      const response = await axiosClient.get(`/client/questions/${slug}`);
+      return response.data;
     } catch (error) {
-      console.error(
-        `Error fetching question ${id}:`,
-        error.response?.data || error.message
-      );
       throw error.response?.data || new Error("Không thể tải chi tiết câu hỏi");
     }
   },
 
   /**
-   * Tạo câu hỏi mới (GỬI JSON)
-   * @param {Object} data - Dữ liệu câu hỏi (title, content, status...)
+   * Tạo câu hỏi mới (Yêu cầu đăng nhập)
+   * @param {Object} data - Dữ liệu câu hỏi (title, content)
    */
   createQuestion: async (data) => {
     try {
-      // Gửi object JSON, không dùng FormData
-      const response = await axiosClient.post("/admin/questions", data, {
-        headers: {
-          "Content-Type": "application/json", // Gửi dạng JSON
-        },
-      });
+      const response = await axiosClient.post("/client/questions", data);
       return response.data;
     } catch (error) {
-      console.error(
-        "Error creating question:",
-        error.response?.data || error.message
-      );
       throw error.response?.data || new Error("Không thể tạo câu hỏi");
     }
   },
 
   /**
-   * Cập nhật câu hỏi (GỬI JSON)
-   * @param {string|number} id - ID câu hỏi
-   * @param {Object} data - Dữ liệu cập nhật
+   * Cập nhật câu hỏi (Owner only - backend handles check)
    */
   updateQuestion: async (id, data) => {
     try {
-      // Gửi object JSON
-      const response = await axiosClient.put(`/admin/questions/${id}`, data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // Giữ nguyên endpoint admin nếu chỉ admin mới được sửa bài người khác
+      // Hoặc tạo thêm endpoint client/questions/:id nếu cho phép user sửa bài mình
+      const response = await axiosClient.put(`/admin/questions/${id}`, data);
       return response.data;
     } catch (error) {
-      console.error(
-        `Error updating question ${id}:`,
-        error.response?.data || error.message
-      );
       throw error.response?.data || new Error("Không thể cập nhật câu hỏi");
     }
   },
 
   /**
-   * Xóa (mềm) câu hỏi
-   * @param {string|number} id - ID câu hỏi
+   * Xóa câu hỏi
    */
   deleteQuestion: async (id) => {
     try {
       const response = await axiosClient.delete(`/admin/questions/${id}`);
       return response.data;
     } catch (error) {
-      console.error(
-        `Error deleting question ${id}:`,
-        error.response?.data || error.message
-      );
       throw error.response?.data || new Error("Không thể xóa câu hỏi");
     }
   },

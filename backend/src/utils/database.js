@@ -214,3 +214,13 @@ export async function findOne(sql, params = []) {
     throw error;
   }
 }
+
+/**
+ * Thực thi câu lệnh SQL bất kỳ
+ * @param {string} sql - Câu lệnh SQL
+ * @param {Array} [params=[]] - Tham số
+ * @returns {Promise<Array>} - Kết quả truy vấn [rows, fields]
+ */
+export async function query(sql, params = []) {
+  return pool.query(sql, params);
+}

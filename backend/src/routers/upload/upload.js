@@ -11,7 +11,7 @@ const Router = express.Router();
 // Lấy đường dẫn tuyệt đối của thư mục uploads/posts
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const uploadPath = path.join(__dirname, '..', 'uploads', 'posts');
+const uploadPath = path.join(__dirname, '..', '..', 'uploads', 'posts');
 
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
@@ -37,7 +37,7 @@ const storage = multer.diskStorage({
 export const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 1024 * 1024 * 2, // Giới hạn kích thước file: 2MB
+    fileSize: 1024 * 1024 * 10, // Giới hạn kích thước file: 10MB
   },
   fileFilter: (req, file, cb) => {
     // Kiểm tra loại file: chỉ chấp nhận file ảnh

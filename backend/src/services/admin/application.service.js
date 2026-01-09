@@ -40,18 +40,20 @@ const applicationService = {
   createApplication: async (applicationData) => {
     try {
       const { email, student_id } = applicationData;
-      const isExist = await applicationModel.checkIfExists({
+      const existInfo = await applicationModel.checkIfExists({
         email,
         student_id,
       });
-      if (isExist) {
-        throw new ServiceError(
-          message.EMAIL_OR_STUDENT_ID_EXISTS,
-          code.EMAIL_OR_STUDENT_ID_EXISTS_CODE,
-          'Dữ liệu đã tồn tại',
-          409,
-        );
+      
+      if (existInfo) {
+        if (existInfo.type === 'STUDENT_ID_IS_MEMBER') {
+            throw new ServiceError('Mã số sinh viên này đã là thành viên CLB.', 'STUDENT_ID_EXISTS', null, 409);
+        }
+        if (existInfo.type === 'APPLICATION_EXISTS') {
+            throw new ServiceError('Email này đã nộp đơn và đang trong quá trình xử lý.', 'APPLICATION_EXISTS', null, 409);
+        }
       }
+
       // status: 0 (Chờ xử lý)
       const result = await applicationModel.createApplication(applicationData);
 
@@ -60,7 +62,6 @@ const applicationService = {
         await emailService.sendApplicationReceived(applicationData);
       } catch (emailError) {
         console.error('Lỗi khi gửi email xác nhận nộp đơn:', emailError);
-        // Không throw error để không ảnh hưởng đến việc tạo đơn
       }
 
       return result;
@@ -121,7 +122,6 @@ const applicationService = {
       await emailService.sendInterviewScheduled(application, schedule);
     } catch (emailError) {
       console.error('Lỗi khi gửi email thông báo lịch phỏng vấn:', emailError);
-      // Không throw error để không ảnh hưởng đến việc đặt lịch
     }
 
     return { application, schedule };
@@ -129,28 +129,44 @@ const applicationService = {
 
   // BƯỚC 3: Phê duyệt (Status 2 -> 3)
   approveApplication: async (id, interview_notes, adminId) => {
-    // LƯU Ý: Lý tưởng nhất, toàn bộ tiến trình này nên nằm trong một DATABASE TRANSACTION
     try {
       const application = await checkApplication(id, 2); // Yêu cầu status 2
 
-      // 1. Tạo user mới
-      const newUser = {
-        fullname: application.fullname,
-        email: application.email,
-        phone: application.phone,
-        role_id: 4, // Quan trọng: Đảm bảo role_id 4 là "Member" (theo database của bạn)
-        email_verified_at: new Date(),
-      };
-      const userResult = await applicationModel.createUser(newUser);
-      const newUserId = userResult.insertId;
-      if (!newUserId) throw new Error('Không thể tạo user');
+      let targetUserId;
+      
+      // 1. Kiểm tra xem user đã có tài khoản trong hệ thống chưa
+      const existingUser = await applicationModel.findUserByEmail(application.email);
+      
+      if (existingUser) {
+        // Nếu đã có tài khoản -> Cập nhật role lên Member (4)
+        await applicationModel.updateUserRole(existingUser.id, 4);
+        targetUserId = existingUser.id;
+      } else {
+        // Nếu chưa có -> Tạo user mới
+        const newUser = {
+          fullname: application.fullname,
+          email: application.email,
+          phone: application.phone,
+          role_id: 4,
+          email_verified_at: new Date(),
+        };
+        const userResult = await applicationModel.createUser(newUser);
+        targetUserId = userResult.insertId;
+      }
+
+      if (!targetUserId) throw new Error('Không thể xác định User ID');
 
       // 2. Tạo hồ sơ thành viên
+      // Trích xuất năm nhập học từ ngày chọn (để điền vào cột course)
+      const enrollmentDate = new Date(application.student_year);
+      const enrollmentYear = enrollmentDate.getFullYear();
+
       const newProfile = {
-        user_id: newUserId,
+        user_id: targetUserId,
         student_id: application.student_id,
         join_date: new Date(),
-        course: application.student_year,
+        academic_year: application.student_year, // Lưu full ngày vào cột DATE
+        course: `Khóa ${enrollmentYear}`, // Tự động tạo tên khóa (VD: Khóa 2024)
         created_by: adminId,
       };
       await applicationModel.createMemberProfile(newProfile);
@@ -164,20 +180,21 @@ const applicationService = {
       // 4. Lấy lại application với interview_notes đã cập nhật
       const updatedApplication = await applicationModel.getOneApplication(id);
 
-      // 5. Gửi email chúc mừng và welcome email
+      // 5. Gửi email
       try {
         await emailService.sendApplicationApproved(updatedApplication);
-        // Gửi welcome email cho user mới
-        await emailService.sendWelcomeEmail(newUser);
+        if (!existingUser) {
+            await emailService.sendWelcomeEmail({
+                fullname: application.fullname,
+                email: application.email
+            });
+        }
       } catch (emailError) {
         console.error('Lỗi khi gửi email chúc mừng/welcome:', emailError);
-        // Không throw error để không ảnh hưởng đến việc phê duyệt
       }
 
-      return { newUserId };
+      return { userId: targetUserId };
     } catch (error) {
-      // Nếu có lỗi, bạn có thể thêm logic để xóa user vừa tạo (nếu có)
-      // để tránh dữ liệu rác.
       console.error('Lỗi khi duyệt đơn:', error);
       throw new ServiceError(
         message.APPROVAL_FAILED,
@@ -208,7 +225,6 @@ const applicationService = {
         await emailService.sendApplicationRejected(updatedApplication);
       } catch (emailError) {
         console.error('Lỗi khi gửi email từ chối:', emailError);
-        // Không throw error để không ảnh hưởng đến việc từ chối
       }
 
       return { id };

@@ -17,10 +17,12 @@ import permissionRouter from './permission.router.js';
 import emailTemplateRouter from './emailTemplate.router.js';
 import emailLogRouter from './emailLog.router.js';
 import dashboardRouter from './dashboard.router.js';
+import emailVariableRouter from './emailVariable.router.js';
 import memoryFlowRouter from './memoryFlow.router.js';
 import founderRouter from './founder.router.js';
 import userController from '../../controllers/admin/user.controller.js';
 import memberRouter from './member.router.js';
+import campaignRouter from './campaign.routes.js';
 const router = express.Router();
 
 // Tất cả routes admin đều yêu cầu Admin hoặc Super Admin
@@ -43,6 +45,8 @@ router.use('/applications', applicationRouter);
 // Email Templates & Bulk Email
 router.use('/email-templates', emailTemplateRouter);
 router.use('/email-logs', emailLogRouter);
+router.use('/campaigns', campaignRouter);
+router.use('/email-variables', emailVariableRouter);
 
 // Dashboard
 router.use('/dashboard', dashboardRouter);
@@ -69,6 +73,7 @@ import beeitEmailSubmissionRouter from './beeitEmailSubmission.router.js';
 import beeitLeaderRouter from './beeitLeader.router.js';
 import beeitAchievementRouter from './beeitAchievement.router.js';
 import beeitBehindSceneRouter from './beeitBehindScene.router.js';
+import systemEmailMappingRouter from './systemEmailMapping.router.js';
 
 router.use('/beeit/hero', beeitHeroRouter);
 router.use('/beeit/stats', beeitStatRouter);
@@ -77,5 +82,8 @@ router.use('/beeit/email-submissions', beeitEmailSubmissionRouter);
 router.use('/beeit/leaders', beeitLeaderRouter);
 router.use('/beeit/achievements', beeitAchievementRouter);
 router.use('/beeit/photos', beeitBehindSceneRouter);
+
+// Email Mappings
+router.use('/email-mappings', systemEmailMappingRouter);
 
 export default router;

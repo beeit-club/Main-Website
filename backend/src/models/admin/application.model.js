@@ -63,15 +63,39 @@ class ApplicationModel {
     }
   }
 
-  // Kiểm tra email hoặc MSSV đã tồn tại trong hệ thống chưa
+  // Kiểm tra dữ liệu trùng lặp trước khi nộp đơn
   static async checkIfExists({ email, student_id }) {
     try {
-      const sql = `
-            SELECT email FROM users WHERE email = ?
-            UNION
-            SELECT student_id FROM member_profiles WHERE student_id = ?
-        `;
-      return await findOne(sql, [email, student_id]);
+      // 1. Kiểm tra MSSV đã là thành viên chưa
+      const sqlProfile = `SELECT student_id FROM member_profiles WHERE student_id = ? AND deleted_at IS NULL`;
+      const profile = await findOne(sqlProfile, [student_id]);
+      if (profile) return { type: 'STUDENT_ID_IS_MEMBER', value: student_id };
+
+      // 2. Kiểm tra Email đã nộp đơn và đang xử lý/thành công chưa (status 0, 1, 2, 3)
+      const sqlApp = `SELECT email FROM membership_applications WHERE email = ? AND status IN (0, 1, 2, 3)`;
+      const app = await findOne(sqlApp, [email]);
+      if (app) return { type: 'APPLICATION_EXISTS', value: email };
+
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Tìm user theo email
+  static async findUserByEmail(email) {
+    try {
+      const sql = `SELECT id, role_id FROM users WHERE email = ? AND deleted_at IS NULL`;
+      return await findOne(sql, [email]);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Cập nhật role cho user
+  static async updateUserRole(userId, roleId) {
+    try {
+      return await update('users', { role_id: roleId }, { id: userId });
     } catch (error) {
       throw error;
     }

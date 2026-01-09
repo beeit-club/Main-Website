@@ -10,20 +10,13 @@ export function useAuthHook() {
   const [logoutLoading, setLogoutLoading] = useState(false);
   const router = useRouter();
 
-  // login
+  // login (Step 1: Request OTP)
   const login = async (payload) => {
     try {
       const res = await authServices.login(payload);
       const { data, message } = res ?? {};
       toast.success(message);
-      const { TokenOTP } = data ?? {};
-      if (!TokenOTP) {
-        toast.error("Đăng nhập thất bại");
-        return;
-      }
-      const url = `/login?token=${TokenOTP}`;
-      router.push(url);
-      return res;
+      return res; // Trả về để component lấy TokenOTP
     } catch (err) {
       throw err;
     }
@@ -60,16 +53,29 @@ export function useAuthHook() {
       const res = await authServices.sendOtp(payload);
       const { data, message } = res ?? {};
       toast.success(message);
+      
       const { accessToken, user } = data ?? {};
+      
       if (!accessToken) {
-        toast.error("lỗi vui lòng thử lại");
-        router.push("/login");
+        toast.error("Lỗi xác thực: Không nhận được token");
         return;
       }
+      
       localStorage.setItem("accessToken", accessToken);
       setUser(user);
-      const permRes = await authServices.getPremiss();
+      
+      const permRes = await authServices.getPermissions();
       useAuthStore.getState().setPermissions(permRes?.data?.permissions);
+      
+      // Redirect sau khi login thành công dựa trên role
+      // Role 1: Super Admin, 2: Admin, 3: Moderator/Leader -> Dashboard
+      if (user?.role_id === 1 || user?.role_id === 2 || user?.role_id === 3) {
+         router.push("/admin/dashboard");
+      } else {
+         // Role 4: Member, 5: Guest -> Homepage
+         router.push("/");
+      }
+      
       return res;
     } catch (err) {
       throw err;
@@ -88,7 +94,7 @@ export function useAuthHook() {
       }
       localStorage.setItem("accessToken", accessToken);
       setUser(user);
-      const permRes = await authServices.getPremiss();
+      const permRes = await authServices.getPermissions();
       useAuthStore.getState().setPermissions(permRes?.data?.permissions);
       return res;
     } catch (err) {

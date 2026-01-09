@@ -1,12 +1,8 @@
 // services/email/templateRenderer.service.js
-// Service render template email từ database hoặc file
+// Service render template email từ database (Simple Layout Version)
 
-import fs from 'fs';
-import path from 'path';
 import handlebars from 'handlebars';
 import EmailTemplateModel from '../../models/admin/emailTemplate.model.js';
-import { config } from '../../config/index.js';
-const { emailConfig } = config;
 import customVariableService from './customVariable.service.js';
 import ServiceError from '../../error/service.error.js';
 
@@ -19,7 +15,7 @@ class TemplateRenderer {
    */
   async renderFromDatabase(templateIdOrSlug, variables = {}) {
     try {
-      // 1. Lấy template từ DB (theo ID hoặc slug)
+      // 1. Lấy template từ DB
       let template;
       if (
         typeof templateIdOrSlug === 'number' ||
@@ -39,7 +35,7 @@ class TemplateRenderer {
         );
       }
 
-      // 2. Parse JSON fields (variables và default_variables)
+      // 2. Chuẩn bị Variables
       const templateVariables = template.variables
         ? typeof template.variables === 'string'
           ? JSON.parse(template.variables)
@@ -52,47 +48,46 @@ class TemplateRenderer {
           : template.default_variables
         : {};
 
-      // 3. Merge variables với default_variables
-      // Thứ tự: default_variables (thấp) → variables (cao)
+      // Merge & Compute custom variables
       const mergedVariables = {
         ...defaultVariables,
         ...variables,
       };
 
-      // 4. Compute custom variables và merge vào
-      // Custom variables có thể override cả default và variables
       const finalVariables = await customVariableService.computeCustomVariables(
         mergedVariables,
         template.id,
       );
 
-      // 5. Validate required variables
+      // Validate
       this.validateVariables(templateVariables, finalVariables);
 
-      // 6. Compile và render template với Handlebars
-      const compiled = handlebars.compile(template.html_content);
-      const content = compiled(finalVariables);
+      // 3. Render Body (Phần nội dung chính)
+      const compiledBody = handlebars.compile(template.body || template.html_content || '');
+      const bodyContent = compiledBody(finalVariables);
 
-      // 7. Wrap với email wrapper và thêm footer mặc định
-      // Kiểm tra xem content đã có wrapper HTML chưa
-      const hasHtmlWrapper =
-        content.trim().toLowerCase().startsWith('<!doctype') ||
-        content.trim().toLowerCase().startsWith('<html');
-
-      if (hasHtmlWrapper) {
-        // Nếu đã có wrapper, chỉ thêm footer vào body
-        return content.replace(
-          /<\/body>/i,
-          `${emailConfig.defaultFooter}</body>`,
-        );
-      } else {
-        // Nếu chưa có wrapper, wrap toàn bộ với email wrapper
-        return emailConfig.emailWrapper(content);
+      // Render Header
+      let headerContent = '';
+      if (template.header) {
+        const compiledHeader = handlebars.compile(template.header);
+        headerContent = compiledHeader(finalVariables);
       }
+
+      // Render Footer
+      let footerContent = '';
+      if (template.footer) {
+        const compiledFooter = handlebars.compile(template.footer);
+        footerContent = compiledFooter(finalVariables);
+      }
+
+      // 4. Combine
+      // Nếu không có header/footer trong DB, có thể dùng default layout hoặc để trống
+      // Ở đây ta ưu tiên DB, nếu null thì thôi.
+      return `${headerContent}${bodyContent}${footerContent}`;
     } catch (error) {
       if (error instanceof ServiceError) throw error;
       throw new ServiceError(
-        'Render template từ database thất bại',
+        'Render template thất bại',
         'RENDER_TEMPLATE_FAILED',
         error.message,
         500,
@@ -101,149 +96,65 @@ class TemplateRenderer {
   }
 
   /**
-   * Render template từ file .hbs (fallback cho email cố định)
-   * @param {string} templateName - Tên template (không có .hbs)
-   * @param {Object} variables - Variables để render
-   * @returns {string} HTML đã render
+   * Layout đơn giản: Header text + Nội dung + Footer text
    */
-  renderFromFile(templateName, variables = {}) {
-    try {
-      const filePath = path.join(
-        process.cwd(),
-        'src/emails',
-        `${templateName}.hbs`,
-      );
+  wrapWithSimpleLayout(title, content) {
+    // Render subject để dùng làm title trong header nếu cần
+    // (Ở đây ta dùng title truyền vào, thường là subject của email)
+    const cleanTitle = title.replace(/{{.*?}}/g, '...').trim(); // Loại bỏ variable placeholder trong title header cho gọn
 
-      if (!fs.existsSync(filePath)) {
-        throw new ServiceError(
-          `Template file không tồn tại: ${templateName}.hbs`,
-          'TEMPLATE_FILE_NOT_FOUND',
-          `Không tìm thấy file tại: ${filePath}`,
-          404,
-        );
-      }
+    return `
+      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5; max-width: 600px;">
+        <!-- HEADER -->
+        <div style="margin-bottom: 20px;">
+          <h3 style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+            [BEE IT CLUB] - ${cleanTitle}
+          </h3>
+        </div>
 
-      const source = fs.readFileSync(filePath, 'utf8');
-      const compiled = handlebars.compile(source);
-      return compiled(variables);
-    } catch (error) {
-      if (error instanceof ServiceError) throw error;
-      throw new ServiceError(
-        'Render template từ file thất bại',
-        'RENDER_FILE_TEMPLATE_FAILED',
-        error.message,
-        500,
-      );
-    }
+        <!-- BODY CONTENT -->
+        <div style="margin-bottom: 30px;">
+          ${content}
+        </div>
+
+        <!-- FOOTER -->
+        <div style="margin-top: 30px; font-size: 12px; color: #7f8c8d;">
+          <hr style="border: 0; border-top: 1px solid #eee;" />
+          <p>
+            <b>Ban Quản Lý Bee IT Club</b><br/>
+            Email tự động từ hệ thống. Vui lòng không trả lời email này.<br/>
+            Liên hệ: contact@beeit.club
+          </p>
+        </div>
+      </div>
+    `;
   }
 
   /**
-   * Render subject (có thể có variables)
-   * @param {Object} template - Template object từ DB
-   * @param {Object} variables - Variables để render
-   * @returns {Promise<string>} Subject đã render
+   * Render subject
    */
   async renderSubject(template, variables = {}) {
     try {
-      // Nếu không có subject, trả về subject mặc định
-      if (!template.subject) {
-        return 'Email từ Bee IT Club';
-      }
+      if (!template.subject) return 'Thông báo từ Bee IT Club';
 
-      // Parse default_variables
-      const defaultVariables = template.default_variables
-        ? typeof template.default_variables === 'string'
-          ? JSON.parse(template.default_variables)
-          : template.default_variables
-        : {};
-
-      // Merge variables
-      const mergedVariables = {
-        ...defaultVariables,
-        ...variables,
-      };
-
-      // Compute custom variables cho subject
-      const finalVariables = await customVariableService.computeCustomVariables(
-        mergedVariables,
-        template.id,
-      );
-
-      // Compile subject (có thể có Handlebars)
       const compiled = handlebars.compile(template.subject);
-      return compiled(finalVariables);
+      return compiled(variables);
     } catch (error) {
-      if (error instanceof ServiceError) throw error;
-      throw new ServiceError(
-        'Render subject thất bại',
-        'RENDER_SUBJECT_FAILED',
-        error.message,
-        500,
-      );
+      return template.subject;
     }
   }
 
   /**
-   * Validate variables theo định nghĩa trong template
-   * @param {Array} templateVariables - Định nghĩa variables từ template
-   * @param {Object} providedVariables - Variables được cung cấp
-   * @throws {ServiceError} Nếu validation thất bại
+   * Validate variables
    */
   validateVariables(templateVariables, providedVariables) {
-    // Không có validation nếu không định nghĩa variables
-    if (!Array.isArray(templateVariables) || templateVariables.length === 0) {
-      return;
-    }
-
-    const errors = [];
+    if (!Array.isArray(templateVariables) || templateVariables.length === 0) return;
 
     for (const varDef of templateVariables) {
-      // Kiểm tra required variables
       if (varDef.required && !(varDef.name in providedVariables)) {
-        errors.push(
-          `Variable '${varDef.name}' là bắt buộc nhưng không được cung cấp`,
-        );
+        // Chỉ warn, không throw lỗi chặn gửi mail để linh hoạt hơn
+        console.warn(`Missing required variable: ${varDef.name}`);
       }
-
-      // Kiểm tra type (nếu có định nghĩa type)
-      if (varDef.name in providedVariables && varDef.type) {
-        const value = providedVariables[varDef.name];
-        const type = typeof value;
-
-        if (varDef.type === 'string' && type !== 'string') {
-          errors.push(`Variable '${varDef.name}' phải là string`);
-        } else if (varDef.type === 'number' && type !== 'number') {
-          errors.push(`Variable '${varDef.name}' phải là number`);
-        } else if (varDef.type === 'boolean' && type !== 'boolean') {
-          errors.push(`Variable '${varDef.name}' phải là boolean`);
-        }
-      }
-    }
-
-    if (errors.length > 0) {
-      throw new ServiceError(
-        'Validation variables thất bại',
-        'VARIABLES_VALIDATION_FAILED',
-        errors.join(', '),
-        400,
-      );
-    }
-  }
-
-  /**
-   * Validate template syntax (kiểm tra Handlebars syntax)
-   * @param {string} htmlContent - Nội dung HTML template
-   * @returns {Object} { valid: boolean, error?: string }
-   */
-  validateTemplateSyntax(htmlContent) {
-    try {
-      handlebars.compile(htmlContent);
-      return { valid: true };
-    } catch (error) {
-      return {
-        valid: false,
-        error: error.message,
-      };
     }
   }
 }

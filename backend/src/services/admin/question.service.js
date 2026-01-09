@@ -19,7 +19,22 @@ const questionService = {
       );
     }
     // Lấy kèm các câu trả lời
-    const answers = await answerModel.getAnswersForQuestion(id, { limit: 100 }); // Lấy 100 câu trả lời đầu
+    const answers = await answerModel.getAnswersForQuestion(id, { limit: 100 }); 
+    question.answers = answers.data;
+    return question;
+  },
+
+  getOneQuestionBySlug: async (slug) => {
+    const question = await questionModel.getOneQuestionBySlug(slug);
+    if (!question) {
+      throw new ServiceError(
+        QUESTION_NOT_FOUND,
+        QUESTION_NOT_FOUND_CODE,
+        null,
+        404,
+      );
+    }
+    const answers = await answerModel.getAnswersForQuestion(question.id, { limit: 100 });
     question.answers = answers.data;
     return question;
   },
