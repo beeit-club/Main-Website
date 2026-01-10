@@ -1,0 +1,3 @@
+*.zip
+.next/
+node_modules/

@@ -1,0 +1,28 @@
+{
+  "name": "Bee IT Club",
+  "short_name": "Bee IT",
+  "description": "Câu lạc bộ Công nghệ Thông tin FPT Polytechnic - Nơi chia sẻ kiến thức và kết nối cộng đồng sinh viên yêu thích CNTT",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "technology"],
+  "lang": "vi-VN",
+  "dir": "ltr"
+}
+

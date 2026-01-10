@@ -1,0 +1,32 @@
+
+# Thư mục này sẽ được tạo lại khi chạy `npm install`
+/node_modules
+
+# Các tệp chứa biến môi trường (cực kỳ quan trọng)
+# Các file này chứa thông tin nhạy cảm như mật khẩu database, API keys...
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Các file log
+# Các file này thường được tạo ra trong quá trình chạy ứng dụng và không nên được đưa lên Git
+/logs
+*.log
+npm-debug.log*
+
+
+# Các tệp được tạo ra bởi trình quản lý gói
+package-lock.json
+
+
+# Các tệp tạm thời và bộ nhớ cache
+.npm
+.yarn/cache
+.pnpm-store/
+.eslintcache
+
+# Thư mục chứa các file do người dùng tải lên (nếu có)
+# Bạn nên lưu các file này ở một nơi khác (như S3), nhưng nếu lưu trên server thì phải ignore
+/public/uploads

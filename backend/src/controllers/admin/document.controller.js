@@ -1,0 +1,179 @@
+// controllers/admin/document.controller.js
+
+import asyncWrapper from '../../middlewares/error.handler.js';
+import { documentService } from '../../services/admin/index.js';
+import { slugify } from '../../utils/function.js';
+import { utils } from '../../utils/index.js';
+import DocumentSchema from '../../validation/admin/document.validation.js';
+import { sanitizeText } from '../../utils/sanitize.js';
+import {
+  PaginationSchema,
+  params,
+} from '../../validation/common/common.schema.js';
+import { message } from '../../common/message/index.js';
+
+const documentController = {
+  // Lấy toàn bộ tài liệu
+  getDocuments: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+    const { title, category_id } = req.query;
+
+    const documents = await documentService.getAllDocuments({
+      ...valid,
+      filters: { title, category_id },
+    });
+    utils.success(res, message.Doc.DOCUMENT_GET_SUCCESS, documents);
+  }),
+  getDeletedDocuments: asyncWrapper(async (req, res) => {
+    const query = PaginationSchema.cast(req.query);
+    const valid = await PaginationSchema.validate(query, {
+      stripUnknown: true,
+    });
+
+    const documents = await documentService.getDeletedDocuments(valid);
+    utils.success(res, 'Lấy danh sách tài liệu đã xóa thành công', {
+      documents,
+    });
+  }),
+
+  // Lấy 1 tài liệu
+  getDocumentById: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
+    const { id } = req.params;
+    const document = await documentService.getOneDocument(id);
+    utils.success(res, message.Doc.DOCUMENT_GET_DETAIL_SUCCESS, { document });
+  }),
+
+  // Thêm tài liệu
+  createDocument: asyncWrapper(async (req, res) => {
+    await DocumentSchema.create.validate(req.body, { abortEarly: false });
+    const { title, description, file_url, preview_url, category_id, ...rest } = req.body;
+    
+    // Kiểm tra user đăng nhập
+    if (!req.user || !req.user.id) {
+      throw new Error('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+    }
+    
+    // Sanitize text để tránh XSS
+    const sanitizedTitle = sanitizeText(title);
+    const sanitizedDescription = description && description.trim() 
+      ? sanitizeText(description) 
+      : null;
+    
+    // Xử lý empty string thành null cho file_url và preview_url
+    const sanitizedFileUrl = file_url && file_url.trim() ? file_url.trim() : null;
+    const sanitizedPreviewUrl = preview_url && preview_url.trim() ? preview_url.trim() : null;
+    
+    // Xử lý category_id: nếu là 0 hoặc null thì set null
+    const sanitizedCategoryId = category_id && category_id > 0 ? category_id : null;
+    
+    const slug = slugify(title);
+
+    const docData = { 
+      title: sanitizedTitle, 
+      slug, 
+      ...(sanitizedDescription && { description: sanitizedDescription }),
+      ...(sanitizedFileUrl && { file_url: sanitizedFileUrl }),
+      ...(sanitizedPreviewUrl && { preview_url: sanitizedPreviewUrl }),
+      ...(sanitizedCategoryId && { category_id: sanitizedCategoryId }),
+      // Đặt created_by ở cuối để không bị override bởi ...rest
+      ...rest,
+      created_by: req.user.id, // Bắt buộc phải có, override nếu có trong rest
+    };
+    
+    const document = await documentService.createDocument(docData);
+
+    utils.success(res, message.Doc.DOCUMENT_CREATE_SUCCESS, {
+      id: document.insertId,
+      title,
+      slug,
+    });
+  }),
+
+  // Cập nhật tài liệu
+  updateDocument: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
+    await DocumentSchema.update.validate(req.body, { abortEarly: false });
+
+    const { id } = req.params;
+    const { title, description, file_url, preview_url, category_id, ...rest } = req.body;
+
+    const docData = { ...rest };
+    
+    if (title) {
+      // Sanitize text để tránh XSS
+      docData.title = sanitizeText(title);
+      docData.slug = slugify(title);
+    }
+    
+    // Xử lý description: empty string hoặc null sẽ thành null
+    if (description !== undefined) {
+      docData.description = description && description.trim() 
+        ? sanitizeText(description) 
+        : null;
+    }
+    
+    // Xử lý file_url: empty string sẽ thành null
+    if (file_url !== undefined) {
+      docData.file_url = file_url && file_url.trim() ? file_url.trim() : null;
+    }
+    
+    // Xử lý preview_url: empty string sẽ thành null
+    if (preview_url !== undefined) {
+      docData.preview_url = preview_url && preview_url.trim() ? preview_url.trim() : null;
+    }
+    
+    // Xử lý category_id: nếu là 0 hoặc null thì set null
+    if (category_id !== undefined) {
+      docData.category_id = category_id && category_id > 0 ? category_id : null;
+    }
+    
+    // Thêm updated_by - bắt buộc phải có user đăng nhập
+    if (!req.user || !req.user.id) {
+      throw new Error('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+    }
+    docData.updated_by = req.user.id;
+
+    await documentService.updateDocument(id, docData);
+    utils.success(res, message.Doc.DOCUMENT_UPDATE_SUCCESS);
+  }),
+
+  // Xóa mềm tài liệu
+  deleteDocument: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
+    const { id } = req.params;
+    await documentService.deleteDocument(id);
+    utils.success(res, message.Doc.DOCUMENT_DELETE_SUCCESS);
+  }),
+
+  // Gán người dùng vào tài liệu
+  assignUsersToDocument: asyncWrapper(async (req, res) => {
+    const { id } = await params.id.validate(req.params, { abortEarly: false });
+    const { userIds } = await DocumentSchema.assignUsers.validate(req.body, {
+      abortEarly: false,
+    });
+
+    await documentService.assignUsersToDocument(id, userIds);
+    utils.success(res, message.Doc.DOCUMENT_ASSIGN_USERS_SUCCESS);
+  }),
+
+  // Xóa người dùng khỏi tài liệu
+  removeUserFromDocument: asyncWrapper(async (req, res) => {
+    const { id } = await params.id.validate(req.params); // Giả sử bạn có schema này
+    const { userId } = req.params;
+    await documentService.removeUserFromDocument(id, userId);
+    utils.success(res, message.Doc.DOCUMENT_REMOVE_USER_SUCCESS);
+  }),
+  // Khôi phục tài liệu
+  restoreDocument: asyncWrapper(async (req, res) => {
+    await params.id.validate(req.params, { abortEarly: false });
+    const { id } = req.params;
+    await documentService.restoreDocument(id);
+    utils.success(res, 'Khôi phục tài liệu thành công');
+  }),
+};
+
+export default documentController;

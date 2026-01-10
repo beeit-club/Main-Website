@@ -1,0 +1,215 @@
+"use client";
+
+import * as React from "react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { Search, FileText, MessageSquare, Loader2 } from "lucide-react";
+import { useDebounce } from "@/hooks/useDebounce";
+import { searchPostsAndQuestions } from "@/services/search";
+
+// Import các component Command từ shadcn/ui (không phải Radix UI nên không cần dynamic)
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+
+// Dynamic import CommandDialog để tránh hydration error (sử dụng Dialog từ Radix UI)
+const CommandDialog = dynamic(
+  () => import("@/components/ui/command").then((mod) => mod.CommandDialog),
+  { ssr: false }
+);
+
+// Import Button để làm trigger
+import { Button } from "@/components/ui/button";
+
+export default function SearchCommand() {
+  const [open, setOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [results, setResults] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const router = useRouter();
+
+  const debouncedQuery = useDebounce(searchQuery, 300);
+
+  React.useEffect(() => {
+    async function fetchResults() {
+      if (!debouncedQuery || !debouncedQuery.trim()) {
+        setResults([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const res = await searchPostsAndQuestions({
+          q: debouncedQuery,
+          limit: 5,
+        });
+        setResults(res.data?.data || []);
+      } catch (error) {
+        console.error("Failed to fetch search results:", error);
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchResults();
+  }, [debouncedQuery]);
+
+  // Thêm hiệu ứng để lắng nghe phím tắt (Ctrl+K hoặc Cmd+K)
+  React.useEffect(() => {
+    const down = (e) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  const handleSearch = (query) => {
+    if (query && query.trim()) {
+      setOpen(false);
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    }
+  };
+
+  const handleSelectResult = (item) => {
+    setOpen(false);
+    if (item.type === "post") {
+      router.push(`/post/${item.slug}`);
+    } else if (item.type === "question") {
+      router.push(`/questions/${item.slug}`);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      e.preventDefault();
+      handleSearch(searchQuery);
+    }
+  };
+
+  return (
+    <div>
+      {/* Đây là nút trigger, đã được cập nhật responsive:
+        - Mặc định (mobile): Chỉ là icon button (w-9, h-9, p-0, justify-center)
+        - Từ breakpoint sm: (small) trở lên: Hiển thị đầy đủ
+      */}
+      <Button
+        variant="outline"
+        className="flex lg:justify-between  justify-center relative h-9 w-9 p-0 text-sm text-muted-foreground
+                   lg:max-w-72 lg:min-w-62 lg:w-full  lg:px-3"
+        onClick={() => setOpen(true)}
+      >
+        {/* Icon: Hiển thị trên mọi kích cỡ, chỉ có margin-right trên sm: */}
+        <Search className="h-4 w-4 lg:mr-2" />
+
+        {/* Text: Ẩn trên mobile (hidden), hiển thị trên sm: (sm:flex-grow) */}
+        <span className="hidden lg:flex lg:flex-grow lg:text-start">
+          Tìm kiếm...
+        </span>
+
+        {/* Phím tắt: Đã có sẵn (hidden sm:flex) nên sẽ tự động ẩn trên mobile */}
+        <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 lg:flex">
+          <span className="text-xs">Ctrl</span>K
+        </kbd>
+      </Button>
+
+      {/* Đây là hộp thoại Command, nó sẽ bật lên */}
+      <CommandDialog open={open} onOpenChange={setOpen}>
+        <CommandInput
+          placeholder="Tìm kiếm bài viết và câu hỏi..."
+          value={searchQuery}
+          onValueChange={setSearchQuery}
+          onKeyDown={handleKeyDown}
+        />
+        <CommandList>
+          <CommandEmpty>
+            {isLoading ? (
+              <div className="py-6 text-center text-sm text-muted-foreground flex justify-center items-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Đang tìm kiếm...
+              </div>
+            ) : searchQuery.trim() ? (
+              <div className="py-6 text-center text-sm">
+                <p className="mb-2">Không tìm thấy kết quả</p>
+                <p className="text-muted-foreground">
+                  Thử tìm kiếm với từ khóa khác hoặc nhấn Enter để xem thêm
+                </p>
+              </div>
+            ) : (
+              "Nhập từ khóa để tìm kiếm..."
+            )}
+          </CommandEmpty>
+
+          {/* Live Search Results */}
+          {!isLoading && results.length > 0 && (
+            <CommandGroup heading="Gợi ý">
+              {results.map((item) => (
+                <CommandItem
+                  key={item.id}
+                  onSelect={() => handleSelectResult(item)}
+                  className="cursor-pointer"
+                >
+                  {item.type === "post" ? (
+                    <FileText className="mr-2 h-4 w-4" />
+                  ) : (
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                  )}
+                  <span className="truncate">{item.title}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {/* Quick Actions */}
+          {searchQuery.trim() && (
+            <>
+              <CommandSeparator />
+              <CommandGroup heading="Tìm kiếm">
+                <CommandItem
+                  onSelect={() => handleSearch(searchQuery)}
+                  className="cursor-pointer"
+                >
+                  <Search className="mr-2 h-4 w-4" />
+                  <span>Xem tất cả kết quả cho "{searchQuery}"</span>
+                </CommandItem>
+              </CommandGroup>
+            </>
+          )}
+
+          <CommandSeparator />
+
+          {/* Quick Navigation */}
+          <CommandGroup heading="Điều hướng nhanh">
+            <CommandItem
+              onSelect={() => {
+                setOpen(false);
+                router.push("/post");
+              }}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              <span>Bài viết</span>
+            </CommandItem>
+            <CommandItem
+              onSelect={() => {
+                setOpen(false);
+                router.push("/questions");
+              }}
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              <span>Câu hỏi</span>
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
+    </div>
+  );
+}

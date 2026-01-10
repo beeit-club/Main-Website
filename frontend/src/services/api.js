@@ -1,0 +1,102 @@
+// services/: API services dùng Axios + SWR.
+import axios from "axios";
+const axiosClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BACKEND,
+  timeout: process.env.NEXT_PUBLIC_API_TIMEOUT,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true,
+});
+
+const refreshToken = async () => {
+  try {
+    const res = await axiosClient.post("auth/refresh");
+    const accessToken = res.data?.accessToken;
+    if (!accessToken) {
+      throw new Error("No access token returned");
+    }
+    localStorage.setItem("accessToken", accessToken);
+    return accessToken;
+  } catch (error) {
+    console.error("Refresh token failed:", error);
+    if (error.code === "ECONNABORTED") {
+      alert("Máy chủ không phản hồi sau 10 giây. Vui lòng thử lại sau.");
+    }
+    throw error;
+  }
+};
+
+axiosClient.interceptors.request.use((config) => {
+  if (
+    config.url !== "auth/login" &&
+    config.url !== "auth/register" &&
+    config.url !== "auth/refresh"
+  ) {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+let isRefreshing = false;
+let queue = [];
+
+axiosClient.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    const originalReq = error.config;
+    const code = error.response?.data?.errorCode;
+
+    if (code === "TOKEN_EXPIRED") {
+      // ✅ FIX #1: Đổi từ _retry sang __isRetryRequest để tránh race condition
+      // Mỗi request sẽ có flag riêng, không bị override bởi request khác
+      if (!originalReq.__isRetryRequest) {
+        originalReq.__isRetryRequest = true;
+
+        if (!isRefreshing) {
+          localStorage.removeItem("accessToken");
+          isRefreshing = true;
+
+          return refreshToken()
+            .then((newToken) => {
+              localStorage.setItem("accessToken", newToken);
+              isRefreshing = false;
+
+              // Thực hiện tất cả requests trong queue
+              queue.forEach((cb) => cb(newToken));
+              queue = [];
+
+              // Retry request ban đầu với token mới
+              originalReq.headers.Authorization = `Bearer ${newToken}`;
+              return axiosClient(originalReq);
+            })
+            .catch((err) => {
+              queue = [];
+              isRefreshing = false;
+
+              // ✅ FIX #5: Cleanup state hoàn toàn khi refresh thất bại
+              localStorage.removeItem("accessToken");
+
+              alert("hết phiên vui lòng đăng nhập lại");
+              window.location.href = "/login";
+              return Promise.reject(err);
+            });
+        }
+
+        // Nếu đang refresh, thêm vào queue
+        return new Promise((resolve) => {
+          queue.push((token) => {
+            originalReq.headers.Authorization = `Bearer ${token}`;
+            resolve(axiosClient(originalReq));
+          });
+        });
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export default axiosClient;

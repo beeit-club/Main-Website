@@ -1,0 +1,120 @@
+<html lang='vi'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Thông báo lịch phỏng vấn</title>
+  </head>
+  <body
+    style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'
+  >
+    <table role='presentation' style='width: 100%; border-collapse: collapse;'>
+      <tr>
+        <td
+          style='padding: 20px 0; text-align: center; background-color: #ffffff;'
+        >
+          <table
+            role='presentation'
+            style='width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style='padding: 30px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;'
+              >
+                <h1 style='margin: 0; color: #ffffff; font-size: 24px;'>Thông
+                  báo lịch phỏng vấn</h1>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style='padding: 40px 30px;'>
+                <p
+                  style='margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;'
+                >
+                  Xin chào
+                  <strong>{{fullname}}</strong>,
+                </p>
+
+                <p
+                  style='margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;'
+                >
+                  Chúng tôi rất vui mừng thông báo rằng đơn đăng ký của bạn đã
+                  được duyệt và chúng tôi muốn mời bạn tham gia buổi phỏng vấn.
+                </p>
+
+                <div
+                  style='background-color: #e7f3ff; padding: 25px; border-radius: 6px; margin: 25px 0; border-left: 4px solid #2196F3;'
+                >
+                  <h2
+                    style='margin: 0 0 15px 0; color: #1976D2; font-size: 18px;'
+                  >📅 Thông tin lịch phỏng vấn</h2>
+                  <p
+                    style='margin: 8px 0; color: #333333; font-size: 15px;'
+                  ><strong>Tiêu đề:</strong> {{schedule_title}}</p>
+                  <p
+                    style='margin: 8px 0; color: #333333; font-size: 15px;'
+                  ><strong>Ngày phỏng vấn:</strong> {{interview_date}}</p>
+                  <p
+                    style='margin: 8px 0; color: #333333; font-size: 15px;'
+                  ><strong>Thời gian:</strong> {{start_time}} - {{end_time}}</p>
+                  {{#if location}}
+                    <p
+                      style='margin: 8px 0; color: #333333; font-size: 15px;'
+                    ><strong>Địa điểm/Link:</strong>
+                      <a
+                        href='{{location}}'
+                        style='color: #2196F3; text-decoration: none;'
+                      >{{location}}</a></p>
+                  {{/if}}
+                  {{#if description}}
+                    <p
+                      style='margin: 15px 0 0 0; color: #666666; font-size: 14px; line-height: 1.5;'
+                    ><strong>Ghi chú:</strong> {{description}}</p>
+                  {{/if}}
+                </div>
+
+                <div
+                  style='background-color: #fff3cd; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #ffc107;'
+                >
+                  <p
+                    style='margin: 0; color: #856404; font-size: 14px; line-height: 1.6;'
+                  >
+                    <strong>⚠️ Lưu ý quan trọng:</strong><br />
+                    • Vui lòng có mặt đúng giờ tại địa điểm phỏng vấn<br />
+                    • Chuẩn bị sẵn các giấy tờ cần thiết (CMND/CCCD, thẻ sinh
+                    viên)<br />
+                    • Nếu có thay đổi, vui lòng liên hệ với chúng tôi sớm nhất
+                    có thể
+                  </p>
+                </div>
+
+                <p
+                  style='margin: 20px 0 0 0; color: #333333; font-size: 16px; line-height: 1.6;'
+                >
+                  Chúng tôi rất mong được gặp bạn tại buổi phỏng vấn. Nếu bạn có
+                  bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                style='padding: 20px 30px; text-align: center; background-color: #f8f9fa; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;'
+              >
+                <p style='margin: 0; color: #666666; font-size: 14px;'>
+                  Trân trọng,<br />
+                  <strong style='color: #333333;'>Ban Quản Lý CLB</strong>
+                </p>
+                <p style='margin: 10px 0 0 0; color: #999999; font-size: 12px;'>
+                  Email này được gửi tự động, vui lòng không trả lời.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
