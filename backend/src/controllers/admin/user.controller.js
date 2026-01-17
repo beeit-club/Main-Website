@@ -224,6 +224,18 @@ const userController = {
     const roles = await userService.getAllRoles();
     return utils.success(res, message.User.STATS_SUCCESS, { roles });
   }),
+
+  /**
+   * 🔢 Đếm số lượng user theo bộ lọc (Dùng cho Bulk Email Preview)
+   * GET /api/admin/users/count
+   */
+  countUsersByFilters: asyncWrapper(async (req, res) => {
+    const { search, roleId, active } = req.query;
+    const count = await userService.countUsers({
+      filters: { search, roleId, active }
+    });
+    return utils.success(res, 'Đếm user thành công', { count });
+  }),
 };
 
 export default userController;

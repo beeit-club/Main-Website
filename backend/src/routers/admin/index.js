@@ -22,6 +22,7 @@ import userController from '../../controllers/admin/user.controller.js';
 import memberRouter from './member.router.js';
 import campaignRouter from './campaign.routes.js';
 import systemEmailMappingRouter from './systemEmailMapping.router.js';
+import landingRouter from './landing.router.js';
 
 const router = express.Router();
 
@@ -63,5 +64,8 @@ router.use('/members', memberRouter);
 
 // Email Mappings
 router.use('/email-mappings', systemEmailMappingRouter);
+
+// Landing Page Management
+router.use('/landing', landingRouter);
 
 export default router;

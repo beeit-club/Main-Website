@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowDown } from "lucide-react";
+import SafeImage from "@/components/common/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -103,12 +104,12 @@ const Hero = ({ data }) => {
             className="absolute inset-0 z-10"
             style={{ backgroundColor: `rgba(0, 0, 0, ${overlayOpacity})` }}
           ></div>
-          <img
+          <SafeImage
             src={backgroundImage}
             alt={backgroundImageAlt}
             className="hero-bg-image w-full h-[120%] object-cover object-center origin-top will-change-transform"
-            loading="eager"
-            fetchPriority="high"
+            fill
+            priority
           />
         </div>
 

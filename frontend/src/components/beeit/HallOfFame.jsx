@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import SafeImage from "@/components/common/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -104,7 +105,7 @@ const defaultAchievements = [
     year: "2022",
     description: "Triển lãm IoT",
     image:
-      "https://images.unsplash.com/photo-1581092921461-eab62e97a782?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=800&auto=format&fit=crop",
   },
   {
     id: "13",
@@ -220,16 +221,14 @@ const HallOfFame = ({ achievements = [] }) => {
           {row1Data.map((item) => (
             <div
               key={item.id || `row1-${item.title}`}
-              className="group relative w-[300px] h-[200px] md:w-[450px] md:h-[320px] shrink-0 overflow-hidden rounded-sm border border-white/5 bg-white/5 transition-transform duration-500 hover:scale-[1.02] hover:z-20 hover:border-primary/50 hover:shadow-[0_0_30px_rgba(255,214,10,0.2)]"
+              className="group relative w-[300px] h-[200px] md:w-[450px] md:h-[320px] shrink-0 overflow-hidden rounded-sm border border-white/5 bg-white/5 transition-transform duration-500 hover:scale-[1.02] hover:z-20 hover:border-primary/50 hover:shadow-[0_0_30px_rgba(255,107,0,0.2)]"
             >
               {/* Image */}
-              <img
+              <SafeImage
                 src={item.image_url || item.image}
                 alt={item.title}
                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:grayscale-0 grayscale-[0.5]"
-                onError={(e) => {
-                  e.target.src = "/logo.jpg";
-                }}
+                fill
               />
 
               {/* Gradient Overlay */}
@@ -265,13 +264,11 @@ const HallOfFame = ({ achievements = [] }) => {
               className="group relative w-[300px] h-[200px] md:w-[450px] md:h-[320px] shrink-0 overflow-hidden rounded-sm border border-white/5 bg-white/5 transition-transform duration-500 hover:scale-[1.02] hover:z-20 hover:border-secondary/50 hover:shadow-[0_0_30px_rgba(124,58,237,0.2)]"
             >
               {/* Image */}
-              <img
+              <SafeImage
                 src={item.image_url || item.image}
                 alt={item.title}
                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:grayscale-0 grayscale-[0.5]"
-                onError={(e) => {
-                  e.target.src = "/logo.jpg";
-                }}
+                fill
               />
 
               {/* Gradient Overlay */}

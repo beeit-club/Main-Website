@@ -1,6 +1,7 @@
 import asyncWrapper from '../../middlewares/error.handler.js';
 
 import HomeService from '../../services/client/home.service.js';
+import LandingService from '../../services/client/landing.service.js';
 import { utils } from '../../utils/index.js';
 import { PaginationSchema } from '../../validation/common/common.schema.js';
 import QuestionSchema from '../../validation/admin/question.validation.js';
@@ -21,6 +22,11 @@ import EventSchema from '../../validation/admin/event.validation.js';
 import { params } from '../../validation/common/common.schema.js';
 
 const HomeControler = {
+  getLandingPage: asyncWrapper(async (req, res) => {
+    const data = await LandingService.getLandingPage();
+    utils.success(res, 'Lấy dữ liệu Landing Page thành công', data);
+  }),
+
   Home: asyncWrapper(async (req, res) => {
     // const { name, status } = req.query;
     const home = await HomeService.home({

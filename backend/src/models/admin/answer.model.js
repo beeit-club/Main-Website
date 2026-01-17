@@ -8,12 +8,17 @@ import {
 
 class answerModel {
   static async getAnswersForQuestion(questionId, options = {}) {
-    let sql = `SELECT * FROM answers WHERE question_id = ? AND deleted_at IS NULL`;
+    let sql = `
+      SELECT a.*, u.fullname as author_name, u.avatar_url as author_avatar
+      FROM answers a
+      LEFT JOIN users u ON a.created_by = u.id
+      WHERE a.question_id = ? AND a.deleted_at IS NULL
+    `;
     let params = [questionId];
     const { status } = options.filters || {};
 
     if (status !== undefined && status !== '') {
-      sql += ` AND status = ?`;
+      sql += ` AND a.status = ?`;
       params.push(status);
     }
 

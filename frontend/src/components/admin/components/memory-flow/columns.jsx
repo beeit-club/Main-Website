@@ -33,18 +33,20 @@ export const columns = [
   {
     accessorKey: "image_url",
     header: "Ảnh",
+import SafeImage from "@/components/common/SafeImage";
+
+// ... inside columns ...
+
     cell: ({ row }) => {
       const imageUrl = row.getValue("image_url");
       return (
         <div className="w-20 h-20 relative rounded-lg overflow-hidden border">
           {imageUrl ? (
-            <img
+            <SafeImage
               src={imageUrl}
               alt="Memory Flow"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = "/logo.jpg";
-              }}
+              fill
             />
           ) : (
             <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xs text-gray-400">

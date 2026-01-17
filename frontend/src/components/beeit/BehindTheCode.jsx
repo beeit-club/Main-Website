@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { Draggable } from "gsap/Draggable";
+import SafeImage from "@/components/common/SafeImage";
 
 gsap.registerPlugin(Draggable);
 
@@ -44,7 +45,7 @@ const BehindTheCode = ({ photos = [] }) => {
   const containerRef = useRef(null);
 
   // Sử dụng photos từ props hoặc default
-  const displayPhotos = photos.length > 0 
+  const displayPhotos = photos.length > 0
     ? photos.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
     : defaultPhotos;
 
@@ -121,34 +122,36 @@ const BehindTheCode = ({ photos = [] }) => {
           const src = typeof photo === 'string' ? photo : photo.image_url;
           const alt = typeof photo === 'string' ? 'Culture' : (photo.alt_text || 'Culture');
           return (
-          <div
-            key={photo.id || index}
-            className="draggable-photo absolute p-3 bg-white transform cursor-grab active:cursor-grabbing shadow-lg transition-transform"
-            style={{
-              width: "280px", // Slightly smaller for better scattering on mobile
-              top: "50%",
-              left: "50%",
-              marginTop: "-180px", // Center offset based on height approx
-              marginLeft: "-140px", // Center offset based on width
-            }}
-          >
-            <div className="w-full h-[220px] overflow-hidden border border-gray-100 bg-gray-100">
-              <img
-                src={src}
-                alt={alt}
-                className="w-full h-full object-cover pointer-events-none select-none"
-              />
-            </div>
-            <div className="pt-3 pb-1 text-center">
-              <span className="font-handwriting text-black font-mono text-xs tracking-widest opacity-70">
-                IMG_0{(photo.id || index) + 802}.Raw
-              </span>
-            </div>
+            <div
+              key={photo.id || index}
+              className="draggable-photo absolute p-3 bg-white transform cursor-grab active:cursor-grabbing shadow-lg transition-transform"
+              style={{
+                width: "280px", // Slightly smaller for better scattering on mobile
+                top: "50%",
+                left: "50%",
+                marginTop: "-180px", // Center offset based on height approx
+                marginLeft: "-140px", // Center offset based on width
+              }}
+            >
 
-            {/* Tape Effect */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-8 bg-white/30 backdrop-blur-sm rotate-2 shadow-sm border border-white/40"></div>
-          </div>
-        );
+              <div className="w-full h-[220px] overflow-hidden border border-gray-100 bg-gray-100 relative">
+                <SafeImage
+                  src={src}
+                  alt={alt}
+                  className="w-full h-full object-cover pointer-events-none select-none"
+                  fill
+                />
+              </div>
+              <div className="pt-3 pb-1 text-center">
+                <span className="font-handwriting text-black font-mono text-xs tracking-widest opacity-70">
+                  IMG_0{(photo.id || index) + 802}.Raw
+                </span>
+              </div>
+
+              {/* Tape Effect */}
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-8 bg-white/30 backdrop-blur-sm rotate-2 shadow-sm border border-white/40"></div>
+            </div>
+          );
         })}
       </div>
     </section>

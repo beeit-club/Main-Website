@@ -103,7 +103,7 @@ class UserDataMapper {
       // Thông tin thành viên (nếu có)
       student_id: userData.student_id || null,
       academic_year: userData.academic_year || null,
-      course: userData.course || null,
+
       join_date: userData.join_date || null,
       formatted_join_date: formattedJoinDate,
       years_as_member: yearsAsMember,

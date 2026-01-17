@@ -39,20 +39,22 @@ class UserModel {
     let params = [];
 
     if (option?.filters?.search) {
-      baseSql += ` AND u.fullname LIKE ? OR email LIKE ? OR phone LIKE ?  `;
-
-      params.push(`%${option.filters.search}%`);
-      params.push(`%${option.filters.search}%`);
-      params.push(`%${option.filters.search}%`);
+      baseSql += ` AND (u.fullname LIKE ? OR u.email LIKE ? OR u.phone LIKE ?) `;
+      const term = `%${option.filters.search}%`;
+      params.push(term, term, term);
     }
-    if (option?.filters?.active) {
+    
+    // Check undefined để bắt được cả giá trị 0
+    if (option?.filters?.active !== undefined && option?.filters?.active !== 'all') {
       baseSql += ` AND u.is_active = ? `;
-      params.push(`${option?.filters?.active}`);
+      params.push(option.filters.active);
     }
-    if (option?.filters?.roleId) {
+    
+    if (option?.filters?.roleId && option?.filters?.roleId !== 'all') {
       baseSql += ` AND u.role_id = ? `;
-      params.push(`${option?.filters?.roleId}`);
+      params.push(option.filters.roleId);
     }
+    
     if (option?.filters?.sortBy && option?.filters?.sortDirection) {
       option.orderBy = {
         field: option?.filters?.sortBy,
@@ -85,7 +87,7 @@ class UserModel {
         u.is_active,
         u.created_at,
         mp.student_id,
-        mp.course,
+
         mp.academic_year,
         mp.join_date
       FROM ${TABLE} u
@@ -395,7 +397,7 @@ class UserModel {
         r.description AS role_description,
         mp.student_id,
         mp.academic_year,
-        mp.course,
+
         mp.join_date
       FROM ${TABLE} u
       LEFT JOIN roles r ON u.role_id = r.id
@@ -447,7 +449,7 @@ class UserModel {
         r.description AS role_description,
         mp.student_id,
         mp.academic_year,
-        mp.course,
+
         mp.join_date
       FROM ${TABLE} u
       LEFT JOIN roles r ON u.role_id = r.id
@@ -489,6 +491,43 @@ class UserModel {
       return rows;
     } catch (error) {
       console.error('Error in getUsersForEmailByFilter:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🔢 Đếm số lượng user theo bộ lọc (không phân trang)
+   */
+  static async countUsers(option) {
+    let sql = `
+      SELECT COUNT(*) as total
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      WHERE u.deleted_at IS NULL
+    `;
+    const params = [];
+
+    if (option?.filters?.search) {
+      sql += ` AND (u.fullname LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)`;
+      const term = `%${option.filters.search}%`;
+      params.push(term, term, term);
+    }
+
+    if (option?.filters?.active !== undefined && option?.filters?.active !== 'all') {
+      sql += ` AND u.is_active = ? `;
+      params.push(option.filters.active);
+    }
+
+    if (option?.filters?.roleId && option?.filters?.roleId !== 'all') {
+      sql += ` AND u.role_id = ? `;
+      params.push(option.filters.roleId);
+    }
+
+    try {
+      const [rows] = await pool.query(sql, params);
+      return rows[0].total;
+    } catch (error) {
+      console.error('Error in countUsers:', error);
       throw error;
     }
   }

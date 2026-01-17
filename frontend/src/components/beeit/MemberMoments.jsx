@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Camera } from "lucide-react";
+import SafeImage from "@/components/common/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -44,10 +45,11 @@ const MemberMoments = ({ moments = [] }) => {
                     {moments.map((item, idx) => (
                         <div key={idx} className="moment-item break-inside-avoid relative group rounded-2xl overflow-hidden cursor-pointer">
                             <div className={`w-full ${item.height} relative`}>
-                                <img
+                                <SafeImage
                                     src={item.src}
                                     alt={item.caption}
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    fill
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                                     <span className="text-white font-medium transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">

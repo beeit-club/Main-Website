@@ -42,6 +42,11 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
+    {
+      title: "Landing Page",
+      url: "/admin/landing",
+      icon: IconInnerShadowTop,
+    },
     // 1. Tổng quan
     {
       title: "Bảng điều khiển",
@@ -122,16 +127,6 @@ const data = {
       title: "Giao dịch",
       url: "/admin/transactions",
       icon: IconUsers,
-    },
-    {
-      title: "Mẫu email",
-      url: "/admin/email-templates",
-      icon: IconMail,
-    },
-    {
-      title: "Ánh xạ Email",
-      url: "/admin/email-mappings",
-      icon: IconSettings,
     },
   ],
   navClouds: [

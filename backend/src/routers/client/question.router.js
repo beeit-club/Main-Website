@@ -8,6 +8,8 @@ const Router = express.Router();
 // Public routes
 Router.get('/', questionController.getQuestions);
 Router.get('/:slug', questionController.getQuestionBySlug);
+Router.get('/:slug/answers', questionController.getAnswersBySlug);
+Router.get('/:slug/stats', questionController.getQuestionStats);
 
 // Protected routes
 Router.post('/', middleware.verifyTokenOptional, questionController.createQuestion);

@@ -1,5 +1,6 @@
 "use client";
 
+import SafeImage from "@/components/common/SafeImage";
 import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -513,10 +514,13 @@ function AddPost() {
 
                         {imagePreview ? (
                           <div className="relative w-full">
-                            <img
+                            <SafeImage
                               src={imagePreview}
                               alt="Preview"
                               className="w-full h-auto rounded-md object-cover max-h-[300px]"
+                              width={500}
+                              height={300}
+                              unoptimized={true}
                             />
                             <p className="text-xs text-muted-foreground mt-2">
                               Click hoặc kéo thả để thay đổi
@@ -614,10 +618,12 @@ function AddPost() {
                 {previewData.featured_image && (
                   <div className="relative w-full h-96 mb-8 rounded-lg overflow-hidden shadow-lg bg-muted">
                     {/* Dùng thẻ img thường để support blob URL dễ dàng */}
-                    <img
+                    <SafeImage
                       src={previewData.featured_image}
                       alt={previewData.title || "Bài viết"}
                       className="w-full h-full object-cover"
+                      fill
+                      unoptimized={true}
                     />
                   </div>
                 )}

@@ -10,9 +10,9 @@ import { CommentSection } from "./CommentSection";
 
 export function ArticleDetail({ article }) {
   if (!article) return null;
-  
+
   const formattedDate = formatDate(article?.published_at);
-  
+
   // Xử lý featured_image - hỗ trợ cả URL tuyệt đối và tương đối
   const getImageSrc = () => {
     if (!article.featured_image) {
@@ -71,7 +71,8 @@ export function ArticleDetail({ article }) {
       )}
 
       {/* Title */}
-      <h1 className="text-4xl font-bold mb-4 text-pretty leading-tight">
+      {/* Title */}
+      <h1 className="text-4xl font-bold mb-4 text-pretty leading-tight break-words break-all">
         {article.title}
       </h1>
 
@@ -108,7 +109,7 @@ export function ArticleDetail({ article }) {
 
       {/* Content */}
       {article.content && (
-        <div className="prose prose-sm dark:prose-invert max-w-none mb-8">
+        <div className="prose prose-sm dark:prose-invert max-w-none mb-8 break-words break-all">
           <div
             className="text-base leading-relaxed space-y-4"
             dangerouslySetInnerHTML={{ __html: article.content }}
@@ -125,7 +126,7 @@ export function ArticleDetail({ article }) {
               <Link key={tag.id || tag.slug || tag.name} href={`/post?tag=${tag.slug}`}>
                 <Badge
                   variant="outline"
-                  className="cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-all"
+                  className="cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-all whitespace-normal break-all text-center h-auto"
                 >
                   #{tag.name}
                 </Badge>
@@ -138,7 +139,7 @@ export function ArticleDetail({ article }) {
       {/* Description (SEO Meta) */}
       {article.meta_description && (
         <div className="mt-8 pt-6 border-t border-border">
-          <p className="text-sm text-muted-foreground italic">
+          <p className="text-sm text-muted-foreground italic break-words break-all">
             {article.meta_description}
           </p>
         </div>

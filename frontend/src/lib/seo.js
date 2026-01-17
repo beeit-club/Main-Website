@@ -4,15 +4,27 @@
 
 /**
  * Get site URL from environment variable or default
+ * Optimized for Production and SEO
  */
 export function getSiteUrl() {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.NEXT_PUBLIC_APP_URL ||
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "https://beeitclub.com")
-  );
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL;
+  const isProduction = process.env.NODE_ENV === "production";
+
+  let url = "https://beeitclub.com"; // Default fallback
+
+  if (envUrl && (!isProduction || !envUrl.includes("localhost"))) {
+    url = envUrl;
+  } else if (process.env.VERCEL_URL) {
+    url = `https://${process.env.VERCEL_URL}`;
+  }
+
+  // Ensure protocol
+  if (!url.startsWith("http")) {
+    url = `https://${url}`;
+  }
+
+  // Remove trailing slash
+  return url.replace(/\/$/, "");
 }
 
 /**
@@ -38,12 +50,12 @@ export function getOgImageUrl(imagePath, defaultImage = "/logo.jpg") {
   if (!imagePath) {
     return getFullUrl(defaultImage);
   }
-  
+
   // If already full URL, return as is
   if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
     return imagePath;
   }
-  
+
   // If relative path, make it full URL
   return getFullUrl(imagePath);
 }
@@ -53,18 +65,18 @@ export function getOgImageUrl(imagePath, defaultImage = "/logo.jpg") {
  */
 export function cleanHtmlForMeta(html, maxLength = 160) {
   if (!html) return "";
-  
+
   // Remove HTML tags
   const text = html.replace(/<[^>]*>/g, "");
-  
+
   // Remove extra whitespace
   const cleaned = text.replace(/\s+/g, " ").trim();
-  
+
   // Trim and limit length
   if (cleaned.length <= maxLength) {
     return cleaned;
   }
-  
+
   // Truncate at word boundary
   return cleaned.substring(0, maxLength).replace(/\s+\S*$/, "") + "...";
 }
@@ -74,7 +86,7 @@ export function cleanHtmlForMeta(html, maxLength = 160) {
  */
 export function getDefaultMetadata() {
   const siteUrl = getSiteUrl();
-  
+
   return {
     metadataBase: new URL(siteUrl),
     title: {

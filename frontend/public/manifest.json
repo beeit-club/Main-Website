@@ -21,8 +21,10 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["education", "technology"],
+  "categories": [
+    "education",
+    "technology"
+  ],
   "lang": "vi-VN",
   "dir": "ltr"
 }
-

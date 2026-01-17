@@ -46,7 +46,7 @@ const questionClientService = {
 
       // 2. Lấy thông tin
       const question = await questionModel.getOneQuestionBySlug(slug);
-      
+
       if (!question || (question.status !== 1 && question.status !== '1')) {
         throw new ServiceError(
           QUESTION_NOT_FOUND,
@@ -58,14 +58,14 @@ const questionClientService = {
 
       // 3. Lấy danh sách câu trả lời (Chỉ lấy câu trả lời công khai)
       // Lấy limit lớn để xây cây đầy đủ
-      const answersResult = await answerModel.getAnswersForQuestion(question.id, { 
+      const answersResult = await answerModel.getAnswersForQuestion(question.id, {
         limit: 500,
-        filters: { status: 1 } 
+        filters: { status: 1 }
       });
-      
+
       // 4. Cấu trúc lại thành cây (Nested)
       question.answers = buildAnswerTree(answersResult.data || []);
-      
+
       return question;
     } catch (error) {
       throw error;
@@ -77,10 +77,64 @@ const questionClientService = {
     try {
       return await questionModel.createQuestion({
         ...questionData,
-        status: 1, 
+        status: 1,
         view_count: 0,
         created_at: new Date()
       });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy danh sách câu trả lời theo slug câu hỏi (cho client fetch riêng)
+  getAnswersBySlug: async (slug) => {
+    try {
+      // 1. Lấy thông tin câu hỏi để có ID
+      const question = await questionModel.getOneQuestionBySlug(slug);
+
+      if (!question || (question.status !== 1 && question.status !== '1')) {
+        throw new ServiceError(
+          QUESTION_NOT_FOUND,
+          QUESTION_NOT_FOUND_CODE,
+          'Câu hỏi không tồn tại hoặc chưa được duyệt',
+          404,
+        );
+      }
+
+      // 2. Lấy danh sách câu trả lời (Chỉ lấy câu trả lời công khai)
+      const answersResult = await answerModel.getAnswersForQuestion(question.id, {
+        limit: 500,
+        filters: { status: 1 }
+      });
+
+      // 3. Cấu trúc lại thành cây (Nested)
+      return buildAnswerTree(answersResult.data || []);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy thống kê câu hỏi (view count) theo slug (cho client fetch riêng)
+  getQuestionStats: async (slug) => {
+    try {
+      // 1. Tăng view count (Mới thêm)
+      await questionModel.incrementViewCount(slug);
+
+      const question = await questionModel.getOneQuestionBySlug(slug);
+
+      if (!question || (question.status !== 1 && question.status !== '1')) {
+        throw new ServiceError(
+          QUESTION_NOT_FOUND,
+          QUESTION_NOT_FOUND_CODE,
+          'Câu hỏi không tồn tại hoặc chưa được duyệt',
+          404,
+        );
+      }
+
+      return {
+        id: question.id,
+        view_count: question.view_count || 0
+      };
     } catch (error) {
       throw error;
     }

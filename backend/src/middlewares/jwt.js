@@ -3,17 +3,20 @@ import { config } from '../config/index.js';
 
 export const verifyToken = async (req, res, next) => {
   // Lấy token từ header Authorization (thường có dạng "Bearer <token>")
-  const token = req.headers.authorization;
+  const authHeader = req.headers.authorization;
   // Nếu không có token thì trả về lỗi 401 (chưa đăng nhập)
-  if (!token) {
+  if (!authHeader) {
     return res.status(401).json({
       message: 'Bạn chưa đăng nhập.',
       errorCode: 'NO_TOKEN',
     });
   }
 
-  // Tách lấy phần token thật sự (bỏ chữ "Bearer")
-  const accessToken = token.split(' ')[1];
+  // Tách lấy phần token thật sự (bỏ chữ "Bearer " nếu có)
+  const accessToken = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : authHeader;
+
   // Xác thực token bằng secret key trong file .env
   jwt.verify(accessToken, config.JWT_ACCESS_TOKEN, (error, user) => {
     // Nếu có lỗi khi verify

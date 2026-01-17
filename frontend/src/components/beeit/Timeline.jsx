@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Target, Flag, Zap, Users, ShieldCheck } from "lucide-react";
+import SafeImage from "@/components/common/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -208,10 +209,11 @@ const Timeline = ({ corePillars = [], events = [] }) => {
                   <div className="relative group w-full max-w-sm mx-auto md:mx-0">
                     <div className="absolute -inset-2 bg-gradient-to-r from-secondary to-accent opacity-20 blur-lg group-hover:opacity-50 transition-opacity"></div>
                     <div className="relative border border-white/10 bg-black overflow-hidden aspect-video rounded-sm shadow-2xl">
-                      <img
+                      <SafeImage
                         src={event.image}
                         alt={event.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
+                        fill
                       />
 
                       {/* Tech Overlay lines */}

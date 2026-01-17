@@ -5,10 +5,42 @@ import {
   insert,
   selectWithPagination,
   update,
+  query,
 } from '../../utils/database.js';
 import pool from '../../db.js';
 
 class EmailBatchJobModel {
+  // Cập nhật thống kê (success/fail count)
+  static async updateStats(jobId) {
+    const sql = `
+      UPDATE email_batch_jobs
+      SET 
+        sent_count = (SELECT COUNT(*) FROM email_queue WHERE batch_job_id = ? AND status = 'sent'),
+        failed_count = (SELECT COUNT(*) FROM email_queue WHERE batch_job_id = ? AND status = 'failed'),
+        progress_percent = (
+            (SELECT COUNT(*) FROM email_queue WHERE batch_job_id = ? AND status IN ('sent', 'failed')) * 100.0 / 
+            GREATEST(total_recipients, 1)
+        ),
+        status = CASE 
+          WHEN (SELECT COUNT(*) FROM email_queue WHERE batch_job_id = ? AND status IN ('pending', 'processing')) = 0 THEN 'completed'
+          ELSE status
+        END,
+        completed_at = CASE 
+          WHEN (SELECT COUNT(*) FROM email_queue WHERE batch_job_id = ? AND status IN ('pending', 'processing')) = 0 THEN NOW()
+          ELSE completed_at
+        END
+      WHERE id = ?
+    `;
+    // Parameters: 
+    // 1. sent_count subquery
+    // 2. failed_count subquery
+    // 3. progress_percent subquery
+    // 4. status subquery
+    // 5. completed_at subquery
+    // 6. WHERE id = ?
+    return query(sql, [jobId, jobId, jobId, jobId, jobId, jobId]);
+  }
+
   // Tạo batch job mới
   static async createJob(data) {
     // Parse JSON fields nếu là string

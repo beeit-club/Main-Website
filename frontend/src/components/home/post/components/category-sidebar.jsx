@@ -34,7 +34,7 @@ export function CategorySidebar({ posts }) {
                   <div className="flex flex-col gap-3 md:flex-row">
                     <div className="flex flex-1 flex-col justify-between ">
                       <div className="space-y-1">
-                        <Link href={`/blog/${post.slug}`}>
+                        <Link href={`/post/${post.slug}`}>
                           <h3 className="text-[15px] font-semibold leading-snug text-balance transition-colors hover:text-primary line-clamp-2">
                             {post.title}
                           </h3>

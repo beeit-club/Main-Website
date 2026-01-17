@@ -1,308 +1,96 @@
-// services/admin/emailTemplate.service.js
-
 import EmailTemplateModel from '../../models/admin/emailTemplate.model.js';
 import templateRenderer from '../email/templateRenderer.service.js';
-import emailService from '../email/emailService.js';
+import { utils } from '../../utils/index.js'; // Helper tạo slug
 import ServiceError from '../../error/service.error.js';
-import { code, message } from '../../common/message/index.js';
-import { slugify } from '../../utils/function.js';
 
 class EmailTemplateService {
-  // Lấy danh sách templates
-  async getAllTemplates(options) {
-    return EmailTemplateModel.getAllTemplates(options);
-  }
-
-  // Lấy template theo ID
-  async getTemplateById(id) {
-    const template = await EmailTemplateModel.getTemplateById(id);
-    if (!template) {
-      throw new ServiceError(
-        'Template không tồn tại',
-        'TEMPLATE_NOT_FOUND',
-        null,
-        404,
-      );
-    }
-
-    // Parse JSON fields
-    if (template.variables && typeof template.variables === 'string') {
-      template.variables = JSON.parse(template.variables);
-    }
-    if (
-      template.default_variables &&
-      typeof template.default_variables === 'string'
-    ) {
-      template.default_variables = JSON.parse(template.default_variables);
-    }
-
-    return template;
-  }
-
-  // Tạo template mới
+  
   async createTemplate(data, userId) {
-    // Validate required fields
-    if (!data.name || !data.subject || !data.body) {
-      throw new ServiceError(
-        'Thiếu thông tin bắt buộc',
-        'MISSING_REQUIRED_FIELDS',
-        'name, subject, body là bắt buộc',
-        400,
-      );
-    }
+    // 1. Compile MJML -> HTML
+    const htmlContent = templateRenderer.compileMJML(data.mjml_content);
+    
+    // 2. Tự động phát hiện biến
+    const detectedVars = templateRenderer.detectVariables(data.mjml_content);
+    const variablesSchema = this._mergeVariables(detectedVars, data.variables || []);
 
-    // Validate name unique
-    const nameExists = await EmailTemplateModel.checkNameExists(data.name);
-    if (nameExists) {
-      throw new ServiceError(
-        'Tên template đã tồn tại',
-        'NAME_EXISTS',
-        `Tên "${data.name}" đã được sử dụng`,
-        409,
-      );
-    }
+    // 3. Tạo Slug nếu chưa có
+    const slug = data.slug || utils.slugify(data.name);
 
-    // Validate variables JSON format
-    if (data.variables) {
-      try {
-        if (typeof data.variables === 'string') {
-          data.variables = JSON.parse(data.variables);
-        }
-        if (!Array.isArray(data.variables)) {
-          throw new Error('Variables phải là array');
-        }
-      } catch (error) {
-        throw new ServiceError(
-          'Variables không đúng format',
-          'INVALID_VARIABLES_FORMAT',
-          error.message,
-          400,
-        );
-      }
-    }
+    // 4. Lưu DB
+    const insertId = await EmailTemplateModel.create({
+      ...data,
+      slug,
+      html_content: htmlContent,
+      variables: variablesSchema,
+      created_by: userId
+    });
 
-    // Validate default_variables JSON format
-    if (data.default_variables) {
-      try {
-        if (typeof data.default_variables === 'string') {
-          data.default_variables = JSON.parse(data.default_variables);
-        }
-        if (
-          typeof data.default_variables !== 'object' ||
-          Array.isArray(data.default_variables)
-        ) {
-          throw new Error('Default variables phải là object');
-        }
-      } catch (error) {
-        throw new ServiceError(
-          'Default variables không đúng format',
-          'INVALID_DEFAULT_VARIABLES_FORMAT',
-          error.message,
-          400,
-        );
-      }
-    }
-
-    // Validate template syntax
-    const syntaxCheck = templateRenderer.validateTemplateSyntax(
-      data.body,
-    );
-    if (!syntaxCheck.valid) {
-      throw new ServiceError(
-        'Template syntax không hợp lệ',
-        'INVALID_TEMPLATE_SYNTAX',
-        syntaxCheck.error,
-        400,
-      );
-    }
-
-    // Set created_by
-    data.created_by = userId;
-
-    // Create template
-    return EmailTemplateModel.createTemplate(data);
+    return { id: insertId, message: 'Tạo mẫu email thành công' };
   }
 
-  // Cập nhật template
-  async updateTemplate(id, data, userId) {
-    // Check template exists
-    const existingTemplate = await EmailTemplateModel.getTemplateById(id);
-    if (!existingTemplate) {
-      throw new ServiceError(
-        'Template không tồn tại',
-        'TEMPLATE_NOT_FOUND',
-        null,
-        404,
-      );
+  async updateTemplate(id, data) {
+    const current = await EmailTemplateModel.getById(id);
+    if (!current) throw new ServiceError('Không tìm thấy template', 'NOT_FOUND');
+
+    const updateData = { ...data };
+
+    // Nếu có sửa nội dung MJML -> Compile lại
+    if (data.mjml_content) {
+      updateData.html_content = templateRenderer.compileMJML(data.mjml_content);
+      
+      // Update lại danh sách biến (giữ config cũ nếu trùng tên)
+      const detectedVars = templateRenderer.detectVariables(data.mjml_content);
+      updateData.variables = this._mergeVariables(detectedVars, data.variables || current.variables);
     }
 
-    // Validate name unique (nếu có thay đổi)
-    if (data.name && data.name !== existingTemplate.name) {
-      const nameExists = await EmailTemplateModel.checkNameExists(
-        data.name,
-        id,
-      );
-      if (nameExists) {
-        throw new ServiceError(
-          'Tên template đã tồn tại',
-          'NAME_EXISTS',
-          `Tên "${data.name}" đã được sử dụng`,
-          409,
-        );
-      }
-    }
-
-    // Validate variables (tương tự create)
-    if (data.variables) {
-      try {
-        if (typeof data.variables === 'string') {
-          data.variables = JSON.parse(data.variables);
-        }
-        if (!Array.isArray(data.variables)) {
-          throw new Error('Variables phải là array');
-        }
-      } catch (error) {
-        throw new ServiceError(
-          'Variables không đúng format',
-          'INVALID_VARIABLES_FORMAT',
-          error.message,
-          400,
-        );
-      }
-    }
-
-    // Validate default_variables (tương tự create)
-    if (data.default_variables) {
-      try {
-        if (typeof data.default_variables === 'string') {
-          data.default_variables = JSON.parse(data.default_variables);
-        }
-        if (
-          typeof data.default_variables !== 'object' ||
-          Array.isArray(data.default_variables)
-        ) {
-          throw new Error('Default variables phải là object');
-        }
-      } catch (error) {
-        throw new ServiceError(
-          'Default variables không đúng format',
-          'INVALID_DEFAULT_VARIABLES_FORMAT',
-          error.message,
-          400,
-        );
-      }
-    }
-
-    // Validate template syntax (nếu có thay đổi html_content/body)
-    const contentToCheck = data.body || data.html_content;
-    if (contentToCheck) {
-      const syntaxCheck = templateRenderer.validateTemplateSyntax(
-        contentToCheck,
-      );
-      if (!syntaxCheck.valid) {
-        throw new ServiceError(
-          'Template syntax không hợp lệ',
-          'INVALID_TEMPLATE_SYNTAX',
-          syntaxCheck.error,
-          400,
-        );
-      }
-    }
-
-    // Set updated_by
-    data.updated_by = userId;
-
-    // Update template
-    return EmailTemplateModel.updateTemplate(id, data);
+    await EmailTemplateModel.update(id, updateData);
+    return { id, message: 'Cập nhật thành công' };
   }
 
-  // Xóa template
+  async getTemplate(id) {
+    return EmailTemplateModel.getById(id);
+  }
+
+  async getList(query) {
+    return EmailTemplateModel.getAll(query);
+  }
+
   async deleteTemplate(id) {
-    // Check template exists
-    const template = await EmailTemplateModel.getTemplateById(id);
-    if (!template) {
-      throw new ServiceError(
-        'Template không tồn tại',
-        'TEMPLATE_NOT_FOUND',
-        null,
-        404,
-      );
+    // Check if system template (optional logic)
+    const current = await EmailTemplateModel.getById(id);
+    if (current && current.is_system) {
+        throw new ServiceError('Không thể xóa template hệ thống', 'FORBIDDEN');
     }
+    return EmailTemplateModel.delete(id);
+  }
 
-    // Check is_system - không cho xóa
-    if (template.is_system) {
-      throw new ServiceError(
-        'Không thể xóa template hệ thống',
-        'CANNOT_DELETE_SYSTEM_TEMPLATE',
-        null,
-        403,
-      );
+  // --- Helper ---
+
+  /**
+   * Trộn danh sách biến phát hiện được với cấu hình cũ
+   * @param {string[]} detectedKeys - List tên biến quét được từ MJML
+   * @param {object[]} existingConfig - Config cũ [{key: 'name', label: 'Tên'}]
+   */
+  _mergeVariables(detectedKeys, existingConfig) {
+    const result = [];
+    const configMap = new Map(existingConfig.map(v => [v.key, v]));
+
+    for (const key of detectedKeys) {
+      if (configMap.has(key)) {
+        // Nếu đã cấu hình rồi -> Giữ nguyên
+        result.push(configMap.get(key));
+      } else {
+        // Nếu mới -> Tạo config mặc định
+        result.push({
+          key: key,
+          label: key, // Tạm dùng key làm nhãn
+          type: 'text',
+          required: true,
+          defaultValue: ''
+        });
+      }
     }
-
-    // Soft delete
-    return EmailTemplateModel.deleteTemplate(id);
-  }
-
-  // Preview template
-  async previewTemplate(id, variables = null) {
-    const template = await this.getTemplateById(id);
-
-    // Merge variables với default_variables
-    const defaultVariables = template.default_variables || {};
-    const mergedVariables = {
-      ...defaultVariables,
-      ...(variables || {}),
-    };
-
-    // Render template
-    const html = await templateRenderer.renderFromDatabase(id, mergedVariables);
-    const subject = await templateRenderer.renderSubject(
-      template,
-      mergedVariables,
-    );
-
-    return {
-      html,
-      subject,
-      variables: mergedVariables,
-    };
-  }
-
-  // Test gửi email
-  async testSendTemplate(id, recipientEmail, variables = null) {
-    const template = await this.getTemplateById(id);
-
-    // Preview template với variables
-    const preview = await this.previewTemplate(id, variables);
-
-    // Gửi email thật
-    try {
-      await emailService.sendDynamicEmail(id, recipientEmail, variables || {});
-      return {
-        success: true,
-        message: 'Email đã được gửi thành công',
-      };
-    } catch (error) {
-      throw new ServiceError(
-        'Gửi email thất bại',
-        'EMAIL_SEND_FAILED',
-        error.message,
-        500,
-      );
-    }
-  }
-
-  // Validate variables
-  validateVariables(template, variables) {
-    return templateRenderer.validateVariables(
-      template.variables || [],
-      variables,
-    );
-  }
-
-  // Lấy categories
-  async getCategories() {
-    return EmailTemplateModel.getCategories();
+    return result;
   }
 }
 

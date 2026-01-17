@@ -43,7 +43,7 @@ const authController = {
     const { accessToken, refreshToken, user } = await AuthService.verifyOtp(email, pin);
 
     res.cookie('refreshToken', refreshToken, {
-      maxAge: Number(config.JWT_REFRESH_EXPIRES_IN),
+      maxAge: Number(config.JWT_REFRESH_EXPIRES_IN) * 1000,
       httpOnly: true,
       secure: config.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -76,7 +76,7 @@ const authController = {
     );
 
     res.cookie('refreshToken', refreshToken, {
-      maxAge: Number(config.JWT_REFRESH_EXPIRES_IN),
+      maxAge: Number(config.JWT_REFRESH_EXPIRES_IN) * 1000,
       httpOnly: true,
       secure: config.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -148,7 +148,7 @@ const authController = {
       );
 
       res.cookie('refreshToken', newRefreshToken, {
-        maxAge: Number(config.JWT_REFRESH_EXPIRES_IN),
+        maxAge: Number(config.JWT_REFRESH_EXPIRES_IN) * 1000,
         httpOnly: true,
         secure: config.NODE_ENV === 'production',
         sameSite: 'lax',

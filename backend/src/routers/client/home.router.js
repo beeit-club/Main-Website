@@ -4,6 +4,7 @@ import { verifyTokenOptional } from '../../middlewares/jwt.js';
 
 const Router = express.Router();
 
+Router.get('/landing', HomeControler.getLandingPage);
 Router.get('/', HomeControler.Home);
 Router.get('/category', HomeControler.getCategories);
 Router.get('/documentCategory', HomeControler.getDocumentCategories);

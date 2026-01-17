@@ -17,6 +17,12 @@ Router.get('/stats', userController.getUserStats);
 Router.get('/trash', userController.getDeletedUsers);
 
 /**
+ * 🔢 Đếm user theo bộ lọc
+ * GET /api/admin/users/count
+ */
+Router.get('/count', userController.countUsersByFilters);
+
+/**
  * 📋 Lấy danh sách tất cả user (có phân trang)
  * GET /api/admin/users?page=1&limit=1000
  */

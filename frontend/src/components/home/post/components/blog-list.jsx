@@ -88,12 +88,12 @@ export function BlogList({ posts }) {
                 <div className="flex flex-1 flex-col justify-between p-4 py-3">
                   <div className="space-y-1">
                     <Link href={`/post/${post.slug}`}>
-                      <h3 className="text-base font-bold leading-tight text-balance transition-colors hover:text-primary line-clamp-2">
+                      <h3 className="text-base font-bold leading-tight text-balance transition-colors hover:text-primary line-clamp-2 break-words break-all">
                         {post.title}
                       </h3>
                     </Link>
 
-                    <p className="text-[13px] text-muted-foreground line-clamp-2 text-pretty leading-relaxed opacity-80">
+                    <p className="text-[13px] text-muted-foreground line-clamp-2 text-pretty leading-relaxed opacity-80 break-words break-all">
                       {post.meta_description}
                     </p>
                   </div>
@@ -115,7 +115,7 @@ export function BlogList({ posts }) {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-1.5 bg-muted/50 px-2 py-0.5 rounded-sm">
                       <Eye className="h-3.5 w-3.5" />
                       <span>{post.view_count || 0}</span>

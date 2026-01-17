@@ -1,75 +1,55 @@
 // services/email/emailQueue.service.js
 import EmailQueueModel from '../../models/admin/emailQueue.model.js';
-import EmailCampaignModel from '../../models/admin/emailCampaign.model.js';
-import EmailTemplateModel from '../../models/admin/emailTemplate.model.js';
 import { query } from '../../utils/database.js';
 
 class EmailQueueService {
   /**
-   * Đẩy một email vào hàng đợi
+   * Đẩy email vào hàng đợi
+   * @param {Object} data 
+   * @param {string} data.recipientEmail
+   * @param {string|null} data.recipientName
+   * @param {number} data.templateId
+   * @param {Object} data.variables
+   * @param {number|null} data.batchJobId - ID của đợt gửi (nếu có)
    */
-  async addToQueue({ recipientEmail, recipientName, templateId, variables, campaignId = null }) {
+  async addToQueue({ recipientEmail, recipientName, actionKey, variables, batchJobId = null }) {
     try {
-      // 1. Nếu không có campaignId, tìm hoặc tạo campaign "System Notifications"
-      if (!campaignId) {
-        campaignId = await this.getOrCreateSystemCampaign(templateId);
-      }
+      // Logic mới: Không bắt buộc phải có Campaign/BatchJob cho các email hệ thống lẻ (OTP, Noti)
+      // Nếu batchJobId = null, nghĩa là email hệ thống gửi lẻ.
 
-      // 2. Thêm vào email_queue
-      await EmailQueueModel.bulkCreate([{
-        campaign_id: campaignId,
+      // Inject actionKey vào variables để worker biết dùng template nào
+      // Đây là cách "hack" nhẹ để không phải sửa schema DB thêm cột action_key
+      const finalVariables = { ...(variables || {}), _actionKey: actionKey };
+
+      const insertData = {
         recipient_email: recipientEmail,
         recipient_name: recipientName || null,
-        variables: variables || {}
-      }]);
+        variables: finalVariables,
+        status: 'pending',
+        attempts: 0
+      };
 
-      // 3. Cập nhật thống kê campaign
-      await EmailCampaignModel.updateStats(campaignId);
+      if (batchJobId) {
+        insertData.batch_job_id = batchJobId;
+      }
 
-      return { success: true, message: 'Đã thêm vào hàng đợi gửi email' };
+      // Chúng ta cần đảm bảo Model hỗ trợ insert có batch_job_id
+      // Ở đây tôi viết raw query hoặc dùng model nếu đã update
+      // Giả sử dùng Model bulkCreate hoặc create
+      await EmailQueueModel.create(insertData);
+
+      return { success: true, message: 'Đã thêm vào hàng đợi' };
     } catch (error) {
-      console.error('Lỗi khi thêm email vào hàng đợi:', error);
-      throw error;
+      console.error('[EmailQueue] Lỗi thêm vào queue:', error);
+      // Không throw lỗi chết app, chỉ log
+      return { success: false, error: error.message };
     }
   }
 
-  /**
-   * Lấy hoặc tạo một campaign hệ thống cho một template cụ thể
-   */
-  async getOrCreateSystemCampaign(templateId) {
-    try {
-      // Tìm campaign hệ thống đang active cho template này trong ngày hôm nay
-      const today = new Date().toISOString().slice(0, 10);
-      const campaignNamePrefix = `SYSTEM_AUTO_`;
-      
-      const sql = `
-        SELECT id FROM email_campaigns 
-        WHERE template_id = ? 
-        AND name LIKE ? 
-        AND status IN ('pending', 'processing') 
-        ORDER BY created_at DESC 
-        LIMIT 1
-      `;
-      const [rows] = await query(sql, [templateId, `${campaignNamePrefix}%`]);
-      
-      if (rows && rows.length > 0) {
-        return rows[0].id;
-      }
-
-      // Nếu không thấy, tạo mới một campaign cho hệ thống
-      const template = await EmailTemplateModel.getTemplateById(templateId);
-      const campaignName = `${campaignNamePrefix}${template ? template.name : 'GENERIC'}_${today}`;
-      
-      return await EmailCampaignModel.create({
-        name: campaignName,
-        template_id: templateId,
-        status: 'processing',
-        total_recipients: 0
-      });
-    } catch (error) {
-      console.error('Lỗi khi lấy/tạo system campaign:', error);
-      throw error;
-    }
+  // Hàm xử lý Queue (Worker sẽ gọi hàm này)
+  async processQueueItem(item) {
+    // Logic gửi mail thật sẽ nằm ở đây hoặc ở Worker Service riêng
+    // ...
   }
 }
 

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Github, Linkedin, Facebook, Mail, ArrowRight } from "lucide-react";
+import SafeImage from "@/components/common/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -94,12 +95,12 @@ const TheKernel = ({ leaders = [] }) => {
         <div className="absolute inset-0 w-full h-full">
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent z-10 md:hidden"></div>
           <div className="absolute inset-0 bg-gradient-to-l from-background via-transparent to-transparent z-10 hidden md:block"></div>
-          <img
+          <SafeImage
             key={activeLeader.image_url || activeLeader.id}
             src={activeLeader.image_url || "/logo.jpg"}
             alt={activeLeader.name}
             className="kernel-image w-full h-full object-cover"
-            loading="lazy"
+            fill
           />
         </div>
 

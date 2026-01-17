@@ -81,6 +81,10 @@ const BeeITPageClient = ({ initialData }) => {
     document.body.scrollTop = 0;
   };
 
+  useEffect(() => {
+    console.log("🔥CLIENT RECEIVED DATA:", initialData);
+  }, [initialData]);
+
   // Extract data from initialData
   const heroData = initialData?.hero || null;
   const statsData = initialData?.stats || [];

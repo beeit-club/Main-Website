@@ -23,7 +23,8 @@ const MemberModel = {
         // Map sortBy to actual columns if needed, or assume safe
         query += ` ORDER BY ${sortBy} ${sortDirection === 'desc' ? 'DESC' : 'ASC'}`;
       } else {
-        query += ` ORDER BY mp.created_at DESC`;
+        // Default sort by user creation time (u.created_at) as it is guaranteed to exist.
+        query += ` ORDER BY u.created_at DESC`;
       }
 
       // Pagination

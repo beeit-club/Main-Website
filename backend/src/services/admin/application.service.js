@@ -18,8 +18,7 @@ async function checkApplication(id, expectedStatus) {
       throw new ServiceError(
         'Trạng thái đơn không hợp lệ',
         'INVALID_STATUS',
-        `Đơn đang ở status ${
-          application.status
+        `Đơn đang ở status ${application.status
         }, yêu cầu status ${expectedStatus.join(' hoặc ')}`,
       );
     }
@@ -44,13 +43,13 @@ const applicationService = {
         email,
         student_id,
       });
-      
+
       if (existInfo) {
         if (existInfo.type === 'STUDENT_ID_IS_MEMBER') {
-            throw new ServiceError('Mã số sinh viên này đã là thành viên CLB.', 'STUDENT_ID_EXISTS', null, 409);
+          throw new ServiceError('Mã số sinh viên này đã là thành viên CLB.', 'STUDENT_ID_EXISTS', null, 409);
         }
         if (existInfo.type === 'APPLICATION_EXISTS') {
-            throw new ServiceError('Email này đã nộp đơn và đang trong quá trình xử lý.', 'APPLICATION_EXISTS', null, 409);
+          throw new ServiceError('Email này đã nộp đơn và đang trong quá trình xử lý.', 'APPLICATION_EXISTS', null, 409);
         }
       }
 
@@ -119,7 +118,13 @@ const applicationService = {
 
     // Gửi email thông báo lịch phỏng vấn
     try {
-      await emailService.sendInterviewScheduled(application, schedule);
+      await emailService.sendInterviewScheduled({
+        ...application,
+        time: schedule.start_time, // Template expects 'time'
+        date: schedule.start_time, // Template expects 'date'
+        location: schedule.location || 'P404, Tòa nhà FPT Polytechnic',
+        link_meeting: schedule.meeting_link || schedule.link_meeting // Handle possible field names
+      });
     } catch (emailError) {
       console.error('Lỗi khi gửi email thông báo lịch phỏng vấn:', emailError);
     }
@@ -133,10 +138,10 @@ const applicationService = {
       const application = await checkApplication(id, 2); // Yêu cầu status 2
 
       let targetUserId;
-      
+
       // 1. Kiểm tra xem user đã có tài khoản trong hệ thống chưa
       const existingUser = await applicationModel.findUserByEmail(application.email);
-      
+
       if (existingUser) {
         // Nếu đã có tài khoản -> Cập nhật role lên Member (4)
         await applicationModel.updateUserRole(existingUser.id, 4);
@@ -157,16 +162,12 @@ const applicationService = {
       if (!targetUserId) throw new Error('Không thể xác định User ID');
 
       // 2. Tạo hồ sơ thành viên
-      // Trích xuất năm nhập học từ ngày chọn (để điền vào cột course)
-      const enrollmentDate = new Date(application.student_year);
-      const enrollmentYear = enrollmentDate.getFullYear();
 
       const newProfile = {
         user_id: targetUserId,
         student_id: application.student_id,
         join_date: new Date(),
-        academic_year: application.student_year, // Lưu full ngày vào cột DATE
-        course: `Khóa ${enrollmentYear}`, // Tự động tạo tên khóa (VD: Khóa 2024)
+        academic_year: application.student_year,
         created_by: adminId,
       };
       await applicationModel.createMemberProfile(newProfile);
@@ -184,10 +185,10 @@ const applicationService = {
       try {
         await emailService.sendApplicationApproved(updatedApplication);
         if (!existingUser) {
-            await emailService.sendWelcomeEmail({
-                fullname: application.fullname,
-                email: application.email
-            });
+          await emailService.sendWelcomeEmail({
+            fullname: application.fullname,
+            email: application.email
+          });
         }
       } catch (emailError) {
         console.error('Lỗi khi gửi email chúc mừng/welcome:', emailError);

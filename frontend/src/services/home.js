@@ -68,7 +68,7 @@ export const getQuestionDetail = async (slug) => {
   const res = await fetch(url, {
     method: "GET",
     next: {
-      revalidate: ONE_DAY_IN_SECONDS, // Chi tiết câu hỏi revalidate mỗi ngày
+      revalidate: ONE_HOUR_IN_SECONDS, // Chi tiết câu hỏi revalidate mỗi giờ
       tags: ["question", slug], // Tag động theo slug để revalidate
     },
   });
@@ -86,19 +86,60 @@ export const getQuestionDetail = async (slug) => {
 
   // res.json() sẽ trả về { status: 'success', message: '...', data: { ... } }
   const data = await res.json();
-  
-  // Log dữ liệu nhận được từ API
-  console.log('=== DEBUG: Question data from API ===');
-  console.log('Full response:', JSON.stringify(data, null, 2));
-  if (data?.data) {
-    console.log('author_name:', data.data.author_name);
-    console.log('author_avatar:', data.data.author_avatar);
-    console.log('author_id:', data.data.author_id);
-    console.log('All keys:', Object.keys(data.data));
-  }
-  console.log('=====================================');
-  
+
   return data;
+};
+
+/**
+ * Lấy danh sách câu trả lời của câu hỏi (Client-side fetch, không cache)
+ * @param {string} slug - Slug của câu hỏi
+ */
+export const getQuestionAnswers = async (slug) => {
+  if (!slug) throw new Error("Slug là bắt buộc để lấy danh sách câu trả lời");
+
+  const url = `${baseUrl}/client/questions/${slug}/answers`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    next: {
+      revalidate: 0, // Không cache để lấy dữ liệu mới nhất
+    },
+  });
+
+  if (!res.ok) {
+    console.error(
+      `Error fetching answers from ${url}. Status: ${res.status}`
+    );
+    throw new Error(`Failed to fetch answers. Status: ${res.status}`);
+  }
+
+  return res.json();
+};
+
+/**
+ * Lấy thống kê câu hỏi (view count) của câu hỏi (Client-side fetch, không cache)
+ * @param {string} slug - Slug của câu hỏi
+ */
+export const getQuestionStats = async (slug) => {
+  if (!slug) throw new Error("Slug là bắt buộc để lấy thống kê câu hỏi");
+
+  const url = `${baseUrl}/client/questions/${slug}/stats`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    next: {
+      revalidate: 0, // Không cache để lấy dữ liệu mới nhất
+    },
+  });
+
+  if (!res.ok) {
+    console.error(
+      `Error fetching stats from ${url}. Status: ${res.status}`
+    );
+    throw new Error(`Failed to fetch stats. Status: ${res.status}`);
+  }
+
+  return res.json();
 };
 
 /**
@@ -107,13 +148,6 @@ export const getQuestionDetail = async (slug) => {
  */
 export const createQuestion = async (data) => {
   try {
-    // Log để debug
-    const token = localStorage.getItem("accessToken");
-    console.log('=== DEBUG: Frontend createQuestion ===');
-    console.log('Has token in localStorage:', !!token);
-    console.log('Token value:', token ? token.substring(0, 20) + '...' : 'No token');
-    console.log('======================================');
-    
     const response = await axiosClient.post("/client/questions", data, {
       headers: {
         "Content-Type": "application/json",
@@ -121,7 +155,7 @@ export const createQuestion = async (data) => {
     });
     return response.data; // { status: 'success', message: '...', data: { id: ... } }
   } catch (error) {
-    
+
     // Throw error object để component có thể xử lý
     // Đảm bảo error object luôn có property message
     if (error.response?.data) {
@@ -155,7 +189,7 @@ export const createAnswer = async (data) => {
     });
     return response.data; // { status: 'success', message: '...', data: { id: ... } }
   } catch (error) {
-    
+
     // Throw error object để component có thể xử lý
     // Đảm bảo error object luôn có property message
     if (error.response?.data) {

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import SafeImage from "@/components/common/SafeImage";
 
 const Testimonials = ({ testimonials = [] }) => {
     const [activeIndex, setActiveIndex] = useState(0);
@@ -47,11 +48,12 @@ const Testimonials = ({ testimonials = [] }) => {
                         </p>
 
                         <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-primary mb-4">
-                                <img
+                            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-primary mb-4 relative">
+                                <SafeImage
                                     src={testimonials[activeIndex].avatar}
                                     alt={testimonials[activeIndex].author}
                                     className="w-full h-full object-cover"
+                                    fill
                                 />
                             </div>
                             <h4 className="text-lg font-bold text-heading">{testimonials[activeIndex].author}</h4>

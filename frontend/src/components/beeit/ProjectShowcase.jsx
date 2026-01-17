@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ExternalLink, Github, Code2, Layers } from "lucide-react";
+import SafeImage from "@/components/common/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -98,20 +99,25 @@ const ProjectShowcase = ({ projects = [] }) => {
                             <div className="w-full lg:w-3/5 group relative project-image-container">
                                 <div className="absolute inset-0 bg-primary/20 blur-xl group-hover:blur-2xl transition-all duration-500 rounded-2xl opacity-50" />
                                 <div className="relative rounded-2xl overflow-hidden border border-border aspect-video shadow-2xl">
-                                    <img
+                                    <SafeImage
                                         src={project.image}
                                         alt={project.title}
                                         className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        fill
                                     />
 
                                     {/* Overlay Links */}
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
-                                        <a href={project.links.demo} className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-primary hover:text-white transition-colors">
-                                            <ExternalLink size={20} /> Live Demo
-                                        </a>
-                                        <a href={project.links.github} className="flex items-center gap-2 bg-black/50 border border-white/20 text-white px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors">
-                                            <Github size={20} /> Code
-                                        </a>
+                                        {project.links?.demo && (
+                                            <a href={project.links.demo} className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-primary hover:text-white transition-colors">
+                                                <ExternalLink size={20} /> Live Demo
+                                            </a>
+                                        )}
+                                        {project.links?.github && (
+                                            <a href={project.links.github} className="flex items-center gap-2 bg-black/50 border border-white/20 text-white px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors">
+                                                <Github size={20} /> Code
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -136,7 +142,7 @@ const ProjectShowcase = ({ projects = [] }) => {
                                         <Layers size={16} className="text-primary" /> Tech Stack
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
-                                        {project.tech.map((tech, i) => (
+                                        {project.tech?.map((tech, i) => (
                                             <span key={i} className="px-3 py-1 bg-accent border border-border rounded text-sm text-text hover:border-primary/50 transition-colors">
                                                 {tech}
                                             </span>

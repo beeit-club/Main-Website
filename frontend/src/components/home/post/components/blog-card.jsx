@@ -61,7 +61,7 @@ export function BlogCard({ post }) {
             }
             onError={handleImageError}
           />
-          
+
           {/* Category Badge - More Minimal */}
           {post.category_name && (
             <div className="absolute left-3 top-3">
@@ -79,14 +79,14 @@ export function BlogCard({ post }) {
       {/* Content Section */}
       <CardHeader className="flex-1 p-4 pb-0 space-y-2">
         <Link href={`/post/${post.slug}`} className="block">
-          <h3 className="text-base font-bold leading-tight text-balance line-clamp-2 group-hover:text-primary transition-colors duration-200">
+          <h3 className="text-base font-bold leading-tight text-balance line-clamp-2 group-hover:text-primary transition-colors duration-200 pr-2 break-words break-all">
             {post.title}
           </h3>
         </Link>
 
         {/* Description */}
         {post.meta_description && (
-          <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed opacity-80">
+          <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed opacity-80 break-words break-all">
             {post.meta_description}
           </p>
         )}

@@ -41,6 +41,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import { revalidatePosts, revalidateHome } from "@/utils/revalidateCache";
+import SafeImage from "@/components/common/SafeImage";
 // Giả sử bạn có component Toast
 // import { useToast } from "@/components/ui/use-toast";
 
@@ -157,12 +158,12 @@ function EditPost() {
     } catch (error) {
       setIsSubmitting(false);
       console.error("Error updating post:", error);
-      
+
       // Extract error message from different possible error structures
       // Note: postServices.updatePost throws error?.response?.data || error
       // So error might already be the response.data object
       let errorMessage = "Không thể cập nhật bài viết.";
-      
+
       // Handle different error structures
       if (typeof error === 'string') {
         errorMessage = error;
@@ -175,7 +176,7 @@ function EditPost() {
       } else if (error?.response?.data?.error?.message) {
         errorMessage = String(error.response.data.error.message);
       }
-      
+
       // Ensure we never pass an object to toast - always convert to string
       toast.error(String(errorMessage));
     }
@@ -366,14 +367,14 @@ function EditPost() {
                                       const tagIdStr = String(tag.id);
                                       return checked
                                         ? field.onChange([
-                                            ...(field.value || []),
-                                            tagIdStr,
-                                          ])
+                                          ...(field.value || []),
+                                          tagIdStr,
+                                        ])
                                         : field.onChange(
-                                            (field.value || []).filter(
-                                              (value) => value !== tagIdStr
-                                            )
-                                          );
+                                          (field.value || []).filter(
+                                            (value) => value !== tagIdStr
+                                          )
+                                        );
                                     }}
                                   />
                                 </FormControl>
@@ -399,11 +400,15 @@ function EditPost() {
               <CardTitle>Ảnh đại diện</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+
               {imagePreview && (
-                <img
+                <SafeImage
                   src={imagePreview} // Sẽ hiển thị ảnh cũ hoặc ảnh mới
                   alt="Xem trước ảnh"
                   className="w-full h-auto rounded-md object-cover aspect-video"
+                  width={500}
+                  height={300}
+                  unoptimized={true} // Blob URLs often need unoptimized
                 />
               )}
               <FormField

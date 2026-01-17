@@ -122,7 +122,7 @@ export const mockLandingData = {
             title: "ROBOTICS",
             year: "2022",
             description: "Triển lãm IoT",
-            image: "https://images.unsplash.com/photo-1581092921461-eab62e97a782?q=80&w=800&auto=format&fit=crop",
+            image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=800&auto=format&fit=crop",
             row_number: 2
         },
         {

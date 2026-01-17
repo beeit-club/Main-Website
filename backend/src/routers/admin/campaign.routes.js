@@ -1,15 +1,20 @@
 
 import express from 'express';
-import campaignController from '../../controllers/admin/campaign.controller.js';
+import bulkEmailController from '../../controllers/admin/bulkEmail.controller.js';
 import { checkAdmin } from '../../middlewares/role.handler.js';
 
 const router = express.Router();
 
-// Tất cả routes admin đều yêu cầu Admin
 router.use(checkAdmin);
 
-router.post('/', campaignController.create);
-router.get('/', campaignController.getAll);
-router.get('/:id', campaignController.getDetail);
+// Tạo Job gửi hàng loạt
+router.post('/create-job', bulkEmailController.sendBulkEmailFromFilters);
+
+// Quản lý Job
+router.get('/', bulkEmailController.getAllBatchJobs);
+router.post('/:id/retry', bulkEmailController.retryFailedEmails);
+
+// (Optional) Các route cũ giữ lại nếu cần
+// router.get('/:id', ...);
 
 export default router;

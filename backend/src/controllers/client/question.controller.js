@@ -38,7 +38,7 @@ const questionController = {
     const { title, content } = req.body;
     // Nếu có user thì lấy id, nếu không (ẩn danh) thì null
     const userId = req.user ? req.user.id : null;
-    
+
     const slug = slugify(title);
     const sanitizedContent = sanitizeHtml(content);
     const sanitizedTitle = sanitizeText(title);
@@ -52,6 +52,20 @@ const questionController = {
 
     const newQuestion = await questionClientService.askQuestion(questionData);
     utils.success(res, QUESTION_CREATE_SUCCESS, { id: newQuestion.insertId });
+  }),
+
+  // Client lấy danh sách câu trả lời của câu hỏi
+  getAnswersBySlug: asyncWrapper(async (req, res) => {
+    const { slug } = req.params;
+    const answers = await questionClientService.getAnswersBySlug(slug);
+    utils.success(res, QUESTION_GET_DETAIL_SUCCESS, { answers });
+  }),
+
+  // Client lấy thống kê (view count) của câu hỏi
+  getQuestionStats: asyncWrapper(async (req, res) => {
+    const { slug } = req.params;
+    const stats = await questionClientService.getQuestionStats(slug);
+    utils.success(res, QUESTION_GET_DETAIL_SUCCESS, { stats });
   }),
 };
 

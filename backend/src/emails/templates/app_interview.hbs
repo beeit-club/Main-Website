@@ -1,0 +1,67 @@
+<h2 style="color: #1f2937; margin-bottom: 20px;">Mời phỏng vấn - Bee IT Club</h2>
+<p style="margin-bottom: 15px; color: #4b5563;">Xin chào <strong>{{fullname}}</strong>,</p>
+Cảm ơn bạn đã ứng tuyển vào Bee IT Club. Sau khi xem xét hồ sơ, chúng tôi rất ấn tượng và muốn mời bạn tham gia vòng
+phỏng vấn.
+</p>
+<div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 25px 0;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding-bottom: 12px; width: 30px; vertical-align: top;">
+                <span
+                    style="display: block; width: 8px; height: 8px; background-color: #db2777; border-radius: 50%; margin-top: 6px;"></span>
+            </td>
+            <td style="padding-bottom: 12px;">
+                <span
+                    style="font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Thời
+                    gian</span>
+                <span style="color: #1f2937; font-weight: 500;">{{formatTime time}} - {{formatDate date}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-bottom: 12px; width: 30px; vertical-align: top;">
+                <span
+                    style="display: block; width: 8px; height: 8px; background-color: #db2777; border-radius: 50%; margin-top: 6px;"></span>
+            </td>
+            <td style="padding-bottom: 12px;">
+                <span
+                    style="font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Địa
+                    điểm</span>
+                <span style="color: #1f2937; font-weight: 500;">{{location}}</span>
+            </td>
+        </tr>
+        {{#if link_meeting}}
+        <tr>
+            <td style="width: 30px; vertical-align: top;">
+                <span
+                    style="display: block; width: 8px; height: 8px; background-color: #db2777; border-radius: 50%; margin-top: 6px;"></span>
+            </td>
+            <td>
+                <span
+                    style="font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Link
+                    Meeting</span>
+                <a href="{{link_meeting}}" style="color: #db2777; text-decoration: none; font-weight: 500;">Tham gia
+                    cuộc họp</a>
+            </td>
+        </tr>
+        {{/if}}
+    </table>
+</div>
+
+{{!-- Action Buttons --}}
+<div style="margin: 35px 0; text-align: left;">
+    <p style="font-size: 14px; color: #4b5563; margin-bottom: 15px;">Vui lòng chọn một trong các phản hồi dưới đây:</p>
+    <a href="mailto:support@beeit.club?subject=Xác nhận tham gia phỏng vấn - {{fullname}}&body=Kính gửi Ban Nhân sự,%0D%0A%0D%0ATôi tên là {{fullname}}. Tôi xin xác nhận sẽ tham gia phỏng vấn đúng giờ.%0D%0A%0D%0ATrân trọng,"
+        style="background-color: #1f2937; color: #ffffff; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 600; display: inline-block; margin-right: 12px;">
+        Xác nhận tham gia
+    </a>
+
+    <a href="mailto:support@beeit.club?subject=Xin đổi lịch/Hủy phỏng vấn - {{fullname}}&body=Kính gửi Ban Nhân sự,%0D%0A%0D%0ATôi tên là {{fullname}}. Tôi xin phép được đổi lịch/hủy phỏng vấn vì lý do:%0D%0A...%0D%0A%0D%0ATrân trọng,"
+        style="background-color: #ffffff; color: #4b5563; border: 1px solid #d1d5db; padding: 9px 19px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-block;">
+        Xin đổi lịch / Hủy
+    </a>
+</div>
+<p style="margin-bottom: 15px; color: #4b5563;">
+    Vui lòng xác nhận sự tham gia của bạn trước thời gian phỏng vấn 24h. Nếu có thay đổi, hãy liên hệ lại với chúng tôi
+    sớm nhất có thể.
+</p>
+<p style="margin-bottom: 0; color: #4b5563;">Hẹn gặp bạn,<br>Ban Nhân sự</p>

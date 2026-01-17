@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // domains: ['images.unsplash.com', 'localhost'], // Deprecated
     remotePatterns: [
       {
         protocol: "https",
@@ -65,6 +66,16 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "*.googleusercontent.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "preview.redd.it",
         pathname: "/**",
       },
     ],

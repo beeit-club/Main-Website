@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,8 +11,9 @@ import DOMPurify from "isomorphic-dompurify";
 import TinyEditor from "@/components/TinyEditor/TinyEditor";
 import { useAuthStore } from "@/stores/authStore";
 import { toast } from "sonner";
-import axiosClient from "@/services/api";
+import { getQuestionAnswers, getQuestionStats } from "@/services/home";
 import AnswerItem from "./_components/AnswerItem";
+import axiosClient from "@/services/api";
 
 export default function QuestionDetailClient({ initialQuestion }) {
     const router = useRouter();
@@ -29,18 +30,28 @@ export default function QuestionDetailClient({ initialQuestion }) {
     // Ref để cuộn xuống form khi bấm Reply
     const formRef = useRef(null);
 
-    // We can re-fetch question to update answers if needed
-    const fetchQuestion = async () => {
+    // We can re-fetch question to update answers and stats if needed
+    const fetchAnswersAndStats = async () => {
         try {
-            // Use axios for client-side refetch
-            const res = await axiosClient.get(`/client/questions/${initialQuestion.slug}`);
-            if (res.data?.status === "success") {
-                setQuestion(res.data.data.question);
+            // Fetch answers
+            const ansRes = await getQuestionAnswers(initialQuestion.slug);
+            if (ansRes.data?.answers) {
+                setQuestion(prev => ({ ...prev, answers: ansRes.data.answers }));
+            }
+
+            // Fetch stats (view count)
+            const statsRes = await getQuestionStats(initialQuestion.slug);
+            if (statsRes.data?.stats) {
+                setQuestion(prev => ({ ...prev, view_count: statsRes.data.stats.view_count }));
             }
         } catch (error) {
-            console.error("Failed to refresh question:", error);
+            console.error("Failed to refresh data:", error);
         }
     };
+
+    useEffect(() => {
+        fetchAnswersAndStats();
+    }, [initialQuestion.slug]);
 
     const handleReply = (answer) => {
         setReplyTo(answer);
@@ -82,7 +93,7 @@ export default function QuestionDetailClient({ initialQuestion }) {
                 editorRef.current.setContent(""); // Clear content
             }
             setReplyTo(null); // Reset reply state
-            fetchQuestion(); // Reload
+            fetchAnswersAndStats(); // Reload answers
         } catch (error) {
             toast.error(error.response?.data?.message || "Lỗi khi gửi câu trả lời");
         } finally {
@@ -118,7 +129,7 @@ export default function QuestionDetailClient({ initialQuestion }) {
                             <AvatarFallback>{question.author_name?.[0]}</AvatarFallback>
                         </Avatar>
                         <span className="font-medium text-foreground">
-                            {question.author_name || "Thành viên"}
+                            {question.author_name || "Ẩn danh"}
                         </span>
                     </div>
                     <span>•</span>

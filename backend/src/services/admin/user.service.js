@@ -304,6 +304,17 @@ const userService = {
       throw error;
     }
   },
+
+  /**
+   * 🔢 Đếm user theo bộ lọc
+   */
+  countUsers: async (option) => {
+    try {
+      return await userModel.countUsers(option);
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default userService;

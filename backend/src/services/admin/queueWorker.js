@@ -1,6 +1,6 @@
 
 import EmailQueueModel from '../../models/admin/emailQueue.model.js';
-import EmailCampaignModel from '../../models/admin/emailCampaign.model.js';
+import EmailBatchJobModel from '../../models/admin/emailBatchJob.model.js';
 import emailService from '../email/emailService.js';
 
 const BATCH_SIZE = 5; // Số lượng email gửi mỗi lần quét
@@ -15,7 +15,7 @@ async function processQueue() {
   try {
     // 1. Lấy các item đang pending
     const items = await EmailQueueModel.getPendingItems(BATCH_SIZE);
-    
+
     if (items.length === 0) {
       isRunning = false;
       return;
@@ -32,32 +32,45 @@ async function processQueue() {
         // Parse variables
         let variables = item.variables;
         if (typeof variables === 'string') {
-          try { variables = JSON.parse(variables); } catch (e) {}
+          try { variables = JSON.parse(variables); } catch (e) { }
         }
 
-        // Gửi email (Dùng hàm sendDynamicEmail có sẵn)
-        // QUAN TRỌNG: set useQueue = false để gửi thực tế, không đẩy lại vào queue
-        await emailService.sendDynamicEmail(
-          item.template_id,
-          item.recipient_email,
-          variables,
-          false // useQueue = false
-        );
+        // Logic mới: Kiểm tra actionKey trong variables
+        if (variables && variables._actionKey) {
+          const actionKey = variables._actionKey;
+          // Xóa _actionKey để không truyền vào template
+          const { _actionKey, ...realVariables } = variables;
+
+          await emailService.sendEmailByAction(
+            actionKey,
+            item.recipient_email,
+            realVariables,
+            false // useQueue = false (Direct send)
+          );
+        } else if (item.template_id) {
+          // Logic cũ (nếu còn dùng batch job DB templates)
+          // Tuy nhiên chúng ta đã bỏ DB template service, nên phần này có thể sẽ lỗi nếu gọi sendDynamicEmail với ID
+          // Tạm thời coi như không hỗ trợ DB ID nữa hoặc để đó.
+          // Nếu muốn hỗ trợ, phải sửa sendDynamicEmail để nhận ID lại (nhưng ta đã refactor nó nhận filename).
+          console.warn(`[QueueWorker] Item ${item.id} has template_id but DB templates are deprecated.`);
+        } else {
+          throw new Error('Queue item missing identifier (actionKey)');
+        }
 
         // Thành công
-        await EmailQueueModel.update(item.id, { 
-          status: 'sent', 
-          sent_at: new Date() 
+        await EmailQueueModel.update(item.id, {
+          status: 'sent',
+          sent_at: new Date()
         });
 
       } catch (error) {
         console.error(`[QueueWorker] Failed item ${item.id}:`, error.message);
-        
+
         // Thất bại -> Tăng attempt, nếu > 3 thì fail hẳn
         const newAttempts = (item.attempts || 0) + 1;
         const newStatus = newAttempts >= 3 ? 'failed' : 'pending'; // Retry sau
-        
-        await EmailQueueModel.update(item.id, { 
+
+        await EmailQueueModel.update(item.id, {
           status: newStatus,
           attempts: newAttempts,
           error_message: error.message
@@ -67,11 +80,11 @@ async function processQueue() {
 
     await Promise.all(promises);
 
-    // 3. Cập nhật thống kê cho các Campaign liên quan
-    // Lấy danh sách unique campaign IDs
-    const campaignIds = [...new Set(items.map(i => i.campaign_id))];
-    for (const campId of campaignIds) {
-      await EmailCampaignModel.updateStats(campId);
+    // 3. Cập nhật thống kê cho các BatchJob liên quan
+    // Lấy danh sách unique batch job IDs
+    const batchJobIds = [...new Set(items.map(i => i.batch_job_id).filter(id => id))];
+    for (const jobId of batchJobIds) {
+      await EmailBatchJobModel.updateStats(jobId);
     }
 
   } catch (error) {

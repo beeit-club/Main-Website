@@ -2,113 +2,62 @@
 import axiosClient from "../api";
 
 export const emailTemplateServices = {
-  /**
-   * 📋 Lấy danh sách templates
-   * GET /admin/email-templates
-   */
+  // ... (Các hàm template cũ giữ nguyên) ...
   getAllTemplates: async (params) => {
-    try {
-      const res = await axiosClient.get("admin/email-templates", { params });
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
+    const res = await axiosClient.get("admin/email-templates", { params });
+    return res.data;
   },
-
-  /**
-   * 🔹 Lấy template theo ID
-   * GET /admin/email-templates/:id
-   */
   getTemplateById: async (id) => {
-    try {
-      const res = await axiosClient.get(`admin/email-templates/${id}`);
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
+    const res = await axiosClient.get(`admin/email-templates/${id}`);
+    return res.data;
   },
-
-  /**
-   * ➕ Tạo template mới
-   * POST /admin/email-templates
-   */
   createTemplate: async (data) => {
-    try {
-      const res = await axiosClient.post("admin/email-templates", data);
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
+    const res = await axiosClient.post("admin/email-templates", data);
+    return res.data;
   },
-
-  /**
-   * ✏️ Cập nhật template
-   * PUT /admin/email-templates/:id
-   */
   updateTemplate: async (id, data) => {
-    try {
-      const res = await axiosClient.put(`admin/email-templates/${id}`, data);
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
+    const res = await axiosClient.put(`admin/email-templates/${id}`, data);
+    return res.data;
   },
-
-  /**
-   * 🗑️ Xóa template
-   * DELETE /admin/email-templates/:id
-   */
   deleteTemplate: async (id) => {
-    try {
-      const res = await axiosClient.delete(`admin/email-templates/${id}`);
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
+    const res = await axiosClient.delete(`admin/email-templates/${id}`);
+    return res.data;
   },
-
-  /**
-   * 👁️ Preview template
-   * POST /admin/email-templates/:id/preview
-   */
   previewTemplate: async (id, variables = {}) => {
-    try {
-      const res = await axiosClient.post(`admin/email-templates/${id}/preview`, {
-        variables,
-      });
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
+    const res = await axiosClient.post(`admin/email-templates/${id}/preview`, { variables });
+    return res.data;
   },
-
-  /**
-   * 📧 Test gửi email
-   * POST /admin/email-templates/:id/test-send
-   */
+  // API mới: Preview Raw
+  previewRaw: async (data) => {
+    const res = await axiosClient.post(`admin/email-templates/preview`, data);
+    return res.data;
+  },
   testSendTemplate: async (id, recipientEmail, variables = {}) => {
-    try {
-      const res = await axiosClient.post(`admin/email-templates/${id}/test-send`, {
-        recipient_email: recipientEmail,
-        variables,
-      });
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
+    const res = await axiosClient.post(`admin/email-templates/${id}/test-send`, {
+      recipient_email: recipientEmail,
+      variables,
+    });
+    return res.data;
   },
 
-  /**
-   * 📂 Lấy danh sách categories
-   * GET /admin/email-templates/categories
-   */
-  getCategories: async () => {
-    try {
-      const res = await axiosClient.get("admin/email-templates/categories");
-      return res.data;
-    } catch (error) {
-      throw error?.response?.data || error;
-    }
+  // === BULK EMAIL APIs ===
+  
+  // Tạo chiến dịch gửi
+  createBatchJob: async (data) => {
+    // data: { template_id, job_name, filters, input_variables }
+    const res = await axiosClient.post(`admin/campaigns/create-job`, data);
+    return res.data;
   },
+
+  // Lấy danh sách Jobs
+  getAllBatchJobs: async (params) => {
+    const res = await axiosClient.get("admin/campaigns", { params });
+    return res.data;
+  },
+
+  // Retry
+  retryBatchJob: async (id) => {
+    const res = await axiosClient.post(`admin/campaigns/${id}/retry`);
+    return res.data;
+  }
 };
-

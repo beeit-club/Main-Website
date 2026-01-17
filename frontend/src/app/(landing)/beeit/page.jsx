@@ -2,9 +2,31 @@ import BeeITPageClient from "./BeeITPageClient";
 import { mockLandingData } from "@/mock/landingData";
 import { getFullUrl, getOgImageUrl } from "@/lib/seo";
 
+const API_BACKEND = process.env.NEXT_PUBLIC_API_BACKEND || "http://localhost:8000";
+
+async function getData() {
+  try {
+    console.log(`[BeeIT] Fetching data from: ${API_BACKEND}/client/landing`);
+    const res = await fetch(`${API_BACKEND}/client/landing`, {
+      next: { tags: ['landing'] },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch landing data: ${res.status}`);
+    }
+
+    const data = await res.json();
+    console.log("[BeeIT] Fetch Success. Hero Title:", data?.hero?.title_line1);
+    return data;
+  } catch (error) {
+    console.error("Error fetching landing data:", error);
+    return mockLandingData; // Fallback to mock data
+  }
+}
+
 // Generate metadata với dynamic data
 export async function generateMetadata() {
-  const beeitData = mockLandingData;
+  const beeitData = await getData();
   const hero = beeitData?.hero;
   const stats = beeitData?.stats || [];
 
@@ -73,9 +95,8 @@ export async function generateMetadata() {
   };
 }
 
-export default function BeeITLandingPage() {
-  // Use mock data
-  const beeitData = mockLandingData;
+export default async function BeeITLandingPage() {
+  const beeitData = await getData();
 
   return <BeeITPageClient initialData={beeitData} />;
 }

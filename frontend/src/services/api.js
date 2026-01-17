@@ -1,5 +1,7 @@
 // services/: API services dùng Axios + SWR.
 import axios from "axios";
+import { toast } from "sonner";
+
 const axiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BACKEND,
   timeout: process.env.NEXT_PUBLIC_API_TIMEOUT,
@@ -21,7 +23,7 @@ const refreshToken = async () => {
   } catch (error) {
     console.error("Refresh token failed:", error);
     if (error.code === "ECONNABORTED") {
-      alert("Máy chủ không phản hồi sau 10 giây. Vui lòng thử lại sau.");
+      toast.error("Máy chủ không phản hồi sau 10 giây. Vui lòng thử lại sau.");
     }
     throw error;
   }
@@ -79,7 +81,7 @@ axiosClient.interceptors.response.use(
               // ✅ FIX #5: Cleanup state hoàn toàn khi refresh thất bại
               localStorage.removeItem("accessToken");
 
-              alert("hết phiên vui lòng đăng nhập lại");
+              toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
               window.location.href = "/login";
               return Promise.reject(err);
             });

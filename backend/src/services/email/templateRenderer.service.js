@@ -1,160 +1,163 @@
-// services/email/templateRenderer.service.js
-// Service render template email từ database (Simple Layout Version)
-
 import handlebars from 'handlebars';
-import EmailTemplateModel from '../../models/admin/emailTemplate.model.js';
-import customVariableService from './customVariable.service.js';
+import mjml2html from 'mjml';
 import ServiceError from '../../error/service.error.js';
 
 class TemplateRenderer {
+  constructor() {
+    this.registerHelpers();
+  }
+
+  registerHelpers() {
+    // Helper định dạng ngày giờ VN
+    handlebars.registerHelper('formatDate', (date) => {
+      if (!date) return '';
+      try {
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return date; // Return original string if invalid
+        return d.toLocaleDateString('vi-VN', {
+          day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+      } catch (e) { return date; }
+    });
+
+    handlebars.registerHelper('formatTime', (date) => {
+      if (!date) return '';
+      try {
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return date;
+        return d.toLocaleTimeString('vi-VN', {
+          hour: '2-digit', minute: '2-digit'
+        });
+      } catch (e) { return date; }
+    });
+
+    // Helper logic cơ bản
+    handlebars.registerHelper('ifEq', function (arg1, arg2, options) {
+      return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+    });
+
+    // Helper xử lý biến thiếu (Optional: chỉ bật khi debug/preview)
+    // Giúp hiển thị {{variable_name}} thay vì khoảng trắng nếu thiếu dữ liệu
+    handlebars.registerHelper('helperMissing', function (/* [args, ] options */) {
+      const options = arguments[arguments.length - 1];
+      // Trả về lại chuỗi {{variable}} để user biết
+      return new handlebars.SafeString('{{' + options.name + '}}');
+    });
+  }
+
   /**
-   * Render template từ database
-   * @param {number|string} templateIdOrSlug - Template ID hoặc slug
-   * @param {Object} variables - Variables để render
-   * @returns {Promise<string>} HTML đã render
+   * Chuẩn hóa nội dung đầu vào thành MJML hợp lệ
+   * Tự động bọc text/html thường vào cấu trúc mjml -> mj-text
    */
-  async renderFromDatabase(templateIdOrSlug, variables = {}) {
-    try {
-      // 1. Lấy template từ DB
-      let template;
-      if (
-        typeof templateIdOrSlug === 'number' ||
-        /^\d+$/.test(templateIdOrSlug)
-      ) {
-        template = await EmailTemplateModel.getTemplateById(templateIdOrSlug);
-      } else {
-        template = await EmailTemplateModel.getTemplateBySlug(templateIdOrSlug);
+  normalizeMJML(content) {
+    if (!content || content.trim() === '') return '';
+
+    const trimmed = content.trim();
+
+    // Nếu đã có thẻ mở <mjml>, giả định là đúng (hoặc sẽ lỗi parse sau)
+    if (trimmed.startsWith('<mjml>')) return trimmed;
+
+    // Kiểm tra xem có thẻ mj- nào không
+    const hasMjTag = content.includes('<mj-');
+
+    if (!hasMjTag) {
+      // Trường hợp: Text thường hoặc HTML thuần
+      // Bọc vào mj-text
+      return `
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text>${content}</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`;
+    } else {
+      // Trường hợp: Fragment MJML (ví dụ <mj-section>...)
+      // Bọc thiếu gì bổ sung nấy
+      let wrapped = content;
+      if (!wrapped.includes('<mj-body>')) {
+        wrapped = `<mj-body>${wrapped}</mj-body>`;
       }
-
-      if (!template) {
-        throw new ServiceError(
-          `Template không tồn tại: ${templateIdOrSlug}`,
-          'TEMPLATE_NOT_FOUND',
-          null,
-          404,
-        );
+      if (!wrapped.includes('<mjml>')) {
+        wrapped = `<mjml>${wrapped}</mjml>`;
       }
-
-      // 2. Chuẩn bị Variables
-      const templateVariables = template.variables
-        ? typeof template.variables === 'string'
-          ? JSON.parse(template.variables)
-          : template.variables
-        : [];
-
-      const defaultVariables = template.default_variables
-        ? typeof template.default_variables === 'string'
-          ? JSON.parse(template.default_variables)
-          : template.default_variables
-        : {};
-
-      // Merge & Compute custom variables
-      const mergedVariables = {
-        ...defaultVariables,
-        ...variables,
-      };
-
-      const finalVariables = await customVariableService.computeCustomVariables(
-        mergedVariables,
-        template.id,
-      );
-
-      // Validate
-      this.validateVariables(templateVariables, finalVariables);
-
-      // 3. Render Body (Phần nội dung chính)
-      const compiledBody = handlebars.compile(template.body || template.html_content || '');
-      const bodyContent = compiledBody(finalVariables);
-
-      // Render Header
-      let headerContent = '';
-      if (template.header) {
-        const compiledHeader = handlebars.compile(template.header);
-        headerContent = compiledHeader(finalVariables);
-      }
-
-      // Render Footer
-      let footerContent = '';
-      if (template.footer) {
-        const compiledFooter = handlebars.compile(template.footer);
-        footerContent = compiledFooter(finalVariables);
-      }
-
-      // 4. Combine
-      // Nếu không có header/footer trong DB, có thể dùng default layout hoặc để trống
-      // Ở đây ta ưu tiên DB, nếu null thì thôi.
-      return `${headerContent}${bodyContent}${footerContent}`;
-    } catch (error) {
-      if (error instanceof ServiceError) throw error;
-      throw new ServiceError(
-        'Render template thất bại',
-        'RENDER_TEMPLATE_FAILED',
-        error.message,
-        500,
-      );
+      return wrapped;
     }
   }
 
   /**
-   * Layout đơn giản: Header text + Nội dung + Footer text
+   * Biên dịch MJML sang HTML chuẩn
+   * @param {string} mjmlContent 
+   * @returns {string} html
    */
-  wrapWithSimpleLayout(title, content) {
-    // Render subject để dùng làm title trong header nếu cần
-    // (Ở đây ta dùng title truyền vào, thường là subject của email)
-    const cleanTitle = title.replace(/{{.*?}}/g, '...').trim(); // Loại bỏ variable placeholder trong title header cho gọn
+  compileMJML(mjmlContent) {
+    // Chuẩn hóa trước khi compile
+    const normalized = this.normalizeMJML(mjmlContent);
 
-    return `
-      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5; max-width: 600px;">
-        <!-- HEADER -->
-        <div style="margin-bottom: 20px;">
-          <h3 style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;">
-            [BEE IT CLUB] - ${cleanTitle}
-          </h3>
-        </div>
-
-        <!-- BODY CONTENT -->
-        <div style="margin-bottom: 30px;">
-          ${content}
-        </div>
-
-        <!-- FOOTER -->
-        <div style="margin-top: 30px; font-size: 12px; color: #7f8c8d;">
-          <hr style="border: 0; border-top: 1px solid #eee;" />
-          <p>
-            <b>Ban Quản Lý Bee IT Club</b><br/>
-            Email tự động từ hệ thống. Vui lòng không trả lời email này.<br/>
-            Liên hệ: contact@beeit.club
-          </p>
-        </div>
-      </div>
-    `;
-  }
-
-  /**
-   * Render subject
-   */
-  async renderSubject(template, variables = {}) {
+    if (!normalized) return '';
     try {
-      if (!template.subject) return 'Thông báo từ Bee IT Club';
+      const { html, errors } = mjml2html(normalized, {
+        validationLevel: 'soft', // Không crash nếu lỗi nhẹ
+        minify: false // Tắt minify để debug lỗi mất nội dung
+      });
 
-      const compiled = handlebars.compile(template.subject);
-      return compiled(variables);
+      if (errors && errors.length > 0) {
+        console.warn('MJML Warnings:', errors);
+      }
+      return html;
     } catch (error) {
-      return template.subject;
+      throw new ServiceError('Lỗi biên dịch MJML', 'MJML_COMPILE_ERROR', error.message);
     }
   }
 
   /**
-   * Validate variables
+   * Quét và phát hiện các biến trong nội dung
+   * Loại bỏ các biến hệ thống/helper
    */
-  validateVariables(templateVariables, providedVariables) {
-    if (!Array.isArray(templateVariables) || templateVariables.length === 0) return;
+  detectVariables(content) {
+    if (!content) return [];
 
-    for (const varDef of templateVariables) {
-      if (varDef.required && !(varDef.name in providedVariables)) {
-        // Chỉ warn, không throw lỗi chặn gửi mail để linh hoạt hơn
-        console.warn(`Missing required variable: ${varDef.name}`);
+    // Regex tìm chuỗi trong {{ }}
+    // Group 1: Tên biến
+    const regex = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
+    const matches = new Set();
+    let match;
+
+    while ((match = regex.exec(content)) !== null) {
+      const varName = match[1];
+      // Bỏ qua các helper words thường gặp nếu cần
+      if (!['if', 'else', 'each', 'formatDate', 'formatTime'].includes(varName)) {
+        matches.add(varName);
       }
+    }
+
+    return Array.from(matches);
+  }
+
+  /**
+   * Render HTML cuối cùng để gửi email
+   * @param {string} htmlTemplate - HTML đã compile từ MJML
+   * @param {object} variables - Dữ liệu thực tế
+   */
+  renderFinalHtml(htmlTemplate, variables = {}) {
+    try {
+      const template = handlebars.compile(htmlTemplate);
+      return template(variables);
+    } catch (error) {
+      throw new ServiceError('Lỗi render Handlebars', 'RENDER_ERROR', error.message);
+    }
+  }
+
+  /**
+   * Render Subject (Tiêu đề cũng có thể có biến)
+   */
+  renderSubject(subjectTemplate, variables = {}) {
+    try {
+      return handlebars.compile(subjectTemplate || '')(variables);
+    } catch (e) {
+      return subjectTemplate;
     }
   }
 }

@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Terminal, Mic, Share2, BookOpen, Swords, Rocket, ArrowUpRight } from 'lucide-react';
+import SafeImage from "@/components/common/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -66,12 +67,14 @@ const Activities = ({ activities = [] }) => {
                             key={idx}
                             className="activity-card group relative h-[320px] bg-card overflow-hidden"
                         >
+
                             {/* 1. Background Image (Reveals on Hover) */}
                             <div className="absolute inset-0 z-0">
-                                <img
+                                <SafeImage
                                     src={item.image}
                                     alt={item.title}
                                     className="w-full h-full object-cover opacity-0 group-hover:opacity-40 transition-opacity duration-500 scale-105 group-hover:scale-100 ease-out"
+                                    fill
                                 />
                                 {/* Overlay Gradient for readability when image is shown */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
